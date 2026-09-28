@@ -4,9 +4,8 @@ import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Brain, Zap, Shield, Flame, Sparkles, Trophy, RotateCcw, Calendar, Skull, Award, Building2, Cpu, Heart, BookOpen, Factory, TreePine, Info, Coins } from "lucide-react";
+import { ArrowUpRight, Brain, Zap, Shield, Flame, Sparkles, RotateCcw, Calendar, Skull, Building2, Cpu, Heart, BookOpen, Factory, TreePine, Info, Check, CircleDashed, Compass, Flag, Gauge, LockKeyhole, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Coin3D, type CoinTier } from "@/components/Coin3D";
 import { useAuth } from "@/hooks/useAuth";
 import { readAccountJson, writeAccountJson } from "@/lib/accountStorage";
 
@@ -72,15 +71,6 @@ const BOSSES = [
   { id: "bf", day: 365, name: "Mestre da Neuroplasticidade", desc: "Chefe final: um ano livre" },
 ];
 
-const ACHIEVEMENTS = [
-  { day: 1,   title: "Primeira Vitória" },
-  { day: 7,   title: "Sobreviveu à Primeira Semana" },
-  { day: 30,  title: "Primeiro Mês" },
-  { day: 90,  title: "Novo Cérebro" },
-  { day: 180, title: "Meio Ano" },
-  { day: 365, title: "Um Ano Livre" },
-];
-
 const SCIENCE_FACTS: Record<number, string> = {
   7:   "Seu cérebro já está reduzindo a hiperatividade do circuito da recompensa.",
   14:  "Os receptores dopaminérgicos começam a recuperar a sensibilidade.",
@@ -91,31 +81,37 @@ const SCIENCE_FACTS: Record<number, string> = {
   365: "Você consolidou um ano de prática de novos comportamentos — a base é muito mais forte.",
 };
 
-// ============ MILESTONE COINS ============
+// ============ JOURNEY MILESTONES ============
 
-type MilestoneCoin = {
+type Milestone = {
   day: number;
-  tier: CoinTier;
-  icon: string;
+  eyebrow: string;
   title: string;
-  label: string; // short back-face text
-  reward: string; // narrative reward
+  detail: string;
+  icon: LucideIcon;
+  tone: "teal" | "amber" | "violet";
 };
 
-const MILESTONE_COINS: MilestoneCoin[] = [
-  { day: 1,   tier: "bronze",   icon: "🌱", title: "Primeira Vitória",   label: "DAY 1",   reward: "A jornada começou. +100 XP" },
-  { day: 3,   tier: "bronze",   icon: "💨", title: "72 Horas Firme",     label: "72H",     reward: "Primeiro pico de abstinência vencido" },
-  { day: 7,   tier: "silver",   icon: "🗓️", title: "Semana Um",          label: "WEEK 1",  reward: "Córtex pré-frontal iniciou reparo" },
-  { day: 14,  tier: "silver",   icon: "⚡", title: "Duas Semanas",       label: "14D",     reward: "Receptores dopaminérgicos ressensibilizando" },
-  { day: 21,  tier: "gold",     icon: "🔗", title: "Três Semanas",       label: "21D",     reward: "Neuroplasticidade em ação" },
-  { day: 30,  tier: "gold",     icon: "🏆", title: "Primeiro Mês",       label: "30D",     reward: "Fábrica de hábitos reformada" },
-  { day: 45,  tier: "gold",     icon: "🛡️", title: "45 Dias",            label: "45D",     reward: "Amígdala mais resiliente" },
-  { day: 60,  tier: "platinum", icon: "📚", title: "60 Dias",            label: "60D",     reward: "Hipocampo restaurado" },
-  { day: 90,  tier: "platinum", icon: "🧠", title: "Novo Cérebro",       label: "90D",     reward: "Ínsula estabilizada" },
-  { day: 120, tier: "diamond",  icon: "🌳", title: "120 Dias",           label: "120D",    reward: "Rede de recompensa florescendo" },
-  { day: 180, tier: "diamond",  icon: "☀️", title: "Meio Ano",           label: "6M",      reward: "Integração cerebral avançada" },
-  { day: 365, tier: "legend",   icon: "👑", title: "Um Ano Livre",       label: "LEGEND",  reward: "Mestre da Neuroplasticidade" },
+const MILESTONES: Milestone[] = [
+  { day: 1,   eyebrow: "começo",       title: "Ponto de virada",  detail: "Você escolheu começar a reconstrução.", icon: Sparkles, tone: "teal" },
+  { day: 3,   eyebrow: "72 horas",     title: "Primeiro fôlego",  detail: "O impulso deixa de comandar cada decisão.", icon: Gauge, tone: "teal" },
+  { day: 7,   eyebrow: "uma semana",   title: "Primeira semana",  detail: "O centro de comando começa a recuperar espaço.", icon: Calendar, tone: "amber" },
+  { day: 14,  eyebrow: "duas semanas", title: "Ritmo próprio",    detail: "Recompensas naturais começam a voltar ao radar.", icon: Compass, tone: "amber" },
+  { day: 21,  eyebrow: "três semanas", title: "Nova rota",         detail: "A neuroplasticidade transforma repetição em caminho.", icon: ArrowUpRight, tone: "violet" },
+  { day: 30,  eyebrow: "primeiro mês", title: "Base construída",   detail: "Um mês de escolhas cria uma estrutura mais firme.", icon: Building2, tone: "violet" },
+  { day: 45,  eyebrow: "45 dias",      title: "Mais resiliência",  detail: "Gatilhos perdem força quando você pratica presença.", icon: Shield, tone: "violet" },
+  { day: 60,  eyebrow: "60 dias",      title: "Memória em favor",  detail: "Aprendizado e autocontrole trabalham juntos.", icon: BookOpen, tone: "teal" },
+  { day: 90,  eyebrow: "90 dias",      title: "Novo equilíbrio",   detail: "O prazer começa a morar em atividades comuns.", icon: Brain, tone: "teal" },
+  { day: 120, eyebrow: "120 dias",     title: "Vida em expansão",  detail: "A rede de recompensa floresce fora do risco.", icon: TreePine, tone: "amber" },
+  { day: 180, eyebrow: "seis meses",   title: "Integração",        detail: "Novos circuitos já sustentam uma vida mais estável.", icon: Flag, tone: "amber" },
+  { day: 365, eyebrow: "um ano",       title: "Autoria da jornada", detail: "Você não está apenas resistindo: está escolhendo.", icon: Sparkles, tone: "violet" },
 ];
+
+const MILESTONE_TONES: Record<Milestone["tone"], string> = {
+  teal: "border-cyan-400/25 bg-cyan-400/10 text-cyan-300",
+  amber: "border-amber-400/25 bg-amber-400/10 text-amber-300",
+  violet: "border-violet-400/25 bg-violet-400/10 text-violet-300",
+};
 
 // ============ STORAGE ============
 
@@ -125,7 +121,7 @@ type NeuroState = {
   startDate: string | null; // ISO
   defeatedBosses: string[];
   bestStreakDays: number;
-  claimedCoins?: number[]; // list of coin.day already celebrated
+  claimedCoins?: number[]; // legacy key: list of milestone days already celebrated
 };
 
 function loadState(userId: string): NeuroState {
@@ -175,7 +171,7 @@ export default function NeuroRecoveryPage() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerDate, setPickerDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
   const [resetOpen, setResetOpen] = useState(false);
-  const [celebrateCoin, setCelebrateCoin] = useState<MilestoneCoin | null>(null);
+  const [celebrateMilestone, setCelebrateMilestone] = useState<Milestone | null>(null);
 
   // Refresh every minute so day rollover reflects
   useEffect(() => {
@@ -198,13 +194,13 @@ export default function NeuroRecoveryPage() {
     }
   }, [days]); // eslint-disable-line
 
-  // Detect newly-unlocked coins and trigger celebration
+  // Detect newly-unlocked milestones and trigger a small celebration
   useEffect(() => {
     if (!state.startDate) return;
     const claimed = state.claimedCoins ?? [];
-    const newly = MILESTONE_COINS.find((c) => days >= c.day && !claimed.includes(c.day));
+    const newly = MILESTONES.find((milestone) => days >= milestone.day && !claimed.includes(milestone.day));
     if (newly) {
-      setCelebrateCoin(newly);
+      setCelebrateMilestone(newly);
       setState((s) => ({ ...s, claimedCoins: [...(s.claimedCoins ?? []), newly.day] }));
     }
   }, [days, state.startDate]); // eslint-disable-line
@@ -216,7 +212,14 @@ export default function NeuroRecoveryPage() {
     return last ? SCIENCE_FACTS[last] : "Cada dia offline reconstrói um pouco do seu cérebro. Isto é ciência, não mágica.";
   }, [days]);
 
-  const unlockedCoinsCount = MILESTONE_COINS.filter((c) => days >= c.day).length;
+  const unlockedMilestonesCount = MILESTONES.filter((milestone) => days >= milestone.day).length;
+  const nextMilestoneIndex = MILESTONES.findIndex((milestone) => days < milestone.day);
+  const nextMilestone = nextMilestoneIndex === -1 ? null : MILESTONES[nextMilestoneIndex];
+  const previousMilestoneDay = nextMilestoneIndex > 0 ? MILESTONES[nextMilestoneIndex - 1].day : 0;
+  const milestoneProgress = nextMilestone
+    ? ((days - previousMilestoneDay) / (nextMilestone.day - previousMilestoneDay)) * 100
+    : 100;
+  const CelebrateIcon = celebrateMilestone?.icon;
 
   const startJourney = () => {
     const iso = new Date(pickerDate + "T00:00:00").toISOString();
@@ -242,9 +245,9 @@ export default function NeuroRecoveryPage() {
             <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-2">
               <Brain className="w-9 h-9 text-primary" />
             </div>
-            <CardTitle className="text-2xl">Neuro Recovery</CardTitle>
+            <CardTitle className="text-2xl">LifeGame</CardTitle>
             <CardDescription>
-              Um RPG do cérebro. Cada dia offline reconstrói regiões cerebrais e sistemas químicos.
+              Uma jornada de reconstrução pessoal. Cada dia offline reconstrói regiões cerebrais e sistemas químicos.
               Os marcos abaixo são <span className="font-semibold">aproximados</span> e baseados em tendências
               da neurociência — não é um cronograma exato.
             </CardDescription>
@@ -280,10 +283,10 @@ export default function NeuroRecoveryPage() {
           <div>
             <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
               <Brain className="w-8 h-8 text-primary" />
-              Neuro Recovery
+              LifeGame
             </h1>
             <p className="text-muted-foreground mt-1 max-w-2xl text-sm">
-              RPG do cérebro. Marcos aproximados baseados em evidências científicas — tendências de recuperação, não datas exatas.
+              Sua jornada de reconstrução em capítulos. Marcos aproximados baseados em tendências de recuperação, não datas exatas.
             </p>
           </div>
           <div className="flex gap-2">
@@ -464,7 +467,7 @@ export default function NeuroRecoveryPage() {
           </CardContent>
         </Card>
 
-        {/* Buffs + Achievements */}
+        {/* Buffs + current chapter */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
@@ -488,73 +491,84 @@ export default function NeuroRecoveryPage() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="relative overflow-hidden border-primary/20">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2"><Trophy className="w-5 h-5 text-amber-500" /> Conquistas</CardTitle>
-              <CardDescription>Marcos que ninguém pode tirar de você.</CardDescription>
+              <CardTitle className="flex items-center gap-2"><Compass className="w-5 h-5 text-primary" /> Ritmo da jornada</CardTitle>
+              <CardDescription>Um próximo passo claro vale mais do que uma coleção de medalhas.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-2">
-              {ACHIEVEMENTS.map((a) => {
-                const done = days >= a.day;
-                return (
-                  <div key={a.day} className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg border",
-                    done ? "bg-amber-500/5 border-amber-500/20" : "opacity-50"
-                  )}>
-                    <Award className={cn("w-5 h-5", done ? "text-amber-500" : "text-muted-foreground")} />
-                    <div className="flex-1">
-                      <p className={cn("font-semibold text-sm", done && "text-amber-600 dark:text-amber-400")}>{a.title}</p>
-                      <p className="text-[10px] text-muted-foreground">Dia {a.day}</p>
-                    </div>
-                    {done && <span className="text-xs font-bold text-amber-500">🏆</span>}
+            <CardContent>
+              <div className="rounded-2xl border border-primary/15 bg-primary/[0.04] p-4">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="label-mono text-primary/75">{nextMilestone ? "próximo capítulo" : "jornada completa"}</p>
+                    <p className="mt-2 text-lg font-semibold text-foreground">
+                      {nextMilestone ? nextMilestone.title : "Você chegou ao seu marco mais alto"}
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                      {nextMilestone ? nextMilestone.detail : "O próximo passo agora é cuidar da continuidade."}
+                    </p>
                   </div>
-                );
-              })}
+                  <div className="shrink-0 rounded-xl border border-primary/20 bg-primary/10 px-3 py-2 text-right">
+                    <p className="font-mono text-xl font-bold text-primary">{nextMilestone ? nextMilestone.day : 365}</p>
+                    <p className="text-[9px] uppercase tracking-widest text-muted-foreground">dias</p>
+                  </div>
+                </div>
+                <div className="mt-5">
+                  <div className="mb-2 flex justify-between text-[10px] text-muted-foreground">
+                    <span>{days} dias percorridos</span>
+                    <span>{nextMilestone ? `${Math.max(0, nextMilestone.day - days)} restantes` : "marco alcançado"}</span>
+                  </div>
+                  <Progress value={milestoneProgress} className="h-2" />
+                </div>
+              </div>
+              <div className="mt-4 flex items-center gap-2 text-[11px] text-muted-foreground">
+                <Check className="h-3.5 w-3.5 text-emerald-400" />
+                {unlockedMilestonesCount} de {MILESTONES.length} capítulos já atravessados
+              </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Vault — 3D Coins */}
-
-        <Card className="border-amber-500/20 bg-gradient-to-br from-amber-500/5 via-transparent to-violet-500/5 overflow-hidden">
+        {/* Milestone map */}
+        <Card className="overflow-hidden border-primary/15 bg-gradient-to-br from-primary/[0.06] via-transparent to-violet-500/[0.04]">
           <CardHeader>
             <div className="flex items-start justify-between gap-3 flex-wrap">
               <div>
                 <CardTitle className="flex items-center gap-2">
-                  <Coins className="w-5 h-5 text-amber-500" /> Cofre de Conquistas
+                  <Flag className="w-5 h-5 text-primary" /> Mapa da jornada
                 </CardTitle>
-                <CardDescription>Moedas 3D forjadas a cada marco superado. Passe o mouse para girar mais devagar.</CardDescription>
+                <CardDescription>Capítulos visíveis para você perceber o caminho, sem transformar recuperação em competição.</CardDescription>
               </div>
               <div className="text-right">
-                <div className="text-3xl font-black text-amber-500 leading-none tabular-nums">
-                  {unlockedCoinsCount}<span className="text-muted-foreground/60 text-lg">/{MILESTONE_COINS.length}</span>
+                <div className="text-3xl font-black text-primary leading-none tabular-nums">
+                  {unlockedMilestonesCount}<span className="text-muted-foreground/60 text-lg">/{MILESTONES.length}</span>
                 </div>
-                <div className="text-[10px] uppercase tracking-widest text-muted-foreground">Coletadas</div>
+                <div className="text-[10px] uppercase tracking-widest text-muted-foreground">atravessados</div>
               </div>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-              {MILESTONE_COINS.map((c) => {
-                const unlocked = days >= c.day;
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+              {MILESTONES.map((milestone) => {
+                const unlocked = days >= milestone.day;
+                const Icon = milestone.icon;
                 return (
-                  <div key={c.day} className="flex flex-col items-center text-center gap-2 group">
-                    <div className="relative">
-                      <Coin3D tier={c.tier} icon={c.icon} label={c.label} size={92} locked={!unlocked} />
-                      {unlocked && (
-                        <>
-                          <span className="absolute -top-1 -right-1 text-lg animate-[sparkle_1.5s_ease-in-out_infinite]">✨</span>
-                          <span className="absolute -bottom-1 -left-1 text-lg animate-[sparkle_1.5s_ease-in-out_infinite] [animation-delay:0.7s]">✨</span>
-                        </>
-                      )}
+                  <div key={milestone.day} className={cn(
+                    "group relative min-h-[148px] rounded-2xl border p-3 transition-all duration-300",
+                    unlocked ? "border-primary/25 bg-primary/[0.04] hover:-translate-y-1 hover:bg-primary/[0.08]" : "border-border/60 bg-secondary/20 opacity-60"
+                  )}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className={cn("flex h-9 w-9 items-center justify-center rounded-xl border", unlocked ? MILESTONE_TONES[milestone.tone] : "border-border bg-muted/40 text-muted-foreground")}>
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      {unlocked ? <Check className="mt-1 h-3.5 w-3.5 text-emerald-400" /> : <LockKeyhole className="mt-1 h-3.5 w-3.5 text-muted-foreground" />}
                     </div>
-                    <div>
-                      <p className={cn("text-xs font-bold leading-tight", unlocked ? "text-foreground" : "text-muted-foreground/60")}>
-                        {c.title}
+                    <div className="mt-4">
+                      <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-muted-foreground">{milestone.eyebrow}</p>
+                      <p className={cn("mt-1 text-xs font-bold leading-tight", unlocked ? "text-foreground" : "text-muted-foreground")}>
+                        {milestone.title}
                       </p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5">
-                        {unlocked ? "✓ Conquistada" : `Dia ${c.day}`}
-                      </p>
+                      <p className="mt-2 text-[10px] text-muted-foreground">Dia {milestone.day}</p>
                     </div>
                   </div>
                 );
@@ -568,29 +582,26 @@ export default function NeuroRecoveryPage() {
         </p>
       </main>
 
-      {/* Celebration modal — new coin unlocked */}
-      <Dialog open={!!celebrateCoin} onOpenChange={(o) => !o && setCelebrateCoin(null)}>
+      {/* Celebration modal — new milestone unlocked */}
+      <Dialog open={!!celebrateMilestone} onOpenChange={(o) => !o && setCelebrateMilestone(null)}>
         <DialogContent className="sm:max-w-md overflow-hidden">
-          {celebrateCoin && (
+          {celebrateMilestone && (
             <>
-              <div className="absolute inset-0 pointer-events-none">
-                {["top-4 left-6", "top-8 right-8", "bottom-12 left-10", "bottom-6 right-6", "top-20 left-1/2"].map((pos, i) => (
-                  <span key={i} className={cn("absolute text-2xl animate-[sparkle_1.5s_ease-in-out_infinite]", pos)} style={{ animationDelay: `${i * 0.2}s` }}>✨</span>
-                ))}
-              </div>
               <DialogHeader className="text-center items-center relative z-10">
-                <div className="text-xs font-bold uppercase tracking-widest text-amber-500 mb-1">Nova Conquista</div>
-                <DialogTitle className="text-2xl">{celebrateCoin.title}</DialogTitle>
-                <DialogDescription>{celebrateCoin.reward}</DialogDescription>
-              </DialogHeader>
-              <div className="flex justify-center py-4 relative z-10">
-                <div className="animate-[coin-pop_1.2s_cubic-bezier(0.34,1.56,0.64,1)_forwards]">
-                  <Coin3D tier={celebrateCoin.tier} icon={celebrateCoin.icon} label={celebrateCoin.label} size={180} />
+                <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border border-primary/25 bg-primary/10 text-primary">
+                  {CelebrateIcon && <CelebrateIcon className="h-7 w-7" />}
                 </div>
+                <div className="text-xs font-bold uppercase tracking-widest text-primary mb-1">Novo capítulo</div>
+                <DialogTitle className="text-2xl">{celebrateMilestone.title}</DialogTitle>
+                <DialogDescription>{celebrateMilestone.detail}</DialogDescription>
+              </DialogHeader>
+              <div className="relative z-10 py-4 text-center">
+                <span className="font-mono text-4xl font-bold tracking-[-0.06em] text-primary">Dia {celebrateMilestone.day}</span>
+                <p className="mt-2 text-xs text-muted-foreground">Mais um trecho da sua história já ficou para trás.</p>
               </div>
               <DialogFooter className="relative z-10">
-                <Button className="w-full gap-2" onClick={() => setCelebrateCoin(null)}>
-                  <Sparkles className="w-4 h-4" /> Adicionar ao cofre
+                <Button className="w-full gap-2" onClick={() => setCelebrateMilestone(null)}>
+                  <Sparkles className="w-4 h-4" /> Continuar a jornada
                 </Button>
               </DialogFooter>
             </>
