@@ -567,3 +567,189 @@
     display: none;
   }
 }
+
+/* Login atmosphere: quiet motion that keeps the dark editorial palette. */
+@keyframes auth-orb-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(24px, 18px, 0) scale(1.08); }
+}
+
+@keyframes auth-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes auth-ring {
+  0%, 100% { transform: rotate(0deg) scale(1); opacity: 0.45; }
+  50% { transform: rotate(12deg) scale(1.08); opacity: 0.8; }
+}
+
+@keyframes auth-progress {
+  0% { transform: translateX(-100%); }
+  55%, 100% { transform: translateX(150%); }
+}
+
+.auth-grid {
+  background-image:
+    linear-gradient(hsl(var(--foreground) / 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--foreground) / 0.025) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: linear-gradient(to bottom, black, transparent 80%);
+}
+
+/* Auth is intentionally dark even when the dashboard remembers a light theme. */
+.auth-shell {
+  --background: 240 6% 5%;
+  --foreground: 43 20% 94%;
+  --card: 30 5% 10%;
+  --card-foreground: 43 20% 94%;
+  --primary: 43 22% 92%;
+  --primary-foreground: 30 6% 8%;
+  --secondary: 30 5% 15%;
+  --secondary-foreground: 43 12% 82%;
+  --muted: 30 5% 15%;
+  --muted-foreground: 35 6% 58%;
+  --accent: 20 40% 52%;
+  --accent-foreground: 30 6% 8%;
+  --border: 30 5% 18%;
+  --input: 30 5% 18%;
+  --ring: 43 22% 92%;
+  background: hsl(var(--background));
+}
+
+.auth-orb {
+  filter: blur(1px);
+  opacity: 0.28;
+  animation: auth-orb-drift 13s ease-in-out infinite;
+}
+
+.auth-orb-one {
+  background: radial-gradient(circle, hsl(var(--accent) / 0.22), transparent 68%);
+}
+
+.auth-orb-two {
+  animation-delay: -5s;
+  background: radial-gradient(circle, hsl(190 95% 55% / 0.11), transparent 68%);
+}
+
+.auth-card {
+  animation: float-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.auth-float {
+  animation: auth-float 6s ease-in-out infinite;
+}
+
+.auth-float-delayed {
+  animation: auth-float 7s ease-in-out -2.4s infinite;
+}
+
+.auth-ring {
+  animation: auth-ring 9s ease-in-out infinite;
+}
+
+.auth-progress {
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-progress::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.45), transparent);
+  animation: auth-progress 3.2s ease-in-out infinite;
+}
+
+.auth-field {
+  position: relative;
+}
+
+.auth-field-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  z-index: 1;
+  width: 1rem;
+  height: 1rem;
+  color: hsl(var(--muted-foreground) / 0.75);
+  transform: translateY(-50%);
+  transition: color 180ms ease;
+  pointer-events: none;
+}
+
+.auth-field:focus-within .auth-field-icon {
+  color: hsl(var(--primary));
+}
+
+.auth-input {
+  height: 3rem;
+  border-radius: 0.75rem;
+  border-color: hsl(var(--foreground) / 0.1);
+  background: hsl(var(--foreground) / 0.045);
+  padding-left: 2.8rem;
+  color: hsl(var(--foreground));
+  transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
+}
+
+.auth-input::placeholder {
+  color: hsl(var(--muted-foreground) / 0.75);
+}
+
+.auth-input:hover {
+  border-color: hsl(var(--foreground) / 0.18);
+}
+
+.auth-input:focus {
+  border-color: hsl(var(--primary) / 0.65);
+  background: hsl(var(--foreground) / 0.065);
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.08);
+}
+
+.auth-password-toggle {
+  position: absolute;
+  right: 0.9rem;
+  top: 50%;
+  display: inline-flex;
+  color: hsl(var(--muted-foreground) / 0.8);
+  transform: translateY(-50%);
+  transition: color 180ms ease;
+}
+
+.auth-password-toggle:hover,
+.auth-password-toggle:focus-visible {
+  color: hsl(var(--primary));
+}
+
+.auth-submit {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  box-shadow: 0 12px 28px -14px hsl(var(--primary) / 0.9);
+  transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.auth-submit:hover {
+  background: hsl(var(--primary) / 0.9);
+  box-shadow: 0 16px 32px -14px hsl(var(--primary) / 0.95);
+  transform: translateY(-1px);
+}
+
+.auth-link {
+  transition: color 180ms ease, opacity 180ms ease;
+}
+
+.auth-link:hover,
+.auth-link:focus-visible {
+  color: hsl(var(--primary));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-card,
+  .auth-orb,
+  .auth-float,
+  .auth-float-delayed,
+  .auth-ring,
+  .auth-progress::after {
+    animation: none;
+  }
+}
