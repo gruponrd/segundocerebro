@@ -159,20 +159,22 @@ export default function DesejosPage() {
   const viavelCount = Object.values(wishesEvaluated).filter(e => e.verdict === "ok").length;
 
   return (
-    <div className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8 max-w-[1600px] mx-auto space-y-8 pb-24 md:pb-6">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+    <div className="min-h-screen bg-background px-4 py-8 sm:px-6 lg:px-8 max-w-[1600px] mx-auto space-y-8 pb-24 md:pb-6">
+      <div className="animate-float-in">
+        <div className="flex items-center gap-3 mb-2">
+        <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
           <Sparkles className="w-5 h-5 text-primary" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">Desejos & Metas de Compra</h1>
+          <h1 className="text-3xl font-bold text-gradient tracking-tight">Desejos & Metas de Compra</h1>
           <p className="text-sm text-muted-foreground">Adicione desejos e o sistema avalia a viabilidade em cada mês</p>
+        </div>
         </div>
       </div>
 
       {/* Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+        <Card className="glass-card">
           <CardContent className="p-5 flex items-center gap-4">
             <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <ShoppingBag className="w-5 h-5 text-primary" />
@@ -183,7 +185,7 @@ export default function DesejosPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+        <Card className="glass-card">
           <CardContent className="p-5 flex items-center gap-4">
             <div className="w-10 h-10 rounded-xl bg-destructive/10 flex items-center justify-center">
               <TrendingDown className="w-5 h-5 text-destructive" />
@@ -194,7 +196,7 @@ export default function DesejosPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+        <Card className="glass-card">
           <CardContent className="p-5 flex items-center gap-4">
             <div className="w-10 h-10 rounded-xl bg-chart-2/10 flex items-center justify-center">
               <CheckCircle2 className="w-5 h-5 text-chart-2" />
@@ -208,7 +210,7 @@ export default function DesejosPage() {
       </div>
 
       {/* Add wish form */}
-      <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+      <Card className="glass-card">
         <CardHeader className="pb-3">
           <CardTitle className="text-base font-semibold flex items-center gap-2">
             <Plus className="w-4 h-4" /> Novo desejo
@@ -257,7 +259,7 @@ export default function DesejosPage() {
 
       {/* Wishes grouped by month */}
       {wishesByMonth.length === 0 ? (
-        <Card className="border-dashed border-border/50 bg-card/40">
+        <Card className="glass-card border-dashed border-border/50">
           <CardContent className="p-10 text-center text-muted-foreground">
             <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-40" />
             <p className="text-sm">Nenhum desejo cadastrado ainda. Adicione algo que você quer comprar!</p>
@@ -270,7 +272,7 @@ export default function DesejosPage() {
             if (!proj) return null;
             const totalMonth = list.reduce((s, w) => s + w.amount, 0);
             return (
-              <Card key={mIdx} className="border-border/50 bg-card/80 backdrop-blur-sm">
+              <Card key={mIdx} className="glass-card">
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between flex-wrap gap-3">
                     <div className="flex items-center gap-2">
@@ -305,7 +307,7 @@ export default function DesejosPage() {
                       const cfg = VERDICT_CONFIG[ev?.verdict ?? "risco"];
                       const Icon = cfg.icon;
                       return (
-                        <div key={w.id} className={`flex items-center gap-4 p-3 rounded-xl border ${cfg.border} ${cfg.bg}`}>
+                        <div key={w.id} className={`flex items-center gap-4 p-3 rounded-xl border transition-all hover:-translate-y-0.5 hover:shadow-lg ${cfg.border} ${cfg.bg}`}>
                           <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${cfg.bg} ${cfg.color} border ${cfg.border}`}>
                             <Icon className="w-4.5 h-4.5" />
                           </div>

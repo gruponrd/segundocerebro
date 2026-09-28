@@ -42,7 +42,7 @@ const STATUS_CONFIG = {
 
 function StatCard({ icon: Icon, label, value, sub, color }: { icon: import("lucide-react").LucideIcon; label: string; value: string; sub?: string; color: string }) {
   return (
-    <div className="rounded-xl border border-border/50 bg-card/80 backdrop-blur-sm p-5 flex items-center gap-4">
+    <div className="glass-card p-5 flex items-center gap-4">
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}>
         <Icon className="w-5 h-5" />
       </div>
@@ -75,7 +75,7 @@ function DebtDonutChart({ data }: { data: { name: string; value: number; paid: n
   ];
 
   return (
-    <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+    <Card className="glass-card">
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wider">% Quitado por Dívida</CardTitle>
       </CardHeader>
@@ -204,7 +204,7 @@ function PaymentHistory({ cashflowMonths }: { cashflowMonths: ReturnType<typeof 
   if (paidEntries.length === 0) return null;
 
   return (
-    <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+    <Card className="glass-card">
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
           <History className="w-4 h-4 text-muted-foreground" />
@@ -254,7 +254,7 @@ function DueDateAlerts({ creditors }: { creditors: ReturnType<typeof useFinanceS
   if (alerts.length === 0) return null;
 
   return (
-    <Card className="border-destructive/20 bg-card/80 backdrop-blur-sm">
+    <Card className="glass-card border-destructive/20">
       <CardHeader className="pb-3">
         <div className="flex items-center gap-2">
           <Bell className="w-4 h-4 text-destructive" />
@@ -318,7 +318,7 @@ function PayoffTimeCard({
 
   if (totalRemaining <= 0) {
     return (
-      <Card className="border-chart-2/30 bg-card/80 backdrop-blur-sm">
+      <Card className="glass-card border-chart-2/30">
         <CardContent className="p-5 text-center">
           <p className="text-sm text-chart-2 font-semibold">🎉 Sem dívida pendente — nada a quitar!</p>
         </CardContent>
@@ -328,7 +328,7 @@ function PayoffTimeCard({
 
   if (avgIncome <= 0) {
     return (
-      <Card className="border-border/50 bg-card/80 backdrop-blur-sm">
+      <Card className="glass-card">
         <CardContent className="p-5">
           <p className="text-sm text-muted-foreground">Cadastre suas receitas para calcular o tempo de trabalho até a quitação.</p>
         </CardContent>
@@ -337,7 +337,7 @@ function PayoffTimeCard({
   }
 
   return (
-    <Card className="border-primary/30 bg-gradient-to-br from-card/90 to-primary/5 backdrop-blur-sm overflow-hidden relative">
+    <Card className="glass-card border-primary/30 bg-gradient-to-br from-card/90 to-primary/5 overflow-hidden relative">
       <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-primary/10 blur-3xl" />
       <CardHeader className="pb-3 relative">
         <div className="flex items-center gap-2">
@@ -476,7 +476,7 @@ function IdealIncomeCard({
   const coverageRatio = idealIncome > 0 ? (currentIncome / idealIncome) * 100 : 100;
 
   return (
-    <Card className="border-primary/30 bg-gradient-to-br from-card/90 to-primary/5 backdrop-blur-sm overflow-hidden relative">
+    <Card className="glass-card border-primary/30 bg-gradient-to-br from-card/90 to-primary/5 overflow-hidden relative">
       <div className="absolute -bottom-16 -right-16 w-48 h-48 rounded-full bg-chart-2/10 blur-3xl" />
       <CardHeader className="pb-3 relative">
         <div className="flex items-center justify-between flex-wrap gap-3">

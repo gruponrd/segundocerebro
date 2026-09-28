@@ -251,7 +251,7 @@ export default function TradePage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="border-border/50 bg-card/80 backdrop-blur">
+        <Card className="glass-card">
           <CardContent className="p-5">
             <span className="text-xs font-medium text-muted-foreground flex items-center gap-1.5 mb-2">
               <Target className="w-3.5 h-3.5" /> Operações Abertas
@@ -259,7 +259,7 @@ export default function TradePage() {
             <p className="text-2xl font-bold text-primary">{openTrades.length}</p>
           </CardContent>
         </Card>
-        <Card className="border-border/50 bg-card/80 backdrop-blur">
+        <Card className="glass-card">
           <CardContent className="p-5">
             <span className="text-xs font-medium text-muted-foreground flex items-center gap-1.5 mb-2">
               {totalPnlUsd >= 0 ? (
@@ -274,7 +274,7 @@ export default function TradePage() {
             </p>
           </CardContent>
         </Card>
-        <Card className="border-border/50 bg-card/80 backdrop-blur">
+        <Card className="glass-card">
           <CardContent className="p-5">
             <span className="text-xs font-medium text-muted-foreground flex items-center gap-1.5 mb-2">
               {totalPnlUsd >= 0 ? (
@@ -292,7 +292,7 @@ export default function TradePage() {
       </div>
 
       {/* Top 10 Crypto Prices */}
-      <Card className="border-border/50 bg-card/80 backdrop-blur">
+      <Card className="glass-card">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <CircleDollarSign className="w-4 h-4" /> Top 10 Criptomoedas
@@ -340,7 +340,7 @@ export default function TradePage() {
       </Card>
 
       {/* Add Trade */}
-      <Card className="border-border/50 bg-card/80 backdrop-blur">
+      <Card className="glass-card">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
@@ -442,7 +442,7 @@ export default function TradePage() {
       </Card>
 
       {/* Trades List */}
-      <Card className="border-border/50 bg-card/80 backdrop-blur">
+      <Card className="glass-card">
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Target className="w-4 h-4" /> Minhas Operações

@@ -240,7 +240,7 @@ export default function NeuroRecoveryPage() {
   if (!state.startDate) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4 py-12">
-        <Card className="max-w-lg w-full border-primary/30">
+        <Card className="glass-card max-w-lg w-full border-primary/30">
           <CardHeader className="text-center">
             <div className="mx-auto w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-2">
               <Brain className="w-9 h-9 text-primary" />
@@ -312,7 +312,7 @@ export default function NeuroRecoveryPage() {
 
         {/* Level + Fact */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-1 border-primary/20 bg-primary/5 relative overflow-hidden">
+          <Card className="glass-card lg:col-span-1 border-primary/20 bg-primary/5 relative overflow-hidden">
             <div className="absolute -top-6 -right-6 opacity-10">
               <Brain className="w-40 h-40 text-primary" />
             </div>
@@ -346,7 +346,7 @@ export default function NeuroRecoveryPage() {
             </CardContent>
           </Card>
 
-          <Card className="lg:col-span-2 border-accent/20 bg-accent/5">
+          <Card className="glass-card lg:col-span-2 border-accent/20 bg-accent/5">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <Info className="w-4 h-4 text-accent" /> Onde seu cérebro está agora
@@ -362,7 +362,7 @@ export default function NeuroRecoveryPage() {
         </div>
 
         {/* Stats Bars */}
-        <Card>
+          <Card className="glass-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Zap className="w-5 h-5 text-primary" /> Sistemas Químicos</CardTitle>
             <CardDescription>Estimativas — recuperam gradualmente com o tempo offline.</CardDescription>
@@ -392,7 +392,7 @@ export default function NeuroRecoveryPage() {
         </Card>
 
         {/* Brain Regions / Districts */}
-        <Card>
+        <Card className="glass-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Building2 className="w-5 h-5 text-primary" /> Cidade Cerebral em Reconstrução</CardTitle>
             <CardDescription>Cada distrito representa uma região do seu cérebro voltando à vida.</CardDescription>
@@ -430,7 +430,7 @@ export default function NeuroRecoveryPage() {
         </Card>
 
         {/* Bosses */}
-        <Card>
+        <Card className="glass-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2"><Skull className="w-5 h-5 text-rose-500" /> Chefes</CardTitle>
             <CardDescription>Períodos aproximados de maior vulnerabilidade. Marque como derrotado quando passar.</CardDescription>
@@ -469,7 +469,7 @@ export default function NeuroRecoveryPage() {
 
         {/* Buffs + current chapter */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
+        <Card className="glass-card">
             <CardHeader>
               <CardTitle className="flex items-center gap-2"><Flame className="w-5 h-5 text-orange-500" /> Buffs Ativos</CardTitle>
               <CardDescription>Bônus que você acumula ao longo da jornada.</CardDescription>
@@ -491,7 +491,7 @@ export default function NeuroRecoveryPage() {
             </CardContent>
           </Card>
 
-          <Card className="relative overflow-hidden border-primary/20">
+          <Card className="glass-card relative overflow-hidden border-primary/20">
             <CardHeader>
               <CardTitle className="flex items-center gap-2"><Compass className="w-5 h-5 text-primary" /> Ritmo da jornada</CardTitle>
               <CardDescription>Um próximo passo claro vale mais do que uma coleção de medalhas.</CardDescription>
@@ -530,7 +530,7 @@ export default function NeuroRecoveryPage() {
         </div>
 
         {/* Milestone map */}
-        <Card className="overflow-hidden border-primary/15 bg-gradient-to-br from-primary/[0.06] via-transparent to-violet-500/[0.04]">
+        <Card className="glass-card overflow-hidden border-primary/15 bg-gradient-to-br from-primary/[0.06] via-transparent to-violet-500/[0.04]">
           <CardHeader>
             <div className="flex items-start justify-between gap-3 flex-wrap">
               <div>
