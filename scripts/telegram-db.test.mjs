@@ -84,6 +84,24 @@ test('adding a missing month keeps all previous months', async () => {
   assert.equal(saved.cashflowMonths[1].month, 'Outubro');
   assert.equal(saved.cashflowMonths[1].incomes[0].amount, 45.9);
 });
+test('history reads only granted columns and RLS isolates each account', async () => {
+  const other = await createDraft(7, 20, { ...entry, label: 'Only account B' });
+  await resolve(other.id, 20);
+  const historyQuery = "SELECT id,kind,amount,label,month,year,status,created_at,saved_at FROM public.telegram_drafts WHERE status='saved' ORDER BY created_at DESC LIMIT 8";
+  await asUser(userA);
+  await db.exec('SET ROLE authenticated');
+  try {
+    await assert.rejects(() => db.query("SELECT id FROM public.telegram_drafts WHERE user_id=$1", [userA]), /permission denied/);
+    const history = (await db.query(historyQuery)).rows;
+    assert(history.length > 0);
+    assert(history.every(row => row.label !== 'Only account B'));
+    await asUser(userB);
+    const otherHistory = (await db.query(historyQuery)).rows;
+    assert.equal(otherHistory.length, 1);
+    assert.equal(otherHistory[0].label, 'Only account B');
+  } finally { await db.exec('RESET ROLE'); }
+});
+
 test('anonymous and authenticated clients cannot call the saving RPC', async () => {
   for (const role of ['anon', 'authenticated']) {
     await db.exec(`SET ROLE ${role}`);

@@ -51,7 +51,9 @@ Deno.serve(async req => {
     if (error) throw error;
     const { data: history, error: historyError } = await db.from("telegram_drafts")
       .select("id,kind,amount,label,month,year,status,created_at,saved_at")
-      .eq("user_id", user.id).eq("status", "saved").order("created_at", { ascending: false }).limit(8);
+      // RLS scopes this query to auth.uid(). user_id is intentionally not granted
+      // to clients; filtering that column would fail its SELECT permission check.
+      .eq("status", "saved").order("created_at", { ascending: false }).limit(8);
     if (historyError) throw historyError;
     return reply({ configured: true, botUsername, connected: !!connection?.telegram_user_id,
       username: connection?.telegram_username, linkedAt: connection?.linked_at, history: history ?? [] });
