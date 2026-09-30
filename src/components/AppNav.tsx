@@ -2,6 +2,8 @@ import { NavLink } from "react-router-dom";
 import {
   ArrowLeftRight,
   Contrast,
+  Calculator,
+  Search,
   DollarSign,
   Gamepad2,
   LayoutDashboard,
@@ -17,6 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/use-theme";
 import { isPreviewMode } from "@/lib/previewMode";
+import { openCommandMenu } from "@/lib/commandMenu";
 
 const THEME_LABELS: Record<string, string> = {
   dark: "Escuro",
@@ -39,6 +42,7 @@ const groups = [
       { to: "/objetivos", icon: Target, label: "Objetivos" },
       { to: "/divida", icon: TrendingDown, label: "Dívidas" },
       { to: "/carteira", icon: Wallet, label: "Carteira" },
+      { to: "/ferramentas", icon: Calculator, label: "Ferramentas" },
     ],
   },
   {
@@ -57,7 +61,7 @@ export function AppNav() {
 
   return (
     <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-border/70 bg-card/80 px-4 py-5 backdrop-blur-xl md:flex">
-      <div className="flex items-center gap-3 px-3 pb-8">
+      <div className="flex items-center gap-3 px-3 pb-5">
         <div className="grid h-10 w-10 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/10">
           <span className="font-mono text-lg font-bold">P</span>
         </div>
@@ -67,6 +71,10 @@ export function AppNav() {
         </div>
       </div>
 
+      <button type="button" onClick={openCommandMenu} className="mb-5 flex items-center gap-2 rounded-xl border border-border/70 bg-secondary/40 px-3 py-2.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
+        <Search className="h-4 w-4" /> Buscar no app
+        <kbd className="ml-auto text-[10px] opacity-60">Ctrl K</kbd>
+      </button>
       <div className="flex-1 space-y-7 overflow-y-auto pr-1">
         {groups.map((group) => (
           <div key={group.label}>

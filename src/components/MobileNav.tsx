@@ -2,9 +2,10 @@ import { NavLink, useLocation } from "react-router-dom";
 import { LayoutDashboard, Target, TrendingDown, Wallet, MoreHorizontal, Sun, Moon, Contrast } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { DollarSign, TrendingUp, Gamepad2, X, Sparkles, ArrowLeftRight } from "lucide-react";
+import { DollarSign, TrendingUp, Gamepad2, X, Sparkles, ArrowLeftRight, Calculator, Search } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
 import { Button } from "@/components/ui/button";
+import { openCommandMenu } from "@/lib/commandMenu";
 
 const THEME_LABELS = {
   dark: "Escuro",
@@ -25,6 +26,7 @@ const moreTabs = [
   { to: "/renda", icon: DollarSign, label: "Renda" },
   { to: "/trade", icon: TrendingUp, label: "Trade" },
   { to: "/lifegame", icon: Gamepad2, label: "LifeGame" },
+  { to: "/ferramentas", icon: Calculator, label: "Ferramentas" },
 ];
 
 export function MobileNav() {
@@ -45,6 +47,9 @@ export function MobileNav() {
       {moreOpen && (
         <div className="fixed bottom-20 left-4 right-4 z-[99] md:hidden animate-in slide-in-from-bottom-4 duration-200">
           <div className="bg-card border border-border/50 rounded-2xl p-3">
+            <Button variant="ghost" className="mb-2 h-11 w-full justify-start gap-2 rounded-xl" onClick={() => { setMoreOpen(false); openCommandMenu(); }}>
+              <Search className="h-4 w-4" /> Buscar no app
+            </Button>
             <div className="grid grid-cols-4 gap-2">
               {moreTabs.map(tab => (
                 <NavLink

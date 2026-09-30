@@ -1,5 +1,6 @@
 import { useFinanceStore } from "@/stores/financeStore";
 import { DashboardHeader } from "@/components/DashboardHeader";
+import { QuickTools } from "@/components/QuickTools";
 import { BankCard } from "@/components/BankCard";
 import { AddBankCard } from "@/components/AddBankCard";
 import { InstallmentTimeline } from "@/components/InstallmentTimeline";
@@ -357,6 +358,8 @@ const Index = () => {
             </div>
           ))}
         </div>
+
+        <QuickTools />
 
         {/* Layout controls */}
         <div className="flex items-center justify-end gap-2 -mt-8 mb-2">

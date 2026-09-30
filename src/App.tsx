@@ -10,6 +10,8 @@ import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { AppNav } from "@/components/AppNav";
 import { MobileNav } from "@/components/MobileNav";
+import { CommandCenter } from "@/components/CommandCenter";
+const FerramentasPage = lazy(() => import("./pages/Ferramentas"));
 const Index = lazy(() => import("./pages/Index"));
 const GoalsPage = lazy(() => import("./pages/Goals"));
 const RendaPage = lazy(() => import("./pages/Renda"));
@@ -122,6 +124,7 @@ function AppRoutes() {
     <BrowserRouter>
       <AppNav />
       <MobileNav />
+      <CommandCenter />
       <div className="min-h-screen md:pl-64">
         <div role="status" aria-live="polite" className="mx-auto max-w-[1600px] px-4 pt-3 text-xs text-muted-foreground sm:px-6 lg:px-8">
           {finance.syncStatus === "saving" && "Salvando dados..."}
@@ -146,6 +149,7 @@ function AppRoutes() {
             <Route path="/fluxo" element={<FluxoPage />} />
             <Route path="/lifegame" element={<LifeGamePage />} />
             <Route path="/desejos" element={<DesejosPage />} />
+            <Route path="/ferramentas" element={<FerramentasPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
