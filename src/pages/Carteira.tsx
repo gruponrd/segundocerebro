@@ -162,13 +162,11 @@ function WalletCard({
   bank,
   stackIndex,
   isActive,
-  totalCards,
   onClick,
 }: {
   bank: Bank;
   stackIndex: number;
   isActive: boolean;
-  totalCards: number;
   onClick: () => void;
 }) {
   const usagePercent = bank.limitTotal > 0 ? Math.min((bank.limitUsed / bank.limitTotal) * 100, 100) : 0;
@@ -182,24 +180,35 @@ function WalletCard({
     )
   ).padStart(4, "0")}`;
 
-  // Stack positioning: active card is fully visible, others peek from top
-  const peekOffset = isActive ? 0 : -(stackIndex * 28 + 60);
+  // Only four previews are rendered, keeping the stack inside its own stage.
+  const peekOffset = isActive ? 0 : -(stackIndex * 16 + 16);
   const scaleVal = isActive ? 1 : 1 - stackIndex * 0.03;
-  const zIndex = isActive ? 50 : totalCards - stackIndex;
+  const zIndex = 5 - stackIndex;
   const blurVal = isActive ? 0 : Math.min(stackIndex * 0.5, 2);
 
   return (
     <div
-      className={cn("absolute left-1/2 cursor-pointer", textColor)}
+      className={cn("absolute left-1/2 cursor-pointer rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 motion-reduce:!transition-none", textColor)}
+      role="button"
+      tabIndex={0}
+      aria-label={`Selecionar cartão ${bank.name}`}
+      aria-pressed={isActive}
       style={{
+        top: 96,
         transform: `translateX(-50%) translateY(${peekOffset}px) scale(${scaleVal})`,
         zIndex,
         filter: `blur(${blurVal}px)`,
-        transition: "all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)",
-        width: 340,
+        transition: "transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease",
+        width: "min(340px, calc(100% - 24px))",
         height: 210,
       }}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onClick();
+        }
+      }}
     >
       <div
         className="w-full h-full rounded-2xl overflow-hidden shadow-xl"
@@ -297,17 +306,9 @@ export default function CarteiraPage() {
 
   const count = banks.length;
 
-  const prev = useCallback(() => setActiveIndex((p) => (p - 1 + count) % count), [count]);
-  const next = useCallback(() => setActiveIndex((p) => (p + 1) % count), [count]);
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === "ArrowLeft" || e.key === "ArrowUp") prev();
-      if (e.key === "ArrowRight" || e.key === "ArrowDown") next();
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [prev, next]);
+  const selectedIndex = count > 0 ? activeIndex % count : 0;
+  const prev = useCallback(() => setActiveIndex((p) => count > 0 ? (p % count - 1 + count) % count : 0), [count]);
+  const next = useCallback(() => setActiveIndex((p) => count > 0 ? (p + 1) % count : 0), [count]);
 
   const totalDebt = banks.reduce((s, b) => s + b.debtFinal, 0);
   const totalLimit = banks.reduce((s, b) => s + b.limitTotal, 0);
@@ -323,12 +324,12 @@ export default function CarteiraPage() {
 
   // Reorder banks so active is at bottom (index 0 = closest), rest stacked above
   const orderedBanks = banks.map((bank, i) => {
-    let stackPos = i - activeIndex;
+    let stackPos = i - selectedIndex;
     if (stackPos < 0) stackPos += count;
     return { bank, originalIndex: i, stackPos };
   });
 
-  const activeBank = banks[activeIndex];
+  const activeBank = banks[selectedIndex];
 
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartRef.current = e.touches[0].clientX;
@@ -360,6 +361,7 @@ export default function CarteiraPage() {
               <button
                 key={v.key}
                 onClick={() => setView(v.key)}
+                aria-pressed={view === v.key}
                 className={cn(
                   "px-4 py-1.5 rounded-full text-[11px] uppercase tracking-wider transition-colors",
                   view === v.key
@@ -379,10 +381,21 @@ export default function CarteiraPage() {
         <div className={cn("flex flex-col lg:flex-row items-center lg:items-start gap-10 justify-center", view !== "carteira" && "hidden")}>
 
           {/* Wallet pocket */}
-          <div className="flex-shrink-0 flex flex-col items-center gap-4">
+          <div className="w-full max-w-[380px] min-w-0 flex-shrink-0 flex flex-col items-center gap-4">
             <div
-              className="relative"
-              style={{ width: 380, height: 380 }}
+              className="relative isolate w-full h-[440px] overflow-hidden rounded-3xl outline-none focus-visible:ring-2 focus-visible:ring-primary"
+              role="region"
+              aria-label="Selecionar cartão"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+                  e.preventDefault();
+                  prev();
+                } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+                  e.preventDefault();
+                  next();
+                }
+              }}
               onTouchStart={handleTouchStart}
               onTouchEnd={handleTouchEnd}
             >
@@ -390,7 +403,7 @@ export default function CarteiraPage() {
               <div
                 className="absolute bottom-0 left-1/2 -translate-x-1/2 rounded-3xl border border-border/60 overflow-hidden"
                 style={{
-                  width: 360,
+                  width: "calc(100% - 20px)",
                   height: 200,
                   background: "linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.8) 100%)",
                   boxShadow: "0 -4px 30px -5px hsl(var(--primary) / 0.08), inset 0 2px 20px hsl(var(--background) / 0.3)",
@@ -416,6 +429,7 @@ export default function CarteiraPage() {
 
               {/* Stacked cards peeking from wallet */}
               {orderedBanks
+                .filter(({ stackPos }) => stackPos < 5)
                 .sort((a, b) => b.stackPos - a.stackPos)
                 .map(({ bank, originalIndex, stackPos }) => (
                   <WalletCard
@@ -423,29 +437,31 @@ export default function CarteiraPage() {
                     bank={bank}
                     stackIndex={stackPos}
                     isActive={stackPos === 0}
-                    totalCards={count}
                     onClick={() => setActiveIndex(originalIndex)}
                   />
                 ))}
             </div>
 
             {/* Navigation */}
-            <div className="flex items-center gap-4">
+            <div className="flex w-full items-center justify-center gap-3">
               <button
                 onClick={prev}
-                className="w-10 h-10 rounded-full bg-card/80 backdrop-blur border border-border/50 flex items-center justify-center text-foreground hover:bg-primary/20 hover:text-primary transition-all shadow-lg"
+                aria-label="Cartão anterior"
+                className="w-10 h-10 shrink-0 rounded-full bg-card/80 backdrop-blur border border-border/50 flex items-center justify-center text-foreground hover:bg-primary/20 hover:text-primary transition-all shadow-lg"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
 
-              <div className="flex gap-2">
-                {banks.map((_, i) => (
+              <div className="flex flex-wrap justify-center gap-2">
+                {banks.map((bank, i) => (
                   <button
-                    key={i}
+                    key={bank.id}
                     onClick={() => setActiveIndex(i)}
+                    aria-label={`Ver cartão ${bank.name}`}
+                    aria-pressed={i === selectedIndex}
                     className={cn(
                       "h-2 rounded-full transition-all duration-500",
-                      i === activeIndex
+                      i === selectedIndex
                         ? "bg-primary w-6"
                         : "bg-muted-foreground/30 w-2 hover:bg-muted-foreground/50"
                     )}
@@ -455,7 +471,8 @@ export default function CarteiraPage() {
 
               <button
                 onClick={next}
-                className="w-10 h-10 rounded-full bg-card/80 backdrop-blur border border-border/50 flex items-center justify-center text-foreground hover:bg-primary/20 hover:text-primary transition-all shadow-lg"
+                aria-label="Próximo cartão"
+                className="w-10 h-10 shrink-0 rounded-full bg-card/80 backdrop-blur border border-border/50 flex items-center justify-center text-foreground hover:bg-primary/20 hover:text-primary transition-all shadow-lg"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
