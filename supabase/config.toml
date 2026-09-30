@@ -1,1 +1,9 @@
 project_id = "mwlkilckycgbjfrjeovu"
+
+[functions.telegram-webhook]
+# Authenticated with Telegram's secret header inside the handler.
+verify_jwt = false
+
+[functions.telegram-account]
+# Always verifies the user's JWT via auth.getUser before accessing account data.
+verify_jwt = false

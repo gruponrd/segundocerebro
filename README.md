@@ -31,6 +31,10 @@ Cada registro de parcela/fatura representa um lançamento com vencimento própri
 
 Dados antigos salvos neste navegador sem identificação de conta exigem confirmação explícita antes de serem associados à conta aberta. Os módulos Trade, Desejos, Dream Board, sessões de pagamento, rotina, LifeGame e preferências de notificação passam a usar armazenamento local separado por conta. Esses módulos ainda não sincronizam com o Supabase e permanecem neste dispositivo.
 
+## Telegram
+
+O bot **@SecondB2Bot** pode registrar receitas e despesas com confirmação, vinculação à conta e proteção contra duplicatas. A tela `/integracoes` mostra o status real da conexão; o bot depende da publicação das funções e da migração no Supabase correto. Consulte [ativação e testes](docs/telegram.md). Sem acesso administrativo ao projeto, o frontend pode ser publicado mas o bot continua inativo.
+
 ## Funções de IA
 
 As funções `analyze-income` e `income-coverage` exigem sessão autenticada, validam a entrada e consomem uma cota de cinco chamadas por hora, por função e usuário. Antes de implantá-las, aplique a migração `supabase/migrations/20260921210000_ai_quota.sql` no projeto Supabase correspondente e configure `LOVABLE_API_KEY` como segredo das Edge Functions. As alterações locais nessas funções não entram em produção apenas com o build do frontend.

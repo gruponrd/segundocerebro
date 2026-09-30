@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { money, pendingPayments, projectScenario } from "@/lib/planningTools";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
+import { AccountBackup } from "@/components/AccountBackup";
 
 const EMPTY = { purchase: "", installments: "1", incomeChange: "", expenseReduction: "", startingBalance: "" };
 
@@ -45,6 +46,7 @@ export default function FerramentasPage() {
   return (
     <main className="page-container space-y-8">
       <PageHeader title="Ferramentas" description="Antecipe decisões, compare cenários e organize o próximo passo." icon={FlaskConical} />
+      <AccountBackup />
 
       <section className="glass-card p-5 sm:p-6" aria-labelledby="scenario-title">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

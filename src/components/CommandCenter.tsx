@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeftRight, ArrowRight, Calculator, CreditCard, DollarSign, Gamepad2, LayoutDashboard, ReceiptText, Search, Sparkles, Target, TrendingDown, TrendingUp, Wallet, type LucideIcon } from "lucide-react";
+import { ArrowLeftRight, ArrowRight, Calculator, CreditCard, DollarSign, Gamepad2, LayoutDashboard, Link2, ReceiptText, Search, Sparkles, Target, TrendingDown, TrendingUp, Wallet, type LucideIcon } from "lucide-react";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { useFinanceStore } from "@/stores/financeStore";
@@ -18,6 +18,7 @@ const PAGES = [
   { title: "Trade", detail: "Operações", route: "/trade", icon: TrendingUp },
   { title: "LifeGame", detail: "Sua jornada", route: "/lifegame", icon: Gamepad2 },
   { title: "Desejos", detail: "Compras planejadas", route: "/desejos", icon: Sparkles },
+  { title: "Integrações", detail: "Telegram · bot · conectar conta", route: "/integracoes", icon: Link2 },
 ];
 
 const normalize = (text: string) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();

@@ -13,6 +13,7 @@ import { MobileNav } from "@/components/MobileNav";
 import { CommandCenter } from "@/components/CommandCenter";
 import { ExpenseFAB } from "@/components/ExpenseFAB";
 const FerramentasPage = lazy(() => import("./pages/Ferramentas"));
+const IntegracoesPage = lazy(() => import("./pages/Integracoes"));
 const Index = lazy(() => import("./pages/Index"));
 const GoalsPage = lazy(() => import("./pages/Goals"));
 const RendaPage = lazy(() => import("./pages/Renda"));
@@ -153,6 +154,7 @@ function AppRoutes() {
             <Route path="/lifegame" element={<LifeGamePage />} />
             <Route path="/desejos" element={<DesejosPage />} />
             <Route path="/ferramentas" element={<FerramentasPage />} />
+            <Route path="/integracoes" element={<IntegracoesPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

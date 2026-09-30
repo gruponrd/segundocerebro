@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
+    "test:telegram-db": "node --test scripts/telegram-db.test.mjs",
     "test:watch": "vitest"
   },
   "dependencies": {
@@ -74,6 +75,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^8.3.4",
+    "@electric-sql/pglite": "^0.5.8",
     "@eslint/js": "^9.32.0",
     "@tailwindcss/typography": "^0.5.16",
     "@testing-library/jest-dom": "^6.6.0",

@@ -2,7 +2,7 @@ import { NavLink, useLocation } from "react-router-dom";
 import { LayoutDashboard, Target, TrendingDown, Wallet, MoreHorizontal, Sun, Moon, Contrast } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { DollarSign, TrendingUp, Gamepad2, X, Sparkles, ArrowLeftRight, Calculator, Search } from "lucide-react";
+import { DollarSign, TrendingUp, Gamepad2, X, Sparkles, ArrowLeftRight, Calculator, Search, Link2 } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
 import { Button } from "@/components/ui/button";
 import { openCommandMenu } from "@/lib/commandMenu";
@@ -27,6 +27,7 @@ const moreTabs = [
   { to: "/trade", icon: TrendingUp, label: "Trade" },
   { to: "/lifegame", icon: Gamepad2, label: "LifeGame" },
   { to: "/ferramentas", icon: Calculator, label: "Ferramentas" },
+  { to: "/integracoes", icon: Link2, label: "Integrações" },
 ];
 
 export function MobileNav() {

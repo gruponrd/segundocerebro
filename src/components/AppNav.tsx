@@ -9,6 +9,7 @@ import {
   DollarSign,
   Gamepad2,
   LayoutDashboard,
+  Link2,
   Moon,
   Settings2,
   Sparkles,
@@ -54,6 +55,7 @@ const groups = [
       { to: "/trade", icon: TrendingUp, label: "Trade" },
       { to: "/lifegame", icon: Gamepad2, label: "LifeGame" },
       { to: "/desejos", icon: Sparkles, label: "Desejos" },
+      { to: "/integracoes", icon: Link2, label: "Integrações" },
     ],
   },
 ] as const;

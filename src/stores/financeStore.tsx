@@ -220,6 +220,16 @@ function saveToLocal(userId: string, data: PersistedData) {
   }
 }
 
+function rememberCloudSnapshot(userId: string, snapshot: string) {
+  try { localStorage.setItem(`fin_cloud_checkpoint_${userId}`, snapshot); }
+  catch { /* Cloud sync remains available when the local quota is exhausted. */ }
+}
+
+function isCleanLocalCopy(userId: string, data: PersistedData) {
+  try { return localStorage.getItem(`fin_cloud_checkpoint_${userId}`) === JSON.stringify(data); }
+  catch { return false; }
+}
+
 function normalizeData(data: Partial<PersistedData>): PersistedData {
   return {
     banks: Array.isArray(data.banks) ? data.banks : DEFAULTS.banks,
@@ -361,6 +371,7 @@ function useFinanceStoreInternal(): FinanceStore {
     applyData(recoveryCloudRef.current);
     saveToLocal(userId, recoveryCloudRef.current);
     lastSavedSnapshotRef.current = JSON.stringify(recoveryCloudRef.current);
+    rememberCloudSnapshot(userId, lastSavedSnapshotRef.current);
     setLocalRecoveryAvailable(false);
     finishHydration(userId, "saved");
   }, [applyData, userId, finishHydration]);
@@ -420,7 +431,7 @@ function useFinanceStoreInternal(): FinanceStore {
           remoteUpdatedAtRef.current = data.updated_at;
           const local = loadFromStorage<PersistedData | null>(userStorageKey(userId), null);
           const localData = local ? normalizeData(local) : null;
-          if (localData && JSON.stringify(localData) !== JSON.stringify(normalized) && !isPreviewMode) {
+          if (localData && JSON.stringify(localData) !== JSON.stringify(normalized) && !isCleanLocalCopy(userId, localData) && !isPreviewMode) {
             recoveryLocalRef.current = localData;
             recoveryCloudRef.current = normalized;
             setLocalRecoveryAvailable(true);
@@ -433,6 +444,10 @@ function useFinanceStoreInternal(): FinanceStore {
           const selectedData = isPreviewMode && localData ? localData : normalized;
           applyData(selectedData);
           lastSavedSnapshotRef.current = JSON.stringify(selectedData);
+          if (!isPreviewMode) {
+            saveToLocal(userId, selectedData);
+            rememberCloudSnapshot(userId, lastSavedSnapshotRef.current);
+          }
         } else {
           const scoped = loadFromStorage<PersistedData | null>(userStorageKey(userId), null);
           if (scoped) {
@@ -522,6 +537,7 @@ function useFinanceStoreInternal(): FinanceStore {
           }
           remoteUpdatedAtRef.current = result.data.updated_at;
           lastSavedSnapshotRef.current = snapshot;
+          rememberCloudSnapshot(userId, snapshot);
           if (latestSnapshotRef.current === snapshot) setSyncStatus("saved");
         } catch (error) {
           if (activeUserIdRef.current !== userId) return;
@@ -533,6 +549,51 @@ function useFinanceStoreInternal(): FinanceStore {
     }, 2000);
     return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current); };
   }, [getPersistedData, userId, hydratedUserId, saveNonce]);
+
+  // Receive bot / other-device changes only when there are no unsaved local edits.
+  useEffect(() => {
+    if (isPreviewMode || !userId || hydratedUserId !== userId) return;
+    let stopped = false;
+    let reading = false;
+    const refresh = async () => {
+      if (reading || stopped || document.visibilityState === "hidden") return;
+      reading = true;
+      const queriedRevision = remoteUpdatedAtRef.current;
+      try {
+        const { data, error } = await supabase.from("user_financial_data")
+          .select("data, updated_at").eq("user_id", userId).maybeSingle();
+        if (stopped || activeUserIdRef.current !== userId || error || !data?.data
+          || remoteUpdatedAtRef.current !== queriedRevision || data.updated_at === queriedRevision) return;
+        if (latestSnapshotRef.current !== lastSavedSnapshotRef.current) {
+          setSyncStatus("conflict");
+          setSyncError("Há novos dados na nuvem e alterações neste dispositivo. Confira as duas versões antes de continuar.");
+          return;
+        }
+        const normalized = normalizeData(data.data as Partial<PersistedData>);
+        const snapshot = JSON.stringify(normalized);
+        remoteUpdatedAtRef.current = data.updated_at;
+        lastSavedSnapshotRef.current = snapshot;
+        latestSnapshotRef.current = snapshot;
+        saveToLocal(userId, normalized);
+        rememberCloudSnapshot(userId, snapshot);
+        applyData(normalized);
+        setSyncStatus("saved");
+        setSyncError(null);
+      } finally { reading = false; }
+    };
+    const requestRefresh = () => { void refresh().catch(() => undefined); };
+    window.addEventListener("focus", requestRefresh);
+    window.addEventListener("segundo-cerebro:finance-refresh", requestRefresh);
+    document.addEventListener("visibilitychange", requestRefresh);
+    const timer = setInterval(requestRefresh, 60000);
+    return () => {
+      stopped = true;
+      clearInterval(timer);
+      window.removeEventListener("focus", requestRefresh);
+      window.removeEventListener("segundo-cerebro:finance-refresh", requestRefresh);
+      document.removeEventListener("visibilitychange", requestRefresh);
+    };
+  }, [userId, hydratedUserId, applyData]);
 
   // Derive the full remaining plan balance from installments.
   const banks = banksRaw.map((b) => {
