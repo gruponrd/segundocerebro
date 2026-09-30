@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Download, Loader2, ShieldCheck } from "lucide-react";
+import { Copy, Download, Loader2, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useFinanceStore } from "@/stores/financeStore";
@@ -13,12 +13,14 @@ export function AccountBackup() {
   const { cloudReady, syncStatus, localRecoveryAvailable } = useFinanceStore();
   const [busy, setBusy] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
+  const [copied, setCopied] = useState(false);
   const ready = !isPreviewMode && !!user && cloudReady && syncStatus === "saved" && !localRecoveryAvailable;
 
-  async function download() {
+  async function download(mode: "download" | "copy" = "download") {
     if (!ready || !user || busy) return;
     setBusy(true);
     setDownloaded(false);
+    setCopied(false);
     try {
       const { data: identity, error: authError } = await supabase.auth.getUser();
       if (authError || identity.user?.id !== user.id) throw new Error("Entre novamente antes de exportar seus dados.");
@@ -28,7 +30,14 @@ export function AccountBackup() {
       const backup = createAccountBackup(data, displayName, localStorage);
       const { data: current } = await supabase.auth.getSession();
       if (current.session?.user.id !== user.id) throw new Error("A conta mudou durante a exportação. Tente novamente.");
-      const url = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" }));
+      const content = JSON.stringify(backup, null, 2);
+      if (mode === "copy") {
+        await navigator.clipboard.writeText(content);
+        setCopied(true);
+        toast({ title: "Backup JSON copiado", description: "Cole o conteúdo em um arquivo para guardar a cópia." });
+        return;
+      }
+      const url = URL.createObjectURL(new Blob([content], { type: "application/json" }));
       const link = document.createElement("a");
       link.href = url;
       link.download = `segundo-cerebro-backup-${backup.exportedAt.replace(/[:.]/g, "-")}.json`;
@@ -51,12 +60,16 @@ export function AccountBackup() {
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Baixe os registros financeiros salvos na nuvem, incluindo cartões, parcelas, receitas, despesas e objetivos. A cópia preserva os identificadores e valores originais.</p>
           <p className="mt-2 text-xs leading-relaxed text-muted-foreground">Inclui também os dados de Trade, Desejos e rotina desta conta disponíveis neste navegador. Senhas e sessões não são incluídas. As imagens permanecem como links.</p>
         </div>
-        <Button onClick={download} disabled={!ready || busy} className="shrink-0 gap-2 rounded-xl">
+        <div className="flex shrink-0 flex-wrap gap-2">
+        <Button onClick={() => void download()} disabled={!ready || busy} className="gap-2 rounded-xl">
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}{busy ? "Preparando…" : "Baixar backup JSON"}
         </Button>
+        <Button variant="outline" onClick={() => void download("copy")} disabled={!ready || busy} className="gap-2 rounded-xl"><Copy className="h-4 w-4" /> Copiar backup JSON</Button>
+        </div>
       </div>
       {!ready && <p role="status" className="mt-4 text-xs text-muted-foreground">{isPreviewMode ? "A exportação está disponível no aplicativo publicado, após o login." : "Aguarde a sincronização ou resolva a recuperação de dados antes de baixar o backup."}</p>}
       {downloaded && <p role="status" className="mt-4 text-xs text-income">Download iniciado. Confira o arquivo na pasta de downloads do seu dispositivo.</p>}
+      {copied && <p role="status" className="mt-4 text-xs text-income">Backup JSON copiado para a área de transferência.</p>}
     </section>
   );
 }

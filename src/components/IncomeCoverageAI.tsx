@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Sparkles, Loader2, RefreshCw, ShieldCheck, AlertTriangle, ShieldAlert } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cardSpendingForMonth } from "@/lib/financeCalculations";
+import { aiAnalysisEnabled } from "@/lib/features";
 
 const MONTH_MAP: Record<string, number> = {
   Janeiro: 1, Fevereiro: 2, "Março": 3, Abril: 4, Maio: 5, Junho: 6,
@@ -73,14 +74,14 @@ export function IncomeCoverageAI() {
               <overall.Icon className="w-5 h-5" style={{ color: overall.color }} />
             </div>
             <div>
-              <div>Cobertura de Renda — IA</div>
+              <div>Cobertura de Renda{aiAnalysisEnabled ? " — IA" : ""}</div>
               <p className="text-xs text-muted-foreground font-normal">Próximos 3 meses</p>
             </div>
           </CardTitle>
-          <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={analyze} disabled={loading}>
+          {aiAnalysisEnabled && <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={analyze} disabled={loading}>
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : insight ? <RefreshCw className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
             {loading ? "Analisando..." : insight ? "Reanalisar" : "Analisar com IA"}
-          </Button>
+          </Button>}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -141,7 +142,7 @@ export function IncomeCoverageAI() {
         )}
         {!insight && !loading && (
           <p className="text-xs text-muted-foreground text-center pt-2">
-            Clique em "Analisar com IA" para um diagnóstico personalizado.
+            {aiAnalysisEnabled ? 'Clique em "Analisar com IA" para um diagnóstico personalizado.' : "Cobertura calculada a partir das receitas, despesas e parcelas cadastradas."}
           </p>
         )}
       </CardContent>

@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import DOMPurify from "dompurify";
 import { PageHeader } from "@/components/PageHeader";
+import { aiAnalysisEnabled } from "@/lib/features";
 
 /* ─── Income Source Row ─── */
 function IncomeSourceRow({
@@ -104,6 +105,7 @@ function AIAnalysisCard({
   onAnalyze: () => void;
   error: string | null;
 }) {
+  if (!aiAnalysisEnabled) return null;
   return (
     <Card className="glass-card border-primary/20 overflow-hidden">
       <CardHeader className="pb-3">

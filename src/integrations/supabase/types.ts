@@ -14,6 +14,12 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_migration_modules: {
+        Row: { user_id: string; modules: Json; created_at: string }
+        Insert: { user_id: string; modules: Json; created_at?: string }
+        Update: { user_id?: string; modules?: Json; created_at?: string }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

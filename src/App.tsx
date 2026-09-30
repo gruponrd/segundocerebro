@@ -12,6 +12,7 @@ import { AppNav } from "@/components/AppNav";
 import { MobileNav } from "@/components/MobileNav";
 import { CommandCenter } from "@/components/CommandCenter";
 import { ExpenseFAB } from "@/components/ExpenseFAB";
+import { MigratedModulesGate } from "@/components/MigratedModulesGate";
 const FerramentasPage = lazy(() => import("./pages/Ferramentas"));
 const IntegracoesPage = lazy(() => import("./pages/Integracoes"));
 const Index = lazy(() => import("./pages/Index"));
@@ -172,9 +173,11 @@ const App = () => (
     <ThemeProvider>
       <TooltipProvider>
         <AuthProvider>
+          <MigratedModulesGate>
           <FinanceProvider>
             <AppRoutes />
           </FinanceProvider>
+          </MigratedModulesGate>
         </AuthProvider>
       </TooltipProvider>
     </ThemeProvider>
