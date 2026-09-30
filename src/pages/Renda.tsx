@@ -25,7 +25,7 @@ function IncomeSourceRow({
 }) {
   return (
     <div className="flex items-center gap-3 group">
-      <div className="flex-1 flex gap-2">
+      <div className="min-w-0 flex-1 flex flex-col gap-2 sm:flex-row">
         <Input
           aria-label="Nome da fonte de renda"
           value={source.label}
@@ -39,7 +39,7 @@ function IncomeSourceRow({
           step="0.01"
           value={source.amount || ""}
           onChange={(e) => onUpdate(source.label, Math.max(0, parseFloat(e.target.value) || 0))}
-          className="rounded-xl h-10 text-sm w-36"
+          className="rounded-xl h-10 text-sm w-full sm:w-36"
           placeholder="R$ 0"
           min={0}
         />
