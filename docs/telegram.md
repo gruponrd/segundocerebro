@@ -2,9 +2,11 @@
 
 Bot escolhido: **@SecondB2Bot**. A publicação do frontend não ativa as Edge Functions: é necessário acesso administrativo ao mesmo Supabase usado pelo aplicativo.
 
+Em 30/09/2026, as funções foram instaladas no Supabase próprio **wgtktyrmifchgfrpnchh**, o token foi salvo diretamente pelo usuário e o registro do webhook foi verificado no primeiro link de conexão. O app publicado consulta o status sem erro. Cada usuário ainda precisa concluir seu vínculo pelo botão **Iniciar** no Telegram.
+
 ## Ativação
 
-1. Confira `VITE_SUPABASE_URL` no ambiente Production da Vercel. O destino validado da migração é **wgtktyrmifchgfrpnchh**. As variáveis Production já apontam para ele. Conferir o deploy no domínio antes de liberar novos lançamentos. Não substitua por outro projeto sem backup e conferência dos dados e da autenticação.
+1. Confira `VITE_SUPABASE_URL` no ambiente Production da Vercel. O destino validado e publicado é **wgtktyrmifchgfrpnchh**. Não substitua por outro projeto sem backup e conferência dos dados e da autenticação.
 2. A migração `20260930010000_telegram_integration.sql` já foi aplicada em **wgtktyrmifchgfrpnchh**, e as duas Edge Functions foram publicadas pelo dashboard. Não executar novamente as migrações instaladas. Em um novo destino, executar a migração Telegram somente após preparar a estrutura financeira.
 3. Na instalação pelo dashboard, salve o token do **@SecondB2Bot** em **Edge Functions → Secrets → TELEGRAM_BOT_TOKEN**. Não é necessário um access token administrativo para esse caminho: as funções já foram publicadas. O segredo do webhook é derivado no servidor; ao clicar em conectar no aplicativo, a função valida a identidade do bot, registra o webhook e verifica a URL antes de devolver o link pessoal.
 
@@ -39,6 +41,7 @@ Compras no crédito, parcelas, áudios e fotos não são suportados nesta versã
 ## Proteções de dados
 
 - Endpoint de conta verifica o JWT com `auth.getUser`; tabelas têm RLS e permissões mínimas.
+- O histórico consulta apenas colunas concedidas ao app; RLS aplica o filtro de proprietário. O teste PostgreSQL verifica que essa leitura funciona com as permissões mínimas e não expõe o histórico de outra conta.
 - Webhook exige o cabeçalho secreto do Telegram e aceita apenas conversa privada com remetente igual ao ID do chat.
 - O código de vinculação é aleatório; apenas seu hash fica no banco. Um Telegram não se vincula a duas contas e uma conta vinculada não é substituída por outro link.
 - Confirmar bloqueia a conexão, a prévia e a linha financeira na transação SQL. A função acrescenta apenas um item ao mês apropriado na versão mais recente dos dados.

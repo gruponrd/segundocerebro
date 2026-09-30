@@ -8,8 +8,8 @@
 - Em 30/09/2026, o backup autenticado foi importado no destino para a nova conta criada pelo usuário. A comparação do JSON financeiro e dos módulos retornou igualdade integral. Foram preservados os registros e IDs dos lançamentos; mudou apenas o usuário proprietário.
 - RLS validada por leitura: o proprietário acessa os registros e outra conta não acessa nenhum. A API pública também não retorna registros financeiros sem login.
 - O novo login foi validado no aplicativo. Uma segunda exportação confirmou igualdade integral dos dados financeiros e módulos após a hidratação, com a versão financeira da nuvem inalterada.
-- As variáveis Production da Vercel foram configuradas para o destino; a publicação deve ser verificada no domínio após o deploy deste commit.
-- `telegram-account` e `telegram-webhook` estão publicadas no destino. As chamadas sem autenticação retornam 401. O bot aguarda o token do BotFather; o registro do webhook ocorre ao gerar o primeiro link de conexão autenticado.
+- A produção em `segundo-cerebro-nrd10.vercel.app` usa o destino. O deploy ficou Ready, o bundle publicado contém a URL correta e o login no domínio foi confirmado com os dados sincronizados.
+- `telegram-account` e `telegram-webhook` estão publicadas no destino. O token foi salvo pelo usuário no Supabase, a identidade **@SecondB2Bot** foi validada e o webhook foi registrado e conferido antes da geração do link pessoal. A vinculação se completa quando o usuário toca em Iniciar no Telegram.
 
 ## Dados recuperados e limites
 
