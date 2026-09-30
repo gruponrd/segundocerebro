@@ -3,10 +3,21 @@
 ## Situação verificada
 
 - O frontend está no GitHub e na Vercel; seu layout não precisa ser reconstruído.
-- O app usa atualmente o projeto `mwlkilckycgbjfrjeovu`.
-- A conta Supabase acessível mostra o projeto `adllwvpomotbqnutxlsk`. Ainda não foi validado como destino da migração.
-- Não houve troca da conexão de produção nem alteração de lançamentos durante esta preparação.
-- A integração Telegram está preparada no código e depende da instalação no backend definitivo.
+- A origem anterior é `mwlkilckycgbjfrjeovu`, gerenciada pelo Lovable. Ela permanece disponível para recuperação.
+- O destino próprio é **secondbrain**, `wgtktyrmifchgfrpnchh`, na organização NRD. O outro projeto `adllwvpomotbqnutxlsk` permanece intocado.
+- Em 30/09/2026, o backup autenticado foi importado no destino para a nova conta criada pelo usuário. A comparação do JSON financeiro e dos módulos retornou igualdade integral. Foram preservados os registros e IDs dos lançamentos; mudou apenas o usuário proprietário.
+- RLS validada por leitura: o proprietário acessa os registros e outra conta não acessa nenhum. A API pública também não retorna registros financeiros sem login.
+- O novo login foi validado no aplicativo. Uma segunda exportação confirmou igualdade integral dos dados financeiros e módulos após a hidratação, com a versão financeira da nuvem inalterada.
+- As variáveis Production da Vercel foram configuradas para o destino; a publicação deve ser verificada no domínio após o deploy deste commit.
+- `telegram-account` e `telegram-webhook` estão publicadas no destino. As chamadas sem autenticação retornam 401. O bot aguarda o token do BotFather; o registro do webhook ocorre ao gerar o primeiro link de conexão autenticado.
+
+## Dados recuperados e limites
+
+O backup final de 30/09/2026 contém 9 cartões, 12 meses, 44 receitas, 56 despesas, 2 metas e 1 credor. Os arquivos com dados pessoais e a configuração de retorno estão guardados em diretório local ignorado pelo Git.
+
+Os módulos locais vinculados à conta foram preservados em `account_migration_modules`, com leitura exclusiva pelo proprietário. `VITE_ACCOUNT_MODULE_BOOTSTRAP=true` restaura essa cópia no primeiro acesso de cada dispositivo, sem sobrescrever dados locais existentes. Essa recuperação inicial não sincroniza alterações futuras desses módulos: a sincronização financeira continua em `user_financial_data`.
+
+No destino, usar `VITE_AI_ANALYSIS_ENABLED=false` enquanto não houver um provedor substituto para as análises geradas pelo Lovable. Os cálculos e projeções financeiras locais continuam disponíveis.
 
 ## Recuperar a origem
 

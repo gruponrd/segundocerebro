@@ -4,9 +4,11 @@ Bot escolhido: **@SecondB2Bot**. A publicação do frontend não ativa as Edge F
 
 ## Ativação
 
-1. Confira `VITE_SUPABASE_URL` no ambiente Production da Vercel. Atualmente o app publicado usa **mwlkilckycgbjfrjeovu**. Não substitua por outro projeto sem backup, migração e conferência dos dados e da autenticação.
-2. No SQL Editor desse projeto, execute somente `supabase/migrations/20260930010000_telegram_integration.sql`. A migração é aditiva: cria tabelas e funções; não modifica as linhas financeiras existentes. Não execute todas as migrações antigas em um banco já existente.
-3. Com uma conta que administra esse projeto, execute no PowerShell:
+1. Confira `VITE_SUPABASE_URL` no ambiente Production da Vercel. O destino validado da migração é **wgtktyrmifchgfrpnchh**. As variáveis Production já apontam para ele. Conferir o deploy no domínio antes de liberar novos lançamentos. Não substitua por outro projeto sem backup e conferência dos dados e da autenticação.
+2. A migração `20260930010000_telegram_integration.sql` já foi aplicada em **wgtktyrmifchgfrpnchh**, e as duas Edge Functions foram publicadas pelo dashboard. Não executar novamente as migrações instaladas. Em um novo destino, executar a migração Telegram somente após preparar a estrutura financeira.
+3. Na instalação pelo dashboard, salve o token do **@SecondB2Bot** em **Edge Functions → Secrets → TELEGRAM_BOT_TOKEN**. Não é necessário um access token administrativo para esse caminho: as funções já foram publicadas. O segredo do webhook é derivado no servidor; ao clicar em conectar no aplicativo, a função valida a identidade do bot, registra o webhook e verifica a URL antes de devolver o link pessoal.
+
+   Como alternativa para uma instalação pela CLI, com uma conta que administra esse projeto, execute no PowerShell:
 
    ```powershell
    .\scripts\setup-telegram.ps1

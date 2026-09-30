@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { ensureTelegramWebhook, telegramWebhookSecret } from "../_shared/telegramSetup.ts";
 
 const origin = Deno.env.get("APP_ORIGIN") ?? "https://segundo-cerebro-nrd10.vercel.app";
 const headers = {
@@ -25,7 +26,8 @@ Deno.serve(async req => {
     if (body.length > 1000) return reply({ error: "Requisição muito grande." }, 413);
     const { action } = JSON.parse(body);
     const botUsername = Deno.env.get("TELEGRAM_BOT_USERNAME") ?? "SecondB2Bot";
-    const configured = !!Deno.env.get("TELEGRAM_BOT_TOKEN") && !!Deno.env.get("TELEGRAM_WEBHOOK_SECRET");
+    const token = Deno.env.get("TELEGRAM_BOT_TOKEN") ?? "";
+    const configured = !!token;
     if (!["status", "connect", "disconnect"].includes(action)) return reply({ error: "Ação inválida." }, 400);
     if (action === "disconnect") {
       const { error } = await db.rpc("telegram_disconnect");
@@ -40,6 +42,8 @@ Deno.serve(async req => {
         if (error.message.includes("Already connected")) return reply({ error: "Sua conta já está conectada. Atualize o status." }, 409);
         throw error;
       }
+      const secret = await telegramWebhookSecret(token, Deno.env.get("TELEGRAM_WEBHOOK_SECRET"));
+      await ensureTelegramWebhook(token, secret, Deno.env.get("SUPABASE_URL")!, botUsername);
       return reply({ url: `https://t.me/${botUsername}?start=${data.token}`, expiresAt: data.expiresAt });
     }
     const { data: connection, error } = await db.from("telegram_connections")

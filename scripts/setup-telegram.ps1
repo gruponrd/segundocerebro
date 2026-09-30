@@ -1,5 +1,5 @@
 param(
-  [ValidatePattern('^[a-z]{20}$')][string]$ProjectRef = 'mwlkilckycgbjfrjeovu',
+  [ValidatePattern('^[a-z]{20}$')][string]$ProjectRef = 'wgtktyrmifchgfrpnchh',
   [ValidatePattern('^[A-Za-z][A-Za-z0-9_]{4,31}$')][string]$BotUsername = 'SecondB2Bot',
   [ValidatePattern('^https://[A-Za-z0-9.-]+$')][string]$AppOrigin = 'https://segundo-cerebro-nrd10.vercel.app'
 )

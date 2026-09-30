@@ -1,4 +1,4 @@
-project_id = "mwlkilckycgbjfrjeovu"
+project_id = "wgtktyrmifchgfrpnchh"
 
 [functions.telegram-webhook]
 # Authenticated with Telegram's secret header inside the handler.

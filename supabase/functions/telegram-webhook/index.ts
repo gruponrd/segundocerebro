@@ -1,9 +1,10 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleTelegramUpdate, telegramBalance, type TelegramBackend, type TelegramUpdate } from "../_shared/telegramHandler.ts";
+import { telegramWebhookSecret } from "../_shared/telegramSetup.ts";
 
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
-const secret = Deno.env.get("TELEGRAM_WEBHOOK_SECRET") ?? "";
 const token = Deno.env.get("TELEGRAM_BOT_TOKEN") ?? "";
+const secret = token ? await telegramWebhookSecret(token, Deno.env.get("TELEGRAM_WEBHOOK_SECRET")) : "";
 const appUrl = Deno.env.get("APP_ORIGIN") ?? "https://segundo-cerebro-nrd10.vercel.app";
 
 function sameSecret(value: string) {
