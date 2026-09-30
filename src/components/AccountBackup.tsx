@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Copy, Download, Loader2, ShieldCheck } from "lucide-react";
+import { Copy, Download, FileJson, Loader2, ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useFinanceStore } from "@/stores/financeStore";
@@ -7,6 +7,7 @@ import { toast } from "@/hooks/use-toast";
 import { createAccountBackup } from "@/lib/accountBackup";
 import { isPreviewMode } from "@/lib/previewMode";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 
 export function AccountBackup() {
   const { user, displayName } = useAuth();
@@ -14,9 +15,11 @@ export function AccountBackup() {
   const [busy, setBusy] = useState(false);
   const [downloaded, setDownloaded] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [visibleBackup, setVisibleBackup] = useState("");
+  const [viewerOpen, setViewerOpen] = useState(false);
   const ready = !isPreviewMode && !!user && cloudReady && syncStatus === "saved" && !localRecoveryAvailable;
 
-  async function download(mode: "download" | "copy" = "download") {
+  async function download(mode: "download" | "copy" | "view" = "download") {
     if (!ready || !user || busy) return;
     setBusy(true);
     setDownloaded(false);
@@ -31,6 +34,7 @@ export function AccountBackup() {
       const { data: current } = await supabase.auth.getSession();
       if (current.session?.user.id !== user.id) throw new Error("A conta mudou durante a exportação. Tente novamente.");
       const content = JSON.stringify(backup, null, 2);
+      if (mode === "view") { setVisibleBackup(content); setViewerOpen(true); return; }
       if (mode === "copy") {
         await navigator.clipboard.writeText(content);
         setCopied(true);
@@ -65,11 +69,19 @@ export function AccountBackup() {
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}{busy ? "Preparando…" : "Baixar backup JSON"}
         </Button>
         <Button variant="outline" onClick={() => void download("copy")} disabled={!ready || busy} className="gap-2 rounded-xl"><Copy className="h-4 w-4" /> Copiar backup JSON</Button>
+        <Button variant="ghost" onClick={() => void download("view")} disabled={!ready || busy} className="gap-2 rounded-xl"><FileJson className="h-4 w-4" /> Visualizar backup</Button>
         </div>
       </div>
       {!ready && <p role="status" className="mt-4 text-xs text-muted-foreground">{isPreviewMode ? "A exportação está disponível no aplicativo publicado, após o login." : "Aguarde a sincronização ou resolva a recuperação de dados antes de baixar o backup."}</p>}
       {downloaded && <p role="status" className="mt-4 text-xs text-income">Download iniciado. Confira o arquivo na pasta de downloads do seu dispositivo.</p>}
       {copied && <p role="status" className="mt-4 text-xs text-income">Backup JSON copiado para a área de transferência.</p>}
+      <Dialog open={viewerOpen} onOpenChange={setViewerOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogTitle>Backup da sua conta</DialogTitle>
+          <DialogDescription>Conteúdo completo da cópia, para conferir ou salvar manualmente. Contém seus registros pessoais.</DialogDescription>
+          <textarea aria-label="Conteúdo do backup JSON" readOnly value={visibleBackup} className="h-[55vh] w-full resize-none rounded-xl border border-border bg-background p-3 font-mono text-xs" />
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
