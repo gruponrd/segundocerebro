@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useFinanceStore } from "@/stores/financeStore";
 import { toast } from "@/hooks/use-toast";
 import { EXPENSE_CATEGORIES, suggestCategory, getCategory } from "@/data/categories";
+import { OPEN_TRANSACTION_EVENT } from "@/lib/transactionMenu";
+import { PeriodPicker } from "@/components/PeriodPicker";
 
 type Mode = "income" | "expense" | "card" | null;
 
@@ -55,7 +58,13 @@ export function ExpenseFAB() {
   const [parcels, setParcels] = useState("1");
   const [firstDate, setFirstDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
 
-  const { selectedMonth, addCashflowItem, banks, addInstallment } = useFinanceStore();
+  const { selectedMonth, setSelectedMonth, cashflowMonths, addCashflowItem, banks, addInstallment } = useFinanceStore();
+
+  useEffect(() => {
+    const show = () => setOpen(true);
+    window.addEventListener(OPEN_TRANSACTION_EVENT, show);
+    return () => window.removeEventListener(OPEN_TRANSACTION_EVENT, show);
+  }, []);
 
   // Auto-suggest category from label
   useEffect(() => {
@@ -118,15 +127,17 @@ export function ExpenseFAB() {
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
       <DialogTrigger asChild>
-        <button className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-2xl bg-primary text-primary-foreground animate-fab-breathe flex items-center justify-center hover:scale-110 active:scale-95 transition-transform duration-200 group">
-          <Plus className="w-6 h-6 transition-transform duration-300 group-hover:rotate-90" />
+        <button aria-label="Novo lançamento" className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-40 flex h-12 items-center justify-center gap-2 rounded-2xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-lg transition-transform active:scale-95 md:hidden">
+          <Plus className="h-5 w-5" /> Novo lançamento
         </button>
       </DialogTrigger>
-      <DialogContent className="glass-card border-border/30 sm:max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-[calc(100%-2rem)] rounded-2xl border-border/70 sm:max-w-md max-h-[85dvh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-foreground">Nova Transação</DialogTitle>
+          <DialogTitle className="text-foreground">Novo lançamento</DialogTitle>
+          <DialogDescription>Escolha receita, despesa ou compra no cartão.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-2">
+          {type !== "card" && <div className="rounded-xl border border-border/60 p-3"><p className="mb-2 text-xs text-muted-foreground">Registrar receita ou despesa em</p><PeriodPicker months={cashflowMonths} selected={selectedMonth} onChange={setSelectedMonth} /></div>}
           {!type ? (
             <div className="grid grid-cols-3 gap-3">
               <Button
@@ -157,13 +168,13 @@ export function ExpenseFAB() {
           ) : type === "card" ? (
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">Compra no cartão — vira parcelas e desconta do saldo final do mês</p>
-              <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Descrição (ex: Tênis Nike)" className="rounded-xl" autoFocus />
+              <Input aria-label="Descrição da compra" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Descrição (ex: Tênis Nike)" className="rounded-xl" autoFocus />
               <div className="grid grid-cols-2 gap-2">
-                <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Valor total (R$)" className="rounded-xl" min={0} />
-                <Input type="number" value={parcels} onChange={(e) => setParcels(e.target.value)} placeholder="Parcelas (1 = à vista)" className="rounded-xl" min={1} max={48} />
+                <Input aria-label="Valor total da compra" type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Valor total (R$)" className="rounded-xl" min={0} />
+                <Input aria-label="Quantidade de parcelas" type="number" value={parcels} onChange={(e) => setParcels(e.target.value)} placeholder="Parcelas (1 = à vista)" className="rounded-xl" min={1} max={48} />
               </div>
               <Select value={bankId} onValueChange={setBankId}>
-                <SelectTrigger className="rounded-xl"><SelectValue placeholder="Cartão" /></SelectTrigger>
+                <SelectTrigger aria-label="Cartão da compra" className="rounded-xl"><SelectValue placeholder="Cartão" /></SelectTrigger>
                 <SelectContent>
                   {banks.map((b) => (
                     <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
@@ -172,7 +183,7 @@ export function ExpenseFAB() {
               </Select>
               <div>
                 <p className="text-xs text-muted-foreground mb-1">1ª parcela vence em</p>
-                <Input type="date" value={firstDate} onChange={(e) => setFirstDate(e.target.value)} className="rounded-xl" />
+                <Input aria-label="Vencimento da primeira parcela" type="date" value={firstDate} onChange={(e) => setFirstDate(e.target.value)} className="rounded-xl" />
               </div>
               <CategoryPicker value={category} onChange={setCategory} />
               {amount && parcels && (
@@ -184,7 +195,7 @@ export function ExpenseFAB() {
                 <Button className="flex-1 rounded-xl gap-2" onClick={handleAddCard}>
                   <Check className="w-4 h-4" /> Adicionar
                 </Button>
-                <Button variant="outline" className="rounded-xl" onClick={reset}>
+                <Button aria-label="Voltar à escolha de lançamento" variant="outline" className="rounded-xl" onClick={reset}>
                   <X className="w-4 h-4" />
                 </Button>
               </div>
@@ -194,14 +205,14 @@ export function ExpenseFAB() {
               <p className="text-sm text-muted-foreground">
                 {type === "income" ? "Nova Receita" : "Nova Despesa (débito/dinheiro/Pix)"}
               </p>
-              <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Descrição" className="rounded-xl" autoFocus />
-              <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Valor (R$)" className="rounded-xl" min={0} />
+              <Input aria-label="Descrição do lançamento" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Descrição" className="rounded-xl" autoFocus />
+              <Input aria-label="Valor do lançamento" type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Valor (R$)" className="rounded-xl" min={0} />
               {type === "expense" && <CategoryPicker value={category} onChange={setCategory} />}
               <div className="flex gap-2">
                 <Button className="flex-1 rounded-xl gap-2" onClick={handleAddSimple}>
                   <Check className="w-4 h-4" /> Adicionar
                 </Button>
-                <Button variant="outline" className="rounded-xl" onClick={reset}>
+                <Button aria-label="Voltar à escolha de lançamento" variant="outline" className="rounded-xl" onClick={reset}>
                   <X className="w-4 h-4" />
                 </Button>
               </div>

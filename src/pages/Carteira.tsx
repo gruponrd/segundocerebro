@@ -1,3 +1,4 @@
+import { money } from "@/lib/planningTools";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useFinanceStore } from "@/stores/financeStore";
 import { CreditCard, AlertTriangle, ChevronLeft, ChevronRight, Wallet, Plus, Check } from "lucide-react";
@@ -10,6 +11,7 @@ import { EXPENSE_CATEGORIES, suggestCategory, getCategory } from "@/data/categor
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { AllCardsGrid } from "@/components/AllCardsGrid";
+import { PageHeader } from "@/components/PageHeader";
 import type { Bank } from "@/data/financialData";
 
 
@@ -245,13 +247,13 @@ function WalletCard({
               <div>
                 <p className="text-[9px] opacity-60">Limite</p>
                 <p className="font-bold tabular-nums">
-                  R$ {bank.limitTotal.toLocaleString("pt-BR")}
+                  {money(bank.limitTotal)}
                 </p>
               </div>
               <div className="text-center">
                 <p className="text-[9px] opacity-60">Usado</p>
                 <p className="font-bold tabular-nums">
-                  R$ {bank.limitUsed.toLocaleString("pt-BR")}
+                  {money(bank.limitUsed)}
                 </p>
               </div>
               <div className="text-right">
@@ -261,7 +263,7 @@ function WalletCard({
                     <div>
                       <p className="text-[9px] opacity-60">Excedido</p>
                       <p className="font-bold tabular-nums">
-                        R$ {Math.abs(freeAmount).toLocaleString("pt-BR")}
+                        {money(Math.abs(freeAmount))}
                       </p>
                     </div>
                   </div>
@@ -269,7 +271,7 @@ function WalletCard({
                   <div>
                     <p className="text-[9px] opacity-60">Livre</p>
                     <p className="font-bold tabular-nums">
-                      R$ {freeAmount.toLocaleString("pt-BR")}
+                      {money(freeAmount)}
                     </p>
                   </div>
                 )}
@@ -344,15 +346,9 @@ export default function CarteiraPage() {
 
   return (
     <div className="min-h-screen bg-background overflow-hidden">
-      <div className="max-w-[1600px] mx-auto px-4 py-6">
+      <div className="page-container">
         {/* Header */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 mb-1">
-            <Wallet className="w-5 h-5 text-primary" />
-            <h1 className="text-2xl font-bold text-foreground">Carteira Digital</h1>
-          </div>
-          <p className="text-muted-foreground text-xs">Seus cartões em um só lugar</p>
-        </div>
+        <PageHeader title="Carteira" description="Seus cartões, limites e parcelas em um só lugar." icon={Wallet} className="mb-6" />
 
         {/* View toggle */}
         <div className="flex justify-center mb-6">
@@ -480,19 +476,19 @@ export default function CarteiraPage() {
                   <div className="rounded-xl bg-background/50 p-3">
                     <p className="text-[10px] text-muted-foreground">Limite</p>
                     <p className="text-base font-bold text-foreground tabular-nums">
-                      R$ {activeBank.limitTotal.toLocaleString("pt-BR")}
+                      {money(activeBank.limitTotal)}
                     </p>
                   </div>
                   <div className="rounded-xl bg-background/50 p-3">
                     <p className="text-[10px] text-muted-foreground">Usado</p>
                     <p className="text-base font-bold text-foreground tabular-nums">
-                      R$ {activeBank.limitUsed.toLocaleString("pt-BR")}
+                      {money(activeBank.limitUsed)}
                     </p>
                   </div>
                   <div className="rounded-xl bg-background/50 p-3">
                     <p className="text-[10px] text-muted-foreground">Dívida</p>
                     <p className="text-base font-bold text-foreground tabular-nums">
-                      R$ {activeBank.debtFinal.toLocaleString("pt-BR")}
+                      {money(activeBank.debtFinal)}
                     </p>
                   </div>
                 </div>
@@ -513,7 +509,7 @@ export default function CarteiraPage() {
                             {inst.totalInstallments > 1 ? `${inst.currentInstallment}/${inst.totalInstallments}` : "Avulsa"}
                           </span>
                           <span className="font-semibold text-foreground tabular-nums">
-                            R$ {inst.installmentAmount.toLocaleString("pt-BR")}
+                            {money(inst.installmentAmount)}
                           </span>
                           <Badge
                             variant="outline"
@@ -532,23 +528,23 @@ export default function CarteiraPage() {
             )}
 
             {/* Summary */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="rounded-xl bg-card/60 backdrop-blur border border-border/50 p-3 text-center">
-                <p className="text-[10px] text-muted-foreground">Limite Total</p>
+                <p className="text-xs text-muted-foreground">Limite total</p>
                 <p className="text-lg font-bold text-foreground tabular-nums">
-                  R$ {totalLimit.toLocaleString("pt-BR")}
+                  {money(totalLimit)}
                 </p>
               </div>
               <div className="rounded-xl bg-card/60 backdrop-blur border border-border/50 p-3 text-center">
-                <p className="text-[10px] text-muted-foreground">Total Usado</p>
+                <p className="text-xs text-muted-foreground">Total usado</p>
                 <p className="text-lg font-bold text-foreground tabular-nums">
-                  R$ {totalUsed.toLocaleString("pt-BR")}
+                  {money(totalUsed)}
                 </p>
               </div>
               <div className="rounded-xl bg-card/60 backdrop-blur border border-border/50 p-3 text-center">
-                <p className="text-[10px] text-muted-foreground">Dívida Total</p>
+                <p className="text-xs text-muted-foreground">Dívida total</p>
                 <p className="text-lg font-bold text-expense tabular-nums">
-                  R$ {totalDebt.toLocaleString("pt-BR")}
+                  {money(totalDebt)}
                 </p>
               </div>
             </div>

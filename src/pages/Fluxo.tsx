@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
-import { ArrowDownCircle, ArrowUpCircle, Check, Plus, Sparkles, Zap } from "lucide-react";
+import { ArrowDownCircle, ArrowUpCircle, Check, Plus, Sparkles, Zap, ArrowLeftRight } from "lucide-react";
+import { PageHeader } from "@/components/PageHeader";
+import { PeriodPicker } from "@/components/PeriodPicker";
 import { useFinanceStore } from "@/stores/financeStore";
 import { CashflowCard } from "@/components/CashflowCard";
 import { PaymentSessions } from "@/components/PaymentSessions";
@@ -179,17 +181,8 @@ const FluxoPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="px-4 py-8 sm:px-8 lg:px-12 max-w-[1440px] mx-auto pb-28 md:pb-16">
-        <header className="mb-8">
-          <span className="label-mono">Fluxo de caixa</span>
-          <h1 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mt-1">
-            Fluxo do Mês
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Todas as entradas e saídas de {store.currentCashflow.month} {store.currentCashflow.year} — débito, pix, dinheiro e cartão, integrados às projeções.
-          </p>
-          <div className="hairline mt-5" />
-        </header>
+      <div className="page-container">
+        <PageHeader title="Fluxo de caixa" description={`Entradas e saídas de ${store.currentCashflow.month} ${store.currentCashflow.year}, com pagamentos e projeções.`} icon={ArrowLeftRight} className="mb-8" actions={<PeriodPicker months={store.cashflowMonths} selected={store.selectedMonth} onChange={store.setSelectedMonth} />} />
 
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-4 items-start">
           <div key={`cf-${store.selectedMonth}`} className="animate-float-in">

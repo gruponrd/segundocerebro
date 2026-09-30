@@ -1,5 +1,7 @@
+import { money } from "@/lib/planningTools";
 import { useEffect, useMemo, useState } from "react";
 import { useFinanceStore } from "@/stores/financeStore";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -159,18 +161,8 @@ export default function DesejosPage() {
   const viavelCount = Object.values(wishesEvaluated).filter(e => e.verdict === "ok").length;
 
   return (
-    <div className="min-h-screen bg-background px-4 py-8 sm:px-6 lg:px-8 max-w-[1600px] mx-auto space-y-8 pb-24 md:pb-6">
-      <div className="animate-float-in">
-        <div className="flex items-center gap-3 mb-2">
-        <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
-          <Sparkles className="w-5 h-5 text-primary" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold text-gradient tracking-tight">Desejos & Metas de Compra</h1>
-          <p className="text-sm text-muted-foreground">Adicione desejos e o sistema avalia a viabilidade em cada mês</p>
-        </div>
-        </div>
-      </div>
+    <div className="page-container min-h-screen bg-background space-y-8">
+      <PageHeader title="Desejos" description="Planeje suas compras e confira como elas cabem nos próximos meses." icon={Sparkles} />
 
       {/* Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -192,7 +184,7 @@ export default function DesejosPage() {
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Valor total desejado</p>
-              <p className="text-lg font-bold text-money">R$ {totalWishes.toLocaleString("pt-BR")}</p>
+              <p className="text-lg font-bold text-money">{money(totalWishes)}</p>
             </div>
           </CardContent>
         </Card>
@@ -251,7 +243,7 @@ export default function DesejosPage() {
           </div>
           <p className="text-[11px] text-muted-foreground mt-3 flex items-center gap-1">
             <Wallet className="w-3 h-3" /> Margem de segurança usada:
-            <span className="text-money font-semibold text-foreground">R$ {store.safetyMargin.toLocaleString("pt-BR")}</span>
+            <span className="text-money font-semibold text-foreground">{money(store.safetyMargin)}</span>
             · configurável em Configurações
           </p>
         </CardContent>
@@ -288,14 +280,14 @@ export default function DesejosPage() {
                       </div>
                       <div>
                         <span className="text-muted-foreground">Total desejos: </span>
-                        <span className="text-money font-bold text-foreground">R$ {totalMonth.toLocaleString("pt-BR")}</span>
+                        <span className="text-money font-bold text-foreground">{money(totalMonth)}</span>
                       </div>
                     </div>
                   </div>
                   <div className="flex flex-wrap gap-4 text-[11px] text-muted-foreground mt-1">
-                    <span>Receitas: <span className="text-income font-medium">R$ {proj.income.toLocaleString("pt-BR")}</span></span>
-                    <span>Contas fixas: <span className="text-expense font-medium">R$ {proj.manualExp.toLocaleString("pt-BR")}</span></span>
-                    <span>Cartões: <span className="text-expense font-medium">R$ {proj.cardExp.toLocaleString("pt-BR")}</span></span>
+                    <span>Receitas: <span className="text-income font-medium">{money(proj.income)}</span></span>
+                    <span>Contas fixas: <span className="text-expense font-medium">{money(proj.manualExp)}</span></span>
+                    <span>Cartões: <span className="text-expense font-medium">{money(proj.cardExp)}</span></span>
                     <span>Saldo entrando no mês: <span className="text-foreground font-medium">R$ {proj.startBalance.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}</span></span>
                   </div>
                 </CardHeader>
@@ -324,7 +316,7 @@ export default function DesejosPage() {
                             <p className="text-[11px] text-muted-foreground">{cfg.msg}</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-sm font-bold text-money text-foreground">R$ {w.amount.toLocaleString("pt-BR")}</p>
+                            <p className="text-sm font-bold text-money text-foreground">{money(w.amount)}</p>
                             {ev && (
                               <p className={`text-[10px] ${ev.leftover >= 0 ? "text-muted-foreground" : "text-destructive"}`}>
                                 Sobra: R$ {ev.leftover.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}

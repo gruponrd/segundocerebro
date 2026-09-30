@@ -753,3 +753,46 @@
     animation: none;
   }
 }
+
+/* Shared workspace rhythm; the login keeps its own visual language. */
+.page-container {
+  @apply mx-auto max-w-[1440px] px-4 py-8 pb-36 sm:px-8 lg:px-12 md:pb-16;
+}
+
+.data-surface {
+  border: 1px solid hsl(var(--border) / 0.8);
+  border-radius: 1.5rem;
+  background: hsl(var(--card) / 0.8);
+}
+
+.app-shell .label-mono,
+.app-shell .widget-label {
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+
+.app-shell .font-display {
+  font-family: 'Work Sans', system-ui, sans-serif;
+}
+
+.app-shell .widget-sub {
+  color: hsl(var(--widget-line) / 0.68);
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+
+.app-shell .glass-card::before { opacity: 0.6; }
+.app-shell .widget-card::before { opacity: 0.65; }
+.app-shell .widget-card:hover { transform: none; }
+.app-shell .widget-value { text-shadow: none; }
+.app-shell .glass-card:hover { box-shadow: none; }
+.app-shell .overview-balance::before { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell .animate-float-in, .app-shell .animate-fab-breathe { animation: none; }
+  .app-shell .widget-card, .app-shell .glass-card { transition: none; }
+}

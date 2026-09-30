@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { money, pendingPayments, projectScenario } from "@/lib/planningTools";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/PageHeader";
 
 const EMPTY = { purchase: "", installments: "1", incomeChange: "", expenseReduction: "", startingBalance: "" };
 
@@ -42,11 +43,8 @@ export default function FerramentasPage() {
   );
 
   return (
-    <main className="mx-auto max-w-[1600px] space-y-8 px-4 py-8 pb-28 sm:px-6 lg:px-8">
-      <header className="animate-float-in flex items-start gap-3">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-primary/15"><FlaskConical className="h-5 w-5 text-primary" /></span>
-        <div><h1 className="text-gradient text-3xl font-bold tracking-tight">Ferramentas</h1><p className="mt-1 text-sm text-muted-foreground">Um espaço para antecipar decisões e organizar o próximo passo.</p></div>
-      </header>
+    <main className="page-container space-y-8">
+      <PageHeader title="Ferramentas" description="Antecipe decisões, compare cenários e organize o próximo passo." icon={FlaskConical} />
 
       <section className="glass-card p-5 sm:p-6" aria-labelledby="scenario-title">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">

@@ -40,12 +40,12 @@ export function MobileNav() {
     <>
       {/* Overlay for "more" menu */}
       {moreOpen && (
-        <div className="fixed inset-0 z-[98] bg-background/60 backdrop-blur-sm md:hidden" onClick={() => setMoreOpen(false)} />
+        <div className="fixed inset-0 z-[38] bg-background/60 backdrop-blur-sm md:hidden" onClick={() => setMoreOpen(false)} />
       )}
 
       {/* Expanded more menu */}
       {moreOpen && (
-        <div className="fixed bottom-20 left-4 right-4 z-[99] md:hidden animate-in slide-in-from-bottom-4 duration-200">
+        <div className="fixed bottom-20 left-4 right-4 z-[45] md:hidden animate-in slide-in-from-bottom-4 duration-200">
           <div className="bg-card border border-border/50 rounded-2xl p-3">
             <Button variant="ghost" className="mb-2 h-11 w-full justify-start gap-2 rounded-xl" onClick={() => { setMoreOpen(false); openCommandMenu(); }}>
               <Search className="h-4 w-4" /> Buscar no app
@@ -85,7 +85,7 @@ export function MobileNav() {
       )}
 
       {/* Bottom navigation bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-[100] md:hidden">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden">
         <div className="bg-card/95 backdrop-blur-xl border-t border-border/50 px-2 pb-[env(safe-area-inset-bottom)]">
           <div className="flex items-center justify-around h-16">
             {mainTabs.map(tab => (

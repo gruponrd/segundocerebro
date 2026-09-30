@@ -4,6 +4,8 @@ import {
   Contrast,
   Calculator,
   Search,
+  Brain,
+  Plus,
   DollarSign,
   Gamepad2,
   LayoutDashboard,
@@ -20,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/use-theme";
 import { isPreviewMode } from "@/lib/previewMode";
 import { openCommandMenu } from "@/lib/commandMenu";
+import { openTransactionMenu } from "@/lib/transactionMenu";
 
 const THEME_LABELS: Record<string, string> = {
   dark: "Escuro",
@@ -63,22 +66,23 @@ export function AppNav() {
     <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-border/70 bg-card/80 px-4 py-5 backdrop-blur-xl md:flex">
       <div className="flex items-center gap-3 px-3 pb-5">
         <div className="grid h-10 w-10 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-lg shadow-primary/10">
-          <span className="font-mono text-lg font-bold">P</span>
+          <Brain aria-hidden className="h-5 w-5" />
         </div>
         <div>
-          <p className="font-mono text-sm font-semibold tracking-tight text-foreground">SEGUNDO CÉREBRO</p>
-          <p className="label-mono mt-0.5">Personal finance</p>
+          <p className="text-sm font-semibold tracking-tight text-foreground">Segundo Cérebro</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">Finanças e vida em equilíbrio</p>
         </div>
       </div>
 
-      <button type="button" onClick={openCommandMenu} className="mb-5 flex items-center gap-2 rounded-xl border border-border/70 bg-secondary/40 px-3 py-2.5 text-xs text-muted-foreground transition-colors hover:text-foreground">
+      <button type="button" onClick={openTransactionMenu} className="mb-2 flex items-center justify-center gap-2 rounded-xl bg-primary px-3 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"><Plus className="h-4 w-4" /> Novo lançamento</button>
+      <button type="button" onClick={openCommandMenu} className="mb-5 flex items-center gap-2 rounded-xl border border-border/70 bg-secondary/40 px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
         <Search className="h-4 w-4" /> Buscar no app
         <kbd className="ml-auto text-[10px] opacity-60">Ctrl K</kbd>
       </button>
       <div className="flex-1 space-y-7 overflow-y-auto pr-1">
         {groups.map((group) => (
           <div key={group.label}>
-            <p className="label-mono px-3 pb-2 text-[9px] text-muted-foreground/70">{group.label}</p>
+            <p className="px-3 pb-2 text-xs font-medium text-muted-foreground">{group.label}</p>
             <nav className="space-y-1" aria-label={group.label}>
               {group.items.map((item) => (
                 <NavLink

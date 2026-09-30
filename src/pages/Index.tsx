@@ -1,13 +1,14 @@
+import { money } from "@/lib/planningTools";
 import { useFinanceStore } from "@/stores/financeStore";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { QuickTools } from "@/components/QuickTools";
+import { DashboardOverview } from "@/components/DashboardOverview";
 import { BankCard } from "@/components/BankCard";
 import { AddBankCard } from "@/components/AddBankCard";
 import { InstallmentTimeline } from "@/components/InstallmentTimeline";
 import { CreditorWidget } from "@/components/CreditorWidget";
 import { SpendingChart } from "@/components/SpendingChart";
 import { BankDetailSheet } from "@/components/BankDetailSheet";
-import { ExpenseFAB } from "@/components/ExpenseFAB";
 import { HeroChart } from "@/components/HeroChart";
 import { CalendarCard } from "@/components/CalendarCard";
 import { FinancialHealthScore } from "@/components/FinancialHealthScore";
@@ -15,7 +16,7 @@ import { IncomeCoverageAI } from "@/components/IncomeCoverageAI";
 import { AnnualSubscriptionsCard } from "@/components/AnnualSubscriptionsCard";
 import { BalanceProjectionChart } from "@/components/BalanceProjectionChart";
 import { CashflowSankey } from "@/components/CashflowSankey";
-import { EyeOff, Eye, ArrowRight, GripVertical, LayoutGrid, RotateCcw, Lock, WalletCards, ReceiptText, CircleDollarSign, ShieldCheck } from "lucide-react";
+import { EyeOff, Eye, ArrowRight, GripVertical, LayoutGrid, RotateCcw, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 
@@ -42,7 +43,7 @@ function SectionHead({
               {title}
             </h2>
             {subtitle && (
-              <p className="text-xs text-muted-foreground mt-0.5 font-normal">{subtitle}</p>
+              <p className="text-sm text-muted-foreground mt-1 font-normal">{subtitle}</p>
             )}
           </div>
         </div>
@@ -116,7 +117,7 @@ const Index = () => {
         title: "Panorama",
         node: (
           <>
-            <SectionHead index="01" title="Panorama" subtitle="Dívida, saldo e meta do período" />
+            <SectionHead index="01" title="Panorama financeiro" subtitle="Histórico, projeções e composição das dívidas" />
             <HeroChart
               cashflowMonths={store.cashflowMonths}
               totalDebt={store.totalDebt}
@@ -175,20 +176,20 @@ const Index = () => {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div>
                   <p className="label-mono">Receitas</p>
-                  <p className="text-money text-lg text-income">R$ {store.totalIncome.toLocaleString("pt-BR")}</p>
+                  <p className="text-money text-lg text-income">{money(store.totalIncome)}</p>
                 </div>
                 <div>
                   <p className="label-mono">Despesas</p>
-                  <p className="text-money text-lg text-expense">R$ {store.totalExpense.toLocaleString("pt-BR")}</p>
+                  <p className="text-money text-lg text-expense">{money(store.totalExpense)}</p>
                 </div>
                 <div>
                   <p className="label-mono">Cartão</p>
-                  <p className="text-money text-lg text-expense">R$ {store.cardExpensesForMonth.toLocaleString("pt-BR")}</p>
+                  <p className="text-money text-lg text-expense">{money(store.cardExpensesForMonth)}</p>
                 </div>
                 <div>
                   <p className="label-mono">Saldo final</p>
                   <p className={`text-money text-lg ${store.expectedBalance < 0 ? "text-expense" : "text-income"}`}>
-                    R$ {store.expectedBalance.toLocaleString("pt-BR")}
+                    {money(store.expectedBalance)}
                   </p>
                 </div>
               </div>
@@ -338,31 +339,11 @@ const Index = () => {
           cashflowMonths={store.cashflowMonths}
         />
 
-        {/* At-a-glance numbers: the first decision surface in the new layout. */}
-        <div className="mb-10 grid grid-cols-2 gap-3 lg:grid-cols-4">
-          {[
-            { label: "Saldo projetado", value: store.expectedBalance, icon: WalletCards, tone: store.expectedBalance >= 0 ? "text-income" : "text-expense", note: "no mês selecionado" },
-            { label: "Receitas", value: store.totalIncome, icon: CircleDollarSign, tone: "text-income", note: "entradas previstas" },
-            { label: "Despesas", value: store.totalExpense, icon: ReceiptText, tone: "text-expense", note: "inclui cartões" },
-            { label: "Em aberto", value: store.totalDebt, icon: ShieldCheck, tone: "text-foreground", note: "dívidas registradas" },
-          ].map((metric) => (
-            <div key={metric.label} className="group rounded-2xl border border-border/70 bg-card/75 p-4 transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
-              <div className="flex items-center justify-between gap-2">
-                <span className="label-mono text-[9px]">{metric.label}</span>
-                <metric.icon className="h-4 w-4 text-muted-foreground/60 transition-colors group-hover:text-primary" />
-              </div>
-              <p className={`mt-3 text-xl font-semibold tracking-tight ${metric.tone}`}>
-                R$ {metric.value.toLocaleString("pt-BR", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-              </p>
-              <p className="mt-1 text-[11px] text-muted-foreground">{metric.note}</p>
-            </div>
-          ))}
-        </div>
-
+        <DashboardOverview />
         <QuickTools />
 
         {/* Layout controls */}
-        <div className="flex items-center justify-end gap-2 -mt-8 mb-2">
+        <div className="flex flex-wrap items-center justify-end gap-2 mb-6">
           {editLayout && (
             <button
               onClick={() => setOrder([...SECTION_IDS])}
@@ -390,7 +371,7 @@ const Index = () => {
           </p>
         )}
 
-        <div className="space-y-16">
+        <div className="space-y-10">
           {order.map((id) => {
             const section = sections[id];
             if (!section) return null;
@@ -444,7 +425,6 @@ const Index = () => {
         onRemoveBank={store.removeBank}
       />
 
-      <ExpenseFAB />
     </div>
   );
 };

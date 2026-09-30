@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Input } from "@/components/ui/input";
 import { ArrowUpRight, Brain, Zap, Shield, Flame, Sparkles, RotateCcw, Calendar, Skull, Building2, Cpu, Heart, BookOpen, Factory, TreePine, Info, Check, CircleDashed, Compass, Flag, Gauge, LockKeyhole, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PageHeader } from "@/components/PageHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { readAccountJson, writeAccountJson } from "@/lib/accountStorage";
 
@@ -277,19 +278,9 @@ export default function NeuroRecoveryPage() {
   // -------------- MAIN ----------------
   return (
     <div className="min-h-screen bg-background">
-      <main className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="page-container space-y-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
-              <Brain className="w-8 h-8 text-primary" />
-              LifeGame
-            </h1>
-            <p className="text-muted-foreground mt-1 max-w-2xl text-sm">
-              Sua jornada de reconstrução em capítulos. Marcos aproximados baseados em tendências de recuperação, não datas exatas.
-            </p>
-          </div>
-          <div className="flex gap-2">
+        <PageHeader title="LifeGame" description="Sua jornada de reconstrução em capítulos, com marcos aproximados de recuperação." icon={Brain} actions={
             <Dialog open={resetOpen} onOpenChange={setResetOpen}>
               <Button variant="outline" className="gap-2" onClick={() => setResetOpen(true)}>
                 <RotateCcw className="w-4 h-4" /> Reiniciar
@@ -307,8 +298,7 @@ export default function NeuroRecoveryPage() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-          </div>
-        </div>
+        } />
 
         {/* Level + Fact */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

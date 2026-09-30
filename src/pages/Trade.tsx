@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -225,18 +226,9 @@ export default function TradePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background px-4 py-8 sm:px-6 lg:px-8 max-w-[1600px] mx-auto space-y-6">
+    <div className="page-container min-h-screen bg-background space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <CircleDollarSign className="w-6 h-6 text-primary" /> Trade Dashboard
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Cotações em tempo real • Monitoramento de operações
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
+      <PageHeader title="Trade" description="Acompanhe cotações e suas operações em um só lugar." icon={CircleDollarSign} actions={<>
           {lastUpdate && (
             <span className="text-xs text-muted-foreground">
               Atualizado: {lastUpdate.toLocaleTimeString("pt-BR")}
@@ -246,8 +238,7 @@ export default function TradePage() {
             <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${loading ? "animate-spin" : ""}`} />
             Atualizar
           </Button>
-        </div>
-      </div>
+      </>} />
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

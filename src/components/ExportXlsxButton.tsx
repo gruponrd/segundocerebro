@@ -397,13 +397,14 @@ export function ExportXlsxButton({ compact = false }: { compact?: boolean }) {
   return (
     <button
       onClick={handleExport}
+      aria-label="Exportar relatório XLSX"
       className={`inline-flex items-center gap-1.5 rounded-xl border border-border/50 bg-card/80 backdrop-blur-sm hover:bg-secondary/60 hover:border-primary/40 transition-all text-xs font-medium text-foreground ${
-        compact ? "px-2.5 py-1.5" : "px-3 py-2"
+        compact ? "h-10 px-3" : "px-3 py-2"
       }`}
       title="Exportar relatório completo em .xlsx"
     >
       <Download className="w-3.5 h-3.5" />
-      <span>Exportar XLSX</span>
+      <span className={compact ? "hidden sm:inline" : undefined}>Exportar XLSX</span>
     </button>
   );
 }

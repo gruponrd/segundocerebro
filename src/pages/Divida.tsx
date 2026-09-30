@@ -1,5 +1,7 @@
+import { money } from "@/lib/planningTools";
 import { useState, useMemo } from "react";
 import { DebtTrackingChart } from "@/components/DebtTrackingChart";
+import { PageHeader } from "@/components/PageHeader";
 import { CreditorWidget } from "@/components/CreditorWidget";
 import { useFinanceStore } from "@/stores/financeStore";
 import { Progress } from "@/components/ui/progress";
@@ -155,7 +157,7 @@ function DebtCard({ creditor }: { creditor: ReturnType<typeof useFinanceStore>["
         <div>
           <p className="text-sm font-semibold text-foreground">{creditor.name}</p>
           <p className="text-xs text-muted-foreground">
-            Saldo: <span className="text-money font-semibold text-foreground">R$ {remaining.toLocaleString("pt-BR")}</span>
+            Saldo: <span className="text-money font-semibold text-foreground">{money(remaining)}</span>
           </p>
         </div>
         <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium ${isComplete ? "bg-chart-2/10 text-chart-2" : `${cfg.bg} ${cfg.color}`}`}>
@@ -176,7 +178,7 @@ function DebtCard({ creditor }: { creditor: ReturnType<typeof useFinanceStore>["
       <div>
         <div className="flex justify-between text-[11px] text-muted-foreground mb-1">
           <span>{pct.toFixed(0)}% quitado</span>
-          <span className="text-money">R$ {creditor.amountPaid.toLocaleString("pt-BR")} / {creditor.totalDebt.toLocaleString("pt-BR")}</span>
+          <span className="text-money">{money(creditor.amountPaid)} / {creditor.totalDebt.toLocaleString("pt-BR")}</span>
         </div>
         <Progress
           value={Math.min(pct, 100)}
@@ -226,7 +228,7 @@ function PaymentHistory({ cashflowMonths }: { cashflowMonths: ReturnType<typeof 
                   <p className="text-[11px] text-muted-foreground">{e.month} {e.year}</p>
                 </div>
                 <span className="text-sm font-semibold text-chart-2 text-money">
-                  R$ {e.amount.toLocaleString("pt-BR")}
+                  {money(e.amount)}
                 </span>
               </div>
             </div>
@@ -271,7 +273,7 @@ function DueDateAlerts({ creditors }: { creditors: ReturnType<typeof useFinanceS
                 <div>
                   <p className="text-sm text-foreground">{a.name}</p>
                   <p className="text-[11px] text-muted-foreground">
-                    R$ {(a.totalDebt - a.amountPaid).toLocaleString("pt-BR")} restantes
+                    {money((a.totalDebt - a.amountPaid))} restantes
                   </p>
                 </div>
               </div>
@@ -370,14 +372,14 @@ function PayoffTimeCard({
           <div className="p-3 rounded-xl bg-secondary/40">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Valor/hora</p>
             <p className="text-2xl font-bold text-chart-2 text-money">R$ {hourlyRate.toFixed(2)}</p>
-            <p className="text-[11px] text-muted-foreground">Renda média: R$ {Math.round(avgIncome).toLocaleString("pt-BR")}</p>
+            <p className="text-[11px] text-muted-foreground">Renda média: {money(Math.round(avgIncome))}</p>
           </div>
         </div>
 
         <div className="flex items-start gap-2 p-3 rounded-xl bg-primary/5 border border-primary/20">
           <Briefcase className="w-4 h-4 text-primary shrink-0 mt-0.5" />
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Para quitar <span className="text-foreground font-semibold text-money">R$ {totalRemaining.toLocaleString("pt-BR")}</span>,
+            Para quitar <span className="text-foreground font-semibold text-money">{money(totalRemaining)}</span>,
             você precisa trabalhar <span className="text-primary font-bold">{totalHoursCeil.toLocaleString("pt-BR")} horas</span>
             {" "}(≈ <span className="text-foreground font-semibold">{days} dias e {hoursRemainder} horas</span> corridos),
             considerando 48h semanais e sua renda média histórica.
@@ -499,18 +501,18 @@ function IdealIncomeCard({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="p-3 rounded-xl bg-secondary/40">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Renda ideal</p>
-            <p className="text-2xl font-bold text-primary text-money">R$ {Math.round(idealIncome).toLocaleString("pt-BR")}</p>
+            <p className="text-2xl font-bold text-primary text-money">{money(Math.round(idealIncome))}</p>
             <p className="text-[11px] text-muted-foreground">com 20% de margem</p>
           </div>
           <div className="p-3 rounded-xl bg-secondary/40">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Renda atual</p>
-            <p className="text-2xl font-bold text-foreground text-money">R$ {Math.round(currentIncome).toLocaleString("pt-BR")}</p>
+            <p className="text-2xl font-bold text-foreground text-money">{money(Math.round(currentIncome))}</p>
             <p className="text-[11px] text-muted-foreground">mês selecionado</p>
           </div>
           <div className="p-3 rounded-xl bg-secondary/40">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Gap</p>
             <p className={`text-2xl font-bold text-money ${gap > 0 ? "text-destructive" : "text-chart-2"}`}>
-              {gap > 0 ? "+" : ""}R$ {Math.round(Math.abs(gap)).toLocaleString("pt-BR")}
+              {gap > 0 ? "+" : ""}{money(Math.round(Math.abs(gap)))}
             </p>
             <p className="text-[11px] text-muted-foreground">{gap > 0 ? "faltam" : "sobram"} por mês</p>
           </div>
@@ -533,9 +535,9 @@ function IdealIncomeCard({
           <Calculator className="w-4 h-4 text-primary shrink-0 mt-0.5" />
           <p className="text-xs text-muted-foreground leading-relaxed">
             Consideramos seus custos médios mensais de{" "}
-            <span className="text-foreground font-semibold text-money">R$ {Math.round(avgMonthlyCost).toLocaleString("pt-BR")}</span>
+            <span className="text-foreground font-semibold text-money">{money(Math.round(avgMonthlyCost))}</span>
             {" "}mais uma alocação de{" "}
-            <span className="text-foreground font-semibold text-money">R$ {Math.round(creditorAllocation).toLocaleString("pt-BR")}</span>
+            <span className="text-foreground font-semibold text-money">{money(Math.round(creditorAllocation))}</span>
             /mês para quitar dívidas em 24 meses, com 20% de reserva.
           </p>
         </div>
@@ -622,14 +624,8 @@ export default function DividaPage() {
   }, [store.creditors]);
 
   return (
-    <div className="min-h-screen bg-background px-4 py-6 sm:px-6 lg:px-8 max-w-[1600px] mx-auto space-y-8 pb-24 md:pb-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground tracking-tight">Dívida</h1>
-          <p className="text-sm text-muted-foreground">Acompanhe a evolução e abatimento da sua dívida total</p>
-        </div>
-        <ExportXlsxButton />
-      </div>
+    <div className="page-container min-h-screen bg-background space-y-8">
+      <PageHeader title="Dívidas" description="Confira os valores em aberto e acompanhe sua evolução." icon={TrendingDown} actions={<ExportXlsxButton />} />
 
       {/* Payoff Time (48h/semana) */}
       <PayoffTimeCard totalRemaining={totalRemaining} cashflowMonths={store.cashflowMonths} />

@@ -1,3 +1,4 @@
+import { money } from "@/lib/planningTools";
 import { useState, useMemo } from "react";
 import { useFinanceStore } from "@/stores/financeStore";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import DOMPurify from "dompurify";
+import { PageHeader } from "@/components/PageHeader";
 
 /* ─── Income Source Row ─── */
 function IncomeSourceRow({
@@ -67,7 +69,7 @@ function GoalRow({ goal }: { goal: { title: string; targetAmount: number; savedA
         <div className="flex items-center justify-between mb-1">
           <span className="text-sm font-medium text-foreground truncate">{goal.title}</span>
           <span className="text-sm text-money text-foreground ml-2 shrink-0">
-            R$ {goal.targetAmount.toLocaleString("pt-BR")}
+            {money(goal.targetAmount)}
           </span>
         </div>
         <div className="relative h-1.5 rounded-full bg-secondary overflow-hidden">
@@ -224,43 +226,33 @@ export default function RendaPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background px-4 py-8 sm:px-6 lg:px-8 max-w-[1600px] mx-auto space-y-8">
+    <div className="page-container min-h-screen bg-background space-y-8">
       {/* Header */}
-      <div className="animate-float-in">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
-            <DollarSign className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-gradient tracking-tight">Renda</h1>
-            <p className="text-muted-foreground text-sm">Seus rendimentos vs. seus sonhos</p>
-          </div>
-        </div>
-      </div>
+      <PageHeader title="Renda" description="Acompanhe suas fontes de renda e o caminho até seus objetivos." icon={DollarSign} />
 
       {/* KPI Strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="glass-card">
           <CardContent className="p-4">
             <p className="text-xs text-muted-foreground mb-1">Renda Total</p>
-            <p className="text-2xl text-money font-bold text-income">
-              R$ {totalIncome.toLocaleString("pt-BR")}
+            <p className="text-lg sm:text-2xl text-money font-bold text-income">
+              {money(totalIncome)}
             </p>
           </CardContent>
         </Card>
         <Card className="glass-card">
           <CardContent className="p-4">
             <p className="text-xs text-muted-foreground mb-1">Sobra Mensal</p>
-            <p className={`text-2xl text-money font-bold ${monthlyAvailable >= 0 ? "text-income" : "text-destructive"}`}>
-              R$ {monthlyAvailable.toLocaleString("pt-BR")}
+            <p className={`text-lg sm:text-2xl text-money font-bold ${monthlyAvailable >= 0 ? "text-income" : "text-destructive"}`}>
+              {money(monthlyAvailable)}
             </p>
           </CardContent>
         </Card>
         <Card className="glass-card">
           <CardContent className="p-4">
             <p className="text-xs text-muted-foreground mb-1">Sonhos Restantes</p>
-            <p className="text-2xl text-money font-bold text-foreground">
-              R$ {totalGoalsRemaining.toLocaleString("pt-BR")}
+            <p className="text-lg sm:text-2xl text-money font-bold text-foreground">
+              {money(totalGoalsRemaining)}
             </p>
           </CardContent>
         </Card>
@@ -315,7 +307,7 @@ export default function RendaPage() {
               <div className="pt-3 border-t border-border/50 flex justify-between items-center">
                 <span className="text-sm font-medium text-muted-foreground">Total mensal</span>
                 <span className="text-lg text-money font-bold text-income">
-                  R$ {totalIncome.toLocaleString("pt-BR")}
+                  {money(totalIncome)}
                 </span>
               </div>
             )}
@@ -331,7 +323,7 @@ export default function RendaPage() {
                 Meus Sonhos
               </CardTitle>
               <span className="text-xs text-muted-foreground">
-                Total: R$ {totalGoalsTarget.toLocaleString("pt-BR")}
+                Total: {money(totalGoalsTarget)}
               </span>
             </div>
           </CardHeader>
@@ -352,12 +344,12 @@ export default function RendaPage() {
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Valor restante total</span>
                   <span className="font-bold text-foreground">
-                    R$ {totalGoalsRemaining.toLocaleString("pt-BR")}
+                    {money(totalGoalsRemaining)}
                   </span>
                 </div>
                 {monthlyAvailable > 0 && (
                   <p className="text-[11px] text-muted-foreground mt-1">
-                    Com R$ {monthlyAvailable.toLocaleString("pt-BR")}/mês de sobra,
+                    Com {money(monthlyAvailable)}/mês de sobra,
                     você atingiria tudo em ~{monthsToAllGoals} meses
                   </p>
                 )}

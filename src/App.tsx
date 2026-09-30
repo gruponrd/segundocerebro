@@ -11,6 +11,7 @@ import { ThemeProvider } from "@/hooks/use-theme";
 import { AppNav } from "@/components/AppNav";
 import { MobileNav } from "@/components/MobileNav";
 import { CommandCenter } from "@/components/CommandCenter";
+import { ExpenseFAB } from "@/components/ExpenseFAB";
 const FerramentasPage = lazy(() => import("./pages/Ferramentas"));
 const Index = lazy(() => import("./pages/Index"));
 const GoalsPage = lazy(() => import("./pages/Goals"));
@@ -122,9 +123,11 @@ function AppRoutes() {
 
   return (
     <BrowserRouter>
+      <div className="app-shell">
       <AppNav />
       <MobileNav />
       <CommandCenter />
+      <ExpenseFAB />
       <div className="min-h-screen md:pl-64">
         <div role="status" aria-live="polite" className="mx-auto max-w-[1600px] px-4 pt-3 text-xs text-muted-foreground sm:px-6 lg:px-8">
           {finance.syncStatus === "saving" && "Salvando dados..."}
@@ -157,6 +160,7 @@ function AppRoutes() {
       </div>
       <Toaster />
       <Sonner />
+      </div>
     </BrowserRouter>
   );
 }

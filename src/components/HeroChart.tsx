@@ -7,6 +7,7 @@ import { useTheme } from "@/hooks/use-theme";
 import { type Creditor } from "@/data/financialData";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { cardSpendingForMonth, remainingBankDebt, unpaidCardSpendingForMonth } from "@/lib/financeCalculations";
+import { money } from "@/lib/planningTools";
 
 const monthNameToIndex: Record<string, number> = {
   Janeiro: 0, Fevereiro: 1, "Março": 2, Abril: 3,
@@ -146,14 +147,11 @@ export function HeroChart({ cashflowMonths, totalDebt, totalExpense, expectedBal
   return (
     <section className="mb-8 animate-float-in">
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
-        <div className="glass-card rounded-2xl p-5 relative overflow-hidden group flex flex-col">
-          {/* Ambient chart glow */}
-          <div aria-hidden className="pointer-events-none absolute -inset-px rounded-2xl bg-gradient-to-br from-primary/10 via-transparent to-accent/10 opacity-60" />
-          <div aria-hidden className="pointer-events-none absolute -top-24 -right-24 w-72 h-72 rounded-full bg-primary/20 blur-3xl opacity-40 group-hover:opacity-60 transition-opacity duration-700" />
+        <div className="data-surface p-5 relative overflow-hidden flex flex-col">
 
           <div className="relative flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-              Entradas × Saídas — Fluxo de Caixa
+            <h3 className="text-sm font-medium text-foreground">
+              Entradas e saídas
             </h3>
             <span className="text-[10px] font-medium text-primary/80 px-2 py-0.5 rounded-full bg-primary/10 ring-1 ring-primary/20">
               {cashflowMonths[selectedMonth]?.month.slice(0, 3)}/{cashflowMonths[selectedMonth]?.year}
@@ -185,7 +183,7 @@ export function HeroChart({ cashflowMonths, totalDebt, totalExpense, expectedBal
                 <Tooltip
                   formatter={(value: number, name: string) => {
                     const labels: Record<string, string> = { entradas: "Entradas", saidas: "Saídas", future_entradas: "Entradas (Projeção)", future_saidas: "Saídas (Projeção)" };
-                    return [`R$ ${value?.toLocaleString("pt-BR") ?? "—"}`, labels[name] || name];
+                    return [value === undefined ? "—" : money(value), labels[name] || name];
                   }}
                   contentStyle={{
                     background: isLight ? "hsl(0 0% 100% / 0.95)" : isMonochrome ? "hsl(0 0% 6% / 0.95)" : "hsl(240 6% 10% / 0.95)",
@@ -228,7 +226,7 @@ export function HeroChart({ cashflowMonths, totalDebt, totalExpense, expectedBal
             </div>
             <div className="relative flex items-end justify-between gap-3 mt-2">
               <p className="widget-value text-[2rem] leading-none font-semibold">
-                <AnimatedNumber value={totalDebt} prefix="R$ " decimals={0} />
+                <AnimatedNumber value={totalDebt} prefix="R$ " decimals={2} />
               </p>
               <div className="flex items-end gap-[3px] h-8 shrink-0">
                 {breakdownItems.slice(0, 12).map((item, i) => {
@@ -256,11 +254,16 @@ export function HeroChart({ cashflowMonths, totalDebt, totalExpense, expectedBal
             style={{ ["--widget-accent" as string]: "var(--widget-accent-next)" }}
           >
             <div
-              className="relative cursor-pointer"
+              className="relative cursor-pointer rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+              role="button"
+              tabIndex={0}
+              aria-label="Ver composição das dívidas e parcelas previstas"
+              aria-expanded={showBreakdown}
+              onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setShowBreakdown(current => !current); } }}
               onClick={() => setShowBreakdown(!showBreakdown)}
             >
               <div className="flex items-start justify-between gap-3">
-                <span className="widget-label">Próximo Total</span>
+                <span className="widget-label">Após parcelas previstas</span>
                 <div className="flex items-center gap-2">
                   {totalDebt > 0 && cumulativeCardPayments > 0 && (
                     <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold widget-accent">
@@ -274,7 +277,7 @@ export function HeroChart({ cashflowMonths, totalDebt, totalExpense, expectedBal
                 </div>
               </div>
               <p className="widget-value text-[2rem] leading-none font-semibold mt-2">
-                <AnimatedNumber value={Math.max(totalDebt - cumulativeCardPayments, 0)} prefix="R$ " decimals={0} />
+                <AnimatedNumber value={Math.max(totalDebt - cumulativeCardPayments, 0)} prefix="R$ " decimals={2} />
               </p>
               <div className="mt-3 h-1.5 rounded-full overflow-hidden" style={{ background: "hsl(var(--widget-line) / 0.08)" }}>
                 <div
@@ -287,7 +290,7 @@ export function HeroChart({ cashflowMonths, totalDebt, totalExpense, expectedBal
                 />
               </div>
               <p className="text-[10px] widget-sub mt-2">
-                Até {cashflowMonths[selectedMonth]?.month.slice(0, 3)}/{cashflowMonths[selectedMonth]?.year} (−R$ {cumulativeCardPayments.toLocaleString("pt-BR")})
+                Se as parcelas até {cashflowMonths[selectedMonth]?.month.slice(0, 3)}/{cashflowMonths[selectedMonth]?.year} forem pagas (−{money(cumulativeCardPayments)})
               </p>
             </div>
 
@@ -316,7 +319,7 @@ export function HeroChart({ cashflowMonths, totalDebt, totalExpense, expectedBal
                       <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0" style={{ background: "hsl(var(--widget-accent) / 0.15)" }}>
                         <Check className="w-3 h-3 widget-accent" />
                       </div>
-                      <span className="flex-1 widget-accent">Pagamentos até {cashflowMonths[selectedMonth]?.month.slice(0, 3)}</span>
+                      <span className="flex-1 widget-accent">Parcelas previstas até {cashflowMonths[selectedMonth]?.month.slice(0, 3)}</span>
                       <span className="widget-accent font-medium tabular-nums">
                         −R$ {cumulativeCardPayments.toLocaleString("pt-BR")}
                       </span>
@@ -344,14 +347,16 @@ export function HeroChart({ cashflowMonths, totalDebt, totalExpense, expectedBal
               </div>
             ) : (
               <>
-                <p
-                  className="relative widget-value text-[2rem] leading-none font-semibold mt-2 cursor-pointer"
+                <button
+                  type="button"
+                  aria-label="Editar meta mensal de economia"
+                  className="relative widget-value text-left text-[2rem] leading-none font-semibold mt-2 cursor-pointer rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
                   onClick={() => { setGoalValue(String(savingsGoalMonth)); setEditingGoal(true); }}
                 >
-                  R$ {savingsGoalMonth.toLocaleString("pt-BR")}
+                  {money(savingsGoalMonth)}
                   <span className="text-xs widget-sub font-normal ml-1">/mês</span>
-                  <Pencil className="w-3 h-3 inline ml-2 opacity-0 group-hover:opacity-60" />
-                </p>
+                  <Pencil className="w-3 h-3 inline ml-2 opacity-60" />
+                </button>
                 <div className="relative mt-3 h-1.5 rounded-full overflow-hidden" style={{ background: "hsl(var(--widget-line) / 0.08)" }}>
                   <div
                     className="h-full rounded-full transition-all duration-700"
@@ -363,7 +368,7 @@ export function HeroChart({ cashflowMonths, totalDebt, totalExpense, expectedBal
                   />
                 </div>
                 <p className="relative text-[10px] widget-sub mt-2">
-                  Saldo previsto: R$ {expectedBalance.toLocaleString("pt-BR")}
+                  Saldo previsto: {money(expectedBalance)}
                 </p>
               </>
             )}

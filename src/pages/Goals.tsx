@@ -1,5 +1,7 @@
+import { money } from "@/lib/planningTools";
 import { useState, useMemo } from "react";
 import { useFinanceStore } from "@/stores/financeStore";
+import { PageHeader } from "@/components/PageHeader";
 import { Target, Plus, ArrowRight, Check, X, Pencil, Trash2, CalendarClock, TrendingUp, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -140,8 +142,8 @@ function OverallProgressBar({ percent, saved, total }: { percent: number; saved:
           <p className="text-3xl text-money text-foreground mt-1">{percent.toFixed(0)}%</p>
         </div>
         <div className="text-right">
-          <p className="text-sm text-money text-income">R$ {saved.toLocaleString("pt-BR")}</p>
-          <p className="text-xs text-muted-foreground">de R$ {total.toLocaleString("pt-BR")}</p>
+          <p className="text-sm text-money text-income">{money(saved)}</p>
+          <p className="text-xs text-muted-foreground">de {money(total)}</p>
         </div>
       </div>
       <div className="relative h-3 rounded-full bg-secondary overflow-hidden">
@@ -213,25 +215,14 @@ export default function GoalsPage() {
   const depositGoal = goals.find((g) => g.id === depositGoalId);
 
   return (
-    <div className="min-h-screen bg-background px-4 py-8 sm:px-6 lg:px-8 max-w-[1600px] mx-auto">
+    <div className="page-container min-h-screen bg-background">
       {/* Header */}
       <div className="mb-8 animate-float-in">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-xl bg-primary/15 flex items-center justify-center">
-                <Target className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-gradient tracking-tight">Objetivos</h1>
-                <p className="text-muted-foreground text-sm">Seus sonhos, com prazo e projeção</p>
-              </div>
-            </div>
-          </div>
+        <PageHeader title="Objetivos" description="Seus sonhos, com valores guardados, prazo e projeção." icon={Target} actions={
           <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={() => setAddingGoal(true)}>
             <Plus className="w-4 h-4" /> Novo Objetivo
           </Button>
-        </div>
+        } />
 
         <OverallProgressBar percent={overallPercent} saved={totalSaved} total={totalTarget} />
       </div>
@@ -320,15 +311,15 @@ export default function GoalsPage() {
                 <div className="space-y-1.5 text-sm mb-4">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Guardado</span>
-                    <span className="text-money text-income">R$ {goal.savedAmount.toLocaleString("pt-BR")}</span>
+                    <span className="text-money text-income">{money(goal.savedAmount)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Faltam</span>
-                    <span className="text-money text-foreground">R$ {remaining.toLocaleString("pt-BR")}</span>
+                    <span className="text-money text-foreground">{money(remaining)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Meta</span>
-                    <span className="text-money text-foreground">R$ {goal.targetAmount.toLocaleString("pt-BR")}</span>
+                    <span className="text-money text-foreground">{money(goal.targetAmount)}</span>
                   </div>
                 </div>
 
@@ -378,7 +369,7 @@ export default function GoalsPage() {
                 <div>
                   <p className="text-sm font-semibold text-foreground">{depositGoal.title}</p>
                   <p className="text-xs text-muted-foreground">
-                    Faltam R$ {Math.max(depositGoal.targetAmount - depositGoal.savedAmount, 0).toLocaleString("pt-BR")}
+                    Faltam {money(Math.max(depositGoal.targetAmount - depositGoal.savedAmount, 0))}
                   </p>
                 </div>
               </div>
@@ -421,7 +412,7 @@ export default function GoalsPage() {
                 <div className="flex items-center gap-2">
                   <TrendingUp className="w-4 h-4 text-primary" />
                   <p className="text-xs text-muted-foreground">
-                    Com R$ {savingsGoalMonth.toLocaleString("pt-BR")}/mês, você atingiria em{" "}
+                    Com {money(savingsGoalMonth)}/mês, você atingiria em{" "}
                     <span className="text-foreground font-semibold">
                       {Math.ceil(parseFloat(newTarget) / savingsGoalMonth)} meses
                     </span>
