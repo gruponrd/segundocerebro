@@ -61,6 +61,8 @@ try {
     $null = Invoke-TelegramApi 'setMyCommands' @{ commands = @(
       @{ command = 'gasto'; description = 'Registrar uma despesa com confirmação' },
       @{ command = 'receita'; description = 'Registrar uma receita com confirmação' },
+      @{ command = 'credito'; description = 'Registrar uma compra no cartão com confirmação' },
+      @{ command = 'cartoes'; description = 'Consultar seus cartões disponíveis' },
       @{ command = 'saldo'; description = 'Consultar a projeção do mês' },
       @{ command = 'ajuda'; description = 'Exemplos e instruções' }
     ) }

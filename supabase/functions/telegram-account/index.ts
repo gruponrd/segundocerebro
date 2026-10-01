@@ -50,7 +50,7 @@ Deno.serve(async req => {
       .select("telegram_username, telegram_user_id, linked_at").eq("user_id", user.id).maybeSingle();
     if (error) throw error;
     const { data: history, error: historyError } = await db.from("telegram_drafts")
-      .select("id,kind,amount,label,month,year,status,created_at,saved_at")
+      .select("id,kind,amount,label,month,year,status,created_at,saved_at,credit")
       // RLS scopes this query to auth.uid(). user_id is intentionally not granted
       // to clients; filtering that column would fail its SELECT permission check.
       .eq("status", "saved").order("created_at", { ascending: false }).limit(8);

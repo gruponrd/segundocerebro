@@ -8,7 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { isPreviewMode } from "@/lib/previewMode";
 import { money } from "@/lib/planningTools";
 
-interface TelegramHistory { id: string; kind: string; amount: number; label: string; month: number; year: number; saved_at: string }
+interface TelegramHistory { id: string; kind: string; amount: number; label: string; month: number; year: number; saved_at: string; credit?: { bankName: string; installments: number } }
 interface ConnectionStatus { configured: boolean; connected: boolean; botUsername: string; username?: string; history: TelegramHistory[] }
 const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 const FINANCE_REFRESH = "segundo-cerebro:finance-refresh";
@@ -101,7 +101,7 @@ export default function IntegracoesPage() {
             <div className="flex items-center gap-3"><div className="grid h-12 w-12 place-items-center rounded-2xl border border-sky-400/20 bg-sky-400/10"><MessageCircle className="h-6 w-6 text-sky-400" /></div><div><h2 id="telegram-title" className="text-xl font-semibold">Telegram</h2><p className="mt-1 text-sm text-muted-foreground">@{status?.botUsername ?? "SecondB2Bot"}</p></div></div>
             <span className="rounded-full border border-border/60 bg-secondary/30 px-3 py-1.5 text-xs text-muted-foreground">{loading ? "Verificando…" : status?.connected ? "Conectado" : status?.configured ? "Pronto para conectar" : "Em preparação"}</span>
           </div>
-          <p className="mt-6 text-sm leading-relaxed text-muted-foreground">Envie uma receita ou despesa por mensagem. Confira a prévia e confirme no Telegram para salvar no Fluxo de caixa.</p>
+          <p className="mt-6 text-sm leading-relaxed text-muted-foreground">Envie receitas, despesas e compras no crédito por mensagem. Confira a prévia e confirme no Telegram para salvar no Fluxo ou diretamente no cartão da Carteira.</p>
           <div className="mt-5 flex gap-3 rounded-2xl border border-primary/15 bg-primary/5 p-4"><ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" /><p className="text-sm leading-relaxed">A conexão vale apenas para sua conta. Cada lançamento exige confirmação e a mesma mensagem não cria duplicatas.</p></div>
           {error && <p role="alert" className="mt-4 text-sm text-destructive">{error}</p>}
           {!loading && !status?.configured && <p className="mt-5 text-sm text-muted-foreground">A integração está em preparação. O bot só poderá registrar lançamentos após a ativação no servidor.</p>}
@@ -122,13 +122,14 @@ export default function IntegracoesPage() {
           <div className="mt-5 space-y-3">{[
             ["Despesa paga", "/gasto 45,90 mercado"], ["Receita recebida", "/receita 3000 salário"],
             ["Conta a pagar", "/gasto 120 internet | contas | pendente"], ["Outro mês", "/receita 500 freelance | 10/2026"], ["Consultar projeção", "/saldo"],
+            ["Consultar cartões", "/cartoes"], ["Compra parcelada no cartão", "/credito 1200 celular | Nubank | 3x | 15/10/2026"],
           ].map(([label, command]) => <div key={command} className="rounded-xl border border-border/60 bg-secondary/20 p-3"><p className="text-xs text-muted-foreground">{label}</p><code className="mt-2 block break-words text-sm text-foreground">{command}</code></div>)}</div>
-          <p className="mt-4 text-xs leading-relaxed text-muted-foreground">Por padrão, usamos o mês da mensagem no horário de Brasília e a situação pago/recebido. Categoria e mês são opcionais, separados por |. Crédito, parcelas, áudio e fotos ficam para uma próxima versão.</p>
+          <p className="mt-4 text-xs leading-relaxed text-muted-foreground">No Fluxo, usamos o mês da mensagem no horário de Brasília e a situação pago/recebido. Para crédito, informe o valor total da compra, o cartão, as parcelas (1x a 60x) e a data do primeiro vencimento. O total é dividido sem juros; cada parcela fica pendente no cartão, sem duplicar uma despesa no Fluxo. Áudio e fotos ainda não são aceitos.</p>
         </section>
       </div>
       <section className="glass-card p-5 sm:p-6" aria-labelledby="telegram-history-title">
-        <div className="flex flex-wrap items-center justify-between gap-3"><h2 id="telegram-history-title" className="text-lg font-semibold">Últimos lançamentos pelo bot</h2><Link to="/fluxo" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">Abrir Fluxo <ArrowRight className="h-4 w-4" /></Link></div>
-        {status?.history.length ? <ul className="mt-5 divide-y divide-border/50">{status.history.map(item => <li key={item.id} className="flex items-center justify-between gap-4 py-3"><div className="min-w-0"><p className="truncate text-sm font-medium">{item.label}</p><p className="mt-1 text-xs text-muted-foreground">{MONTHS[item.month - 1]} {item.year} · {item.kind === "expenses" ? "Despesa" : "Receita"}</p></div><span className={`shrink-0 text-sm font-semibold tabular-nums ${item.kind === "expenses" ? "text-expense" : "text-income"}`}>{money(Number(item.amount))}</span></li>)}</ul>
+        <div className="flex flex-wrap items-center justify-between gap-3"><h2 id="telegram-history-title" className="text-lg font-semibold">Últimos lançamentos pelo bot</h2><div className="flex flex-wrap gap-4"><Link to="/carteira" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">Abrir Carteira <ArrowRight className="h-4 w-4" /></Link><Link to="/fluxo" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">Abrir Fluxo <ArrowRight className="h-4 w-4" /></Link></div></div>
+        {status?.history.length ? <ul className="mt-5 divide-y divide-border/50">{status.history.map(item => <li key={item.id} className="flex items-center justify-between gap-4 py-3"><div className="min-w-0"><p className="truncate text-sm font-medium">{item.label}</p><p className="mt-1 text-xs text-muted-foreground">{MONTHS[item.month - 1]} {item.year} · {item.kind === "credit" ? `Crédito · ${item.credit?.bankName ?? "Cartão"} · ${item.credit?.installments ?? 1}x` : item.kind === "expenses" ? "Despesa" : "Receita"}</p></div><span className={`shrink-0 text-sm font-semibold tabular-nums ${item.kind === "incomes" ? "text-income" : "text-expense"}`}>{money(Number(item.amount))}</span></li>)}</ul>
           : <p className="mt-4 text-sm text-muted-foreground">{status?.connected ? "Os lançamentos confirmados no Telegram aparecerão aqui." : "Conecte o Telegram para acompanhar seus lançamentos por aqui."}</p>}
       </section>
     </main>

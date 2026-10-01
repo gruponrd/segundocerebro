@@ -4,10 +4,14 @@ Bot escolhido: **@SecondB2Bot**. A publicação do frontend não ativa as Edge F
 
 Em 30/09/2026, as funções foram instaladas no Supabase próprio **wgtktyrmifchgfrpnchh**, o token foi salvo diretamente pelo usuário e o registro do webhook foi verificado no primeiro link de conexão. O app publicado consulta o status sem erro. Cada usuário ainda precisa concluir seu vínculo pelo botão **Iniciar** no Telegram.
 
+Em 01/10/2026, a migração de crédito foi instalada e as funções atualizadas no mesmo projeto, mantendo a vinculação existente. A conferência antes/depois da migração preservou integralmente o JSON financeiro e sua versão.
+
 ## Ativação
 
 1. Confira `VITE_SUPABASE_URL` no ambiente Production da Vercel. O destino validado e publicado é **wgtktyrmifchgfrpnchh**. Não substitua por outro projeto sem backup e conferência dos dados e da autenticação.
-2. A migração `20260930010000_telegram_integration.sql` já foi aplicada em **wgtktyrmifchgfrpnchh**, e as duas Edge Functions foram publicadas pelo dashboard. Não executar novamente as migrações instaladas. Em um novo destino, executar a migração Telegram somente após preparar a estrutura financeira.
+2. Para compras no crédito, aplicar também `20261001010000_telegram_credit.sql` uma única vez e publicar novamente `telegram-webhook` e `telegram-account`. Essa atualização mantém as conexões e lançamentos existentes e não exige substituir o token.
+
+   A migração `20260930010000_telegram_integration.sql` já foi aplicada em **wgtktyrmifchgfrpnchh**, e as duas Edge Functions foram publicadas pelo dashboard. Não executar novamente as migrações instaladas. Em um novo destino, executar a migração Telegram somente após preparar a estrutura financeira.
 3. Na instalação pelo dashboard, salve o token do **@SecondB2Bot** em **Edge Functions → Secrets → TELEGRAM_BOT_TOKEN**. Não é necessário um access token administrativo para esse caminho: as funções já foram publicadas. O segredo do webhook é derivado no servidor; ao clicar em conectar no aplicativo, a função valida a identidade do bot, registra o webhook e verifica a URL antes de devolver o link pessoal.
 
    Como alternativa para uma instalação pela CLI, com uma conta que administra esse projeto, execute no PowerShell:
@@ -29,6 +33,9 @@ Se não houver acesso ao projeto, a integração permanece em preparação. Não
 /receita 3000 salário
 /gasto 120 internet | contas | pendente
 /receita 500 freelance | 10/2026 | pendente
+/cartoes
+/credito 1200 celular | Nubank | 3x | 15/10/2026
+/credito 89,90 mercado | Nubank | 1x | 15/10/2026 | alimentacao
 /saldo
 /saldo 09/2026
 /ajuda
@@ -36,7 +43,11 @@ Se não houver acesso ao projeto, a integração permanece em preparação. Não
 
 O bot registra receitas e despesas do **Fluxo**, após confirmação. O padrão é pago/recebido e mês da mensagem no fuso America/Sao_Paulo. As prévias mostram a categoria sugerida, o mês, o valor e a situação; expiram em 15 minutos. `| pendente` registra uma previsão. Categoria explícita pode ser moradia, alimentacao, transporte, lazer, saude, educacao, assinaturas, compras, contas, investimento ou outros.
 
-Compras no crédito, parcelas, áudios e fotos não são suportados nesta versão. O comando `/saldo` mostra a projeção mensal com receitas, despesas do fluxo e parcelas de cartões; não representa um saldo bancário obtido de instituições.
+O comando /credito registra o **total da compra** no cartão escolhido. Use /cartoes para consultar os nomes completos e IDs dos cartões ativos; se houver nomes repetidos, informe o ID. O cartão precisa pertencer à conta vinculada e continuar disponível na confirmação.
+
+Informe de 1 a 60 parcelas (padrão: 1x) e a **data explícita do primeiro vencimento** em DD/MM/AAAA. Não inferimos o fechamento de fatura, não acrescentamos juros e não marcamos parcelas como pagas. Use o total final cobrado. O valor é dividido em centavos, com o ajuste na última parcela; vencimentos em meses curtos usam o último dia do mês, recuperando o dia original nos meses seguintes. A prévia lista todos os vencimentos e valores antes de salvar.
+
+A confirmação acrescenta cada parcela ao cartão da Carteira e disponibiliza os meses necessários no calendário do Fluxo. Não cria uma despesa manual duplicada. Compras já confirmadas não são gravadas novamente por reentrega ou cliques repetidos. O histórico da integração identifica cartão e parcelas. Áudios e fotos não são suportados nesta versão. O comando `/saldo` mostra a projeção mensal com receitas, despesas do fluxo e parcelas de cartões; não representa um saldo bancário obtido de instituições.
 
 ## Proteções de dados
 
@@ -44,7 +55,7 @@ Compras no crédito, parcelas, áudios e fotos não são suportados nesta versã
 - O histórico consulta apenas colunas concedidas ao app; RLS aplica o filtro de proprietário. O teste PostgreSQL verifica que essa leitura funciona com as permissões mínimas e não expõe o histórico de outra conta.
 - Webhook exige o cabeçalho secreto do Telegram e aceita apenas conversa privada com remetente igual ao ID do chat.
 - O código de vinculação é aleatório; apenas seu hash fica no banco. Um Telegram não se vincula a duas contas e uma conta vinculada não é substituída por outro link.
-- Confirmar bloqueia a conexão, a prévia e a linha financeira na transação SQL. A função acrescenta apenas um item ao mês apropriado na versão mais recente dos dados.
+- Confirmar bloqueia a conexão, a prévia e a linha financeira na transação SQL. A função acrescenta apenas o lançamento do Fluxo ou as parcelas da compra ao cartão na versão mais recente dos dados, preservando os demais campos.
 - `update_id` único e estado da prévia impedem duplicatas em reentregas e cliques repetidos. Limite de 200 prévias por conta por dia.
 - Desconectar cancela prévias e revoga a conexão, preservando os lançamentos já salvos e seu histórico.
 - O app busca mudanças ao voltar ao foco e a cada minuto quando visível. Uma edição local não salva é preservada e sinaliza conflito; não é substituída silenciosamente. A cópia local que estava sincronizada pode receber a versão mais recente da nuvem.
@@ -58,6 +69,6 @@ npm run test:telegram-db
 npm run build
 ```
 
-Os testes de banco usam PostgreSQL em memória via PGlite, com dados fictícios e sem conexão ao Supabase. Verificam preservação dos registros, idempotência, usuário incorreto, expiração, cancelamento, novo mês, permissões e desconexão. A simulação local não substitui o teste de ponta a ponta após a ativação.
+Os testes de banco usam PostgreSQL em memória via PGlite, com dados fictícios e sem conexão ao Supabase. Verificam preservação dos registros, idempotência, usuário incorreto, expiração, cancelamento, novo mês, permissões, desconexão, parcelas com centavos, datas de vencimento, cartão removido/cancelado, edição simultânea e isolamento dos cartões. A simulação local não substitui o teste de ponta a ponta após a ativação.
 
 Custos: API de bots do Telegram gratuita; funções e banco sujeitos às cotas do plano Supabase. Esta versão não usa API de IA paga.

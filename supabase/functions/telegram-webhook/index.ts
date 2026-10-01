@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { handleTelegramUpdate, telegramBalance, type TelegramBackend, type TelegramUpdate } from "../_shared/telegramHandler.ts";
 import { telegramWebhookSecret } from "../_shared/telegramSetup.ts";
+import { TelegramInputError } from "../_shared/telegramCommands.ts";
 
 const db = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!, { auth: { persistSession: false } });
 const token = Deno.env.get("TELEGRAM_BOT_TOKEN") ?? "";
@@ -27,7 +28,10 @@ const backend: TelegramBackend = {
   },
   async draft(update, sender, entry) {
     const { data, error } = await db.rpc("telegram_create_draft", { p_update_id: update, p_telegram_user_id: sender, p_entry: entry });
-    if (error) throw new Error("Draft creation failed");
+    if (error) {
+      if (error.message.includes("Card unavailable")) throw new TelegramInputError("Cartão indisponível. Consulte /cartoes e envie o comando novamente.");
+      throw new Error("Draft creation failed");
+    }
     return data;
   },
   async resolve(id, sender, confirm) {
@@ -41,6 +45,14 @@ const backend: TelegramBackend = {
     const { data, error } = await db.from("user_financial_data").select("data").eq("user_id", connection.user_id).maybeSingle();
     if (error) throw new Error("Balance lookup failed");
     return telegramBalance(data?.data ?? {}, month, year);
+  },
+  async cards(sender) {
+    const { data: connection, error: connectionError } = await db.from("telegram_connections").select("user_id").eq("telegram_user_id", sender).maybeSingle();
+    if (connectionError || !connection) throw new Error("Not connected");
+    const { data, error } = await db.from("user_financial_data").select("data").eq("user_id", connection.user_id).maybeSingle();
+    if (error) throw new Error("Card lookup failed");
+    return (data?.data?.banks ?? []).filter((bank: { id?: string; name?: string; status?: string }) => typeof bank.id === "string" && typeof bank.name === "string" && bank.status !== "cancelado")
+      .map((bank: { id: string; name: string; status: string }) => ({ id: bank.id, name: bank.name, status: bank.status }));
   },
   async telegram(method, payload) {
     const response = await fetch(`https://api.telegram.org/bot${token}/${method}`, {

@@ -32,6 +32,7 @@ before(async () => {
   await db.query('INSERT INTO auth.users(id) VALUES ($1),($2)', [userA, userB]);
   await db.query('INSERT INTO public.user_financial_data(user_id,data) VALUES ($1,$2::jsonb),($3,$4::jsonb)', [userA, JSON.stringify(original), userB, JSON.stringify({ cashflowMonths: [] })]);
   await db.query('INSERT INTO public.telegram_connections(user_id,telegram_user_id) VALUES ($1,10),($2,20)', [userA, userB]);
+  await db.exec(await readFile(new URL('../supabase/migrations/20261001010000_telegram_credit.sql', import.meta.url), 'utf8'));
 });
 after(() => db.close());
 
@@ -109,6 +110,117 @@ test('anonymous and authenticated clients cannot call the saving RPC', async () 
     finally { await db.exec('RESET ROLE'); }
   }
 });
+
+const credit = { ...entry, kind: 'credit', amount: 100, paid: false, credit: { bankId: 'bank', installments: 3, firstDueDate: '2026-12-31' } };
+
+test('credit preview uses the owned card and exact schedule without touching finance', async () => {
+  const snapshot = await finance();
+  const draft = await createDraft(100,10,{ ...credit, credit: { ...credit.credit, bankName: 'Forged name', schedule: [{ amount: 999999, dueDate: '2026-01-01' }] } });
+  assert.equal(draft.credit.bankName, 'Preservar cartão');
+  assert.deepEqual(draft.credit.schedule, [
+    { number: 1, dueDate: '2026-12-31', amount: 33.33 },
+    { number: 2, dueDate: '2027-01-31', amount: 33.33 },
+    { number: 3, dueDate: '2027-02-28', amount: 33.34 },
+  ]);
+  assert.equal(draft.month,12); assert.equal(draft.year,2026); assert.equal(draft.paid,false);
+  assert.deepEqual(await finance(),snapshot);
+});
+
+test('credit confirmation appends every installment once, preserves data and does not duplicate flow expenses', async () => {
+  const snapshot = await finance();
+  const draft = await createDraft(100);
+  await assert.rejects(() => resolve(draft.id,20), /Draft not found/);
+  assert.deepEqual(await finance(),snapshot);
+  const result = await resolve(draft.id);
+  assert.equal(result.kind,'credit');
+  const saved = await finance();
+  const installments = saved.banks[0].installments.slice(snapshot.banks[0].installments.length);
+  assert.equal(installments.length,3);
+  assert.deepEqual(installments.map(i => i.installmentAmount),[33.33,33.33,33.34]);
+  assert.equal(installments.reduce((sum,i) => sum+Math.round(i.installmentAmount*100),0),10000);
+  assert.deepEqual(installments.map(i=>i.currentInstallment),[1,2,3]);
+  assert(installments.every(i => i.totalInstallments===3 && i.totalAmount===100 && i.status==='pendente' && i.source==='telegram'));
+  assert.equal(new Set(installments.map(i=>i.id)).size,3);
+  assert.deepEqual(saved.banks[0].installments[0],snapshot.banks[0].installments[0]);
+  assert.deepEqual({...saved,banks:snapshot.banks,cashflowMonths:snapshot.cashflowMonths},snapshot);
+  assert.deepEqual(saved.cashflowMonths[0],snapshot.cashflowMonths[0]);
+  assert(saved.cashflowMonths.filter(m=>m.year>=2027).every(m=>m.incomes.length===0 && m.expenses.length===0));
+  assert.equal(saved.cashflowMonths.filter(m=>m.month==='Janeiro' && m.year===2027).length,1);
+  const after = await finance();
+  const repeated = await Promise.all([resolve(draft.id),resolve(draft.id),resolve(draft.id)]);
+  assert(repeated.every(r=>r.duplicate));
+  assert.equal((await createDraft(100)).status,'saved');
+  assert.deepEqual(await finance(),after);
+});
+
+test('cash commands still work after a credit purchase', async () => {
+  const snapshot = await finance();
+  const draft = await createDraft(101);
+  await resolve(draft.id);
+  assert.deepEqual((await finance()).banks,snapshot.banks);
+  assert.equal((await finance()).cashflowMonths[0].expenses.length,snapshot.cashflowMonths[0].expenses.length+1);
+});
+
+test('credit rejects missing, other-account and cancelled cards and invalid monetary/date inputs', async () => {
+  const snapshot = await finance();
+  await assert.rejects(()=>createDraft(102,20,credit), /Card unavailable/);
+  await assert.rejects(()=>createDraft(102,10,{...credit,credit:{...credit.credit,bankId:'other'}}), /Card unavailable/);
+  for(const details of [
+    {...credit,amount:0.001}, {...credit,credit:{...credit.credit,installments:0}},
+    {...credit,credit:{...credit.credit,installments:61}}, {...credit,amount:0.01,credit:{...credit.credit,installments:2}},
+    {...credit,credit:{...credit.credit,firstDueDate:'2026-02-30'}},
+    {...credit,credit:{...credit.credit,firstDueDate:'2099-12-31'}},
+  ]) await assert.rejects(()=>createDraft(102,10,details));
+  await db.query("UPDATE public.user_financial_data SET data=jsonb_set(data,'{banks,0,status}','\"cancelado\"') WHERE user_id=$1",[userA]);
+  await assert.rejects(()=>createDraft(102,10,credit),/Card unavailable/);
+  await db.query('UPDATE public.user_financial_data SET data=$2::jsonb WHERE user_id=$1',[userA,JSON.stringify(snapshot)]);
+  assert.deepEqual(await finance(),snapshot);
+});
+
+test('credit cancellation and expiry leave all financial values unchanged', async () => {
+  const snapshot = await finance();
+  const cancel = await createDraft(103,10,credit);
+  await resolve(cancel.id,10,false);
+  const expired = await createDraft(104,10,credit);
+  await db.query("UPDATE public.telegram_drafts SET expires_at=now()-interval '1 minute' WHERE id=$1",[expired.id]);
+  assert.equal((await resolve(expired.id)).expired,true);
+  assert.deepEqual(await finance(),snapshot);
+});
+
+test('removed or cancelled card before confirmation cancels the draft without financial writes', async () => {
+  const snapshot = await finance();
+  for(const [update, banks] of [[105,[]],[106,[{...snapshot.banks[0],status:'cancelado'}]]]) {
+    const draft=await createDraft(update,10,credit);
+    const edited={...snapshot,banks};
+    await db.query('UPDATE public.user_financial_data SET data=$2::jsonb WHERE user_id=$1',[userA,JSON.stringify(edited)]);
+    assert.equal((await resolve(draft.id)).reason,'card_unavailable');
+    assert.deepEqual(await finance(),edited);
+    await db.query('UPDATE public.user_financial_data SET data=$2::jsonb WHERE user_id=$1',[userA,JSON.stringify(snapshot)]);
+  }
+});
+
+test('credit appends to latest card edits and keeps unrelated cards intact', async () => {
+  const snapshot=await finance();
+  const draft=await createDraft(107,10,credit);
+  const edited={...snapshot,banks:[{...snapshot.banks[0],name:'Renamed',limitTotal:777,installments:[...snapshot.banks[0].installments,{id:'manual',installmentAmount:99}]},{id:'untouched',name:'Other',installments:[]}]};
+  await db.query('UPDATE public.user_financial_data SET data=$2::jsonb WHERE user_id=$1',[userA,JSON.stringify(edited)]);
+  await resolve(draft.id);
+  const saved=await finance();
+  assert.equal(saved.banks[0].name,'Renamed'); assert.equal(saved.banks[0].limitTotal,777);
+  assert.deepEqual(saved.banks[0].installments.slice(0,-3),edited.banks[0].installments);
+  assert.deepEqual(saved.banks[1],edited.banks[1]);
+});
+
+test('credit history is readable only by its owner with the minimal grants', async () => {
+  await asUser(userA); await db.exec('SET ROLE authenticated');
+  try {
+    const rows=(await db.query("SELECT kind,credit FROM public.telegram_drafts WHERE kind='credit' AND status='saved'")).rows;
+    assert(rows.length>0); assert(rows[0].credit.bankId==='bank');
+    await asUser(userB);
+    assert.equal((await db.query("SELECT kind,credit FROM public.telegram_drafts WHERE kind='credit'")).rows.length,0);
+  } finally {await db.exec('RESET ROLE');}
+});
+
 test('disconnect cancels drafts and blocks further confirmations without touching saved data', async () => {
   const snapshot = await finance();
   const draft = await createDraft(6);

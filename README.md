@@ -33,7 +33,7 @@ Dados antigos salvos neste navegador sem identificação de conta exigem confirm
 
 ## Telegram
 
-O bot **@SecondB2Bot** pode registrar receitas e despesas com confirmação, vinculação à conta e proteção contra duplicatas. A tela `/integracoes` mostra o status real da conexão; o bot depende da publicação das funções e da migração no Supabase correto. Consulte [ativação e testes](docs/telegram.md). Sem acesso administrativo ao projeto, o frontend pode ser publicado mas o bot continua inativo.
+O bot **@SecondB2Bot** pode registrar receitas, despesas e compras no crédito diretamente nos cartões, com confirmação, vinculação à conta e proteção contra duplicatas. A tela `/integracoes` mostra o status real da conexão; o bot depende da publicação das funções e da migração no Supabase correto. Consulte [ativação e testes](docs/telegram.md). Sem acesso administrativo ao projeto, o frontend pode ser publicado mas o bot continua inativo.
 
 ## Análises financeiras
 
