@@ -13,6 +13,7 @@ import { MobileNav } from "@/components/MobileNav";
 import { CommandCenter } from "@/components/CommandCenter";
 import { ExpenseFAB } from "@/components/ExpenseFAB";
 import { MigratedModulesGate } from "@/components/MigratedModulesGate";
+import { RouteRecovery } from "@/components/RouteRecovery";
 const FerramentasPage = lazy(() => import("./pages/Ferramentas"));
 const IntegracoesPage = lazy(() => import("./pages/Integracoes"));
 const Index = lazy(() => import("./pages/Index"));
@@ -45,12 +46,14 @@ function AppRoutes() {
   if (!user) {
     return (
       <BrowserRouter>
+        <RouteRecovery>
         <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Carregando página...</div>}>
         <Routes>
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="*" element={<AuthPage />} />
         </Routes>
         </Suspense>
+        </RouteRecovery>
         <Toaster />
         <Sonner />
       </BrowserRouter>
@@ -143,6 +146,7 @@ function AppRoutes() {
             </span>
           )}
         </div>
+        <RouteRecovery>
         <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Carregando página...</div>}>
           <Routes>
             <Route path="/" element={<Index />} />
@@ -160,6 +164,7 @@ function AppRoutes() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
+        </RouteRecovery>
       </div>
       <Toaster />
       <Sonner />
