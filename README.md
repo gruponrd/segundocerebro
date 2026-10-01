@@ -1,4 +1,4 @@
-# TheSecondBrain
+# Segundo Cérebro
 
 Painel pessoal de finanças e organização, desenvolvido com React, TypeScript, Vite, Tailwind CSS e Supabase.
 
@@ -7,7 +7,7 @@ Painel pessoal de finanças e organização, desenvolvido com React, TypeScript,
 Requisitos: Node.js e npm.
 
 ```sh
-npm install
+npm ci
 npm run dev
 ```
 
@@ -35,6 +35,14 @@ Dados antigos salvos neste navegador sem identificação de conta exigem confirm
 
 O bot **@SecondB2Bot** pode registrar receitas e despesas com confirmação, vinculação à conta e proteção contra duplicatas. A tela `/integracoes` mostra o status real da conexão; o bot depende da publicação das funções e da migração no Supabase correto. Consulte [ativação e testes](docs/telegram.md). Sem acesso administrativo ao projeto, o frontend pode ser publicado mas o bot continua inativo.
 
-## Funções de IA
+## Análises financeiras
 
-As funções `analyze-income` e `income-coverage` exigem sessão autenticada, validam a entrada e consomem uma cota de cinco chamadas por hora, por função e usuário. Antes de implantá-las, aplique a migração `supabase/migrations/20260921210000_ai_quota.sql` no projeto Supabase correspondente e configure `LOVABLE_API_KEY` como segredo das Edge Functions. As alterações locais nessas funções não entram em produção apenas com o build do frontend.
+A cobertura de renda, a saúde financeira e as projeções são calculadas no próprio aplicativo a partir dos registros cadastrados. Não enviam dados para um provedor de IA, não exigem chave adicional e não geram respostas com modelos de linguagem. As funções antigas de IA foram removidas.
+
+## Hospedagem e independência
+
+O código está no GitHub (`gruponrd/segundocerebro`), a publicação na Vercel e a autenticação e os dados financeiros no Supabase próprio (`wgtktyrmifchgfrpnchh`). O Telegram usa as funções desse mesmo Supabase. Não há serviço operacional ou ferramenta de desenvolvimento do Lovable.
+
+Use npm com `package-lock.json` como fonte única de versões. Após validar uma mudança e enviar à branch `main`, confira o deploy na Vercel. O aplicativo está em https://segundo-cerebro-nrd10.vercel.app/.
+
+A configuração Capacitor abre esse domínio com HTTPS. O identificador nativo original foi mantido para preservar a identidade de instalações existentes; ele não estabelece conexão com a plataforma anterior. Os registros históricos da migração estão em [migração do backend](docs/migracao-backend.md).

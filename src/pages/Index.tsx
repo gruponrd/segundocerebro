@@ -12,7 +12,7 @@ import { BankDetailSheet } from "@/components/BankDetailSheet";
 import { HeroChart } from "@/components/HeroChart";
 import { CalendarCard } from "@/components/CalendarCard";
 import { FinancialHealthScore } from "@/components/FinancialHealthScore";
-import { IncomeCoverageAI } from "@/components/IncomeCoverageAI";
+import { IncomeCoverage } from "@/components/IncomeCoverage";
 import { AnnualSubscriptionsCard } from "@/components/AnnualSubscriptionsCard";
 import { BalanceProjectionChart } from "@/components/BalanceProjectionChart";
 import { CashflowSankey } from "@/components/CashflowSankey";
@@ -140,7 +140,7 @@ const Index = () => {
             <SectionHead index="02" title="Cobertura & Saúde" subtitle="A renda cobre os próximos meses?" />
             <div className="grid grid-cols-1 lg:grid-cols-6 gap-4 auto-rows-min">
               <div className="lg:col-span-4">
-                <IncomeCoverageAI />
+                <IncomeCoverage />
               </div>
               <div className="lg:col-span-2">
                 <FinancialHealthScore />

@@ -17,7 +17,7 @@ O backup final de 30/09/2026 contém 9 cartões, 12 meses, 44 receitas, 56 despe
 
 Os módulos locais vinculados à conta foram preservados em `account_migration_modules`, com leitura exclusiva pelo proprietário. `VITE_ACCOUNT_MODULE_BOOTSTRAP=true` restaura essa cópia no primeiro acesso de cada dispositivo, sem sobrescrever dados locais existentes. Essa recuperação inicial não sincroniza alterações futuras desses módulos: a sincronização financeira continua em `user_financial_data`.
 
-No destino, usar `VITE_AI_ANALYSIS_ENABLED=false` enquanto não houver um provedor substituto para as análises geradas pelo Lovable. Os cálculos e projeções financeiras locais continuam disponíveis.
+A limpeza final removeu as funções e chamadas antigas de IA, a ponte de autenticação de prévias e o plugin de desenvolvimento. Os cálculos e projeções financeiros locais continuam disponíveis e a variável antiga `VITE_AI_ANALYSIS_ENABLED` não tem mais efeito.
 
 ## Recuperar a origem
 
@@ -43,9 +43,9 @@ Esse arquivo permite migrar os lançamentos para uma nova conta no Supabase pró
 6. Instalar as funções do aplicativo e aplicar apenas as migrações ainda ausentes, incluindo a integração Telegram.
 7. Validar em uma prévia separada: login, leitura dos registros, isolamento entre contas e gravação em conta de teste. Não criar lançamentos fictícios na conta real.
 
-## Dependência adicional de IA
+## Limpeza das dependências anteriores
 
-As funções `analyze-income` e `income-coverage` usam o gateway de IA do Lovable e o segredo `LOVABLE_API_KEY`. Migrar apenas o banco não remove essa dependência. Para independência completa, definir um provedor substituto ou uma alternativa local para essas funções antes de declarar a migração concluída. O bot Telegram não depende desse gateway.
+As funções antigas de IA e o gateway anterior foram removidos do código, assim como o plugin de desenvolvimento, a ponte de autenticação e as referências externas de compartilhamento. A configuração nativa usa o domínio próprio. O identificador nativo histórico foi preservado para não alterar a identidade de instalações existentes. Nenhuma tabela, credencial, lançamento ou vínculo do Telegram é alterado por essa limpeza; as migrações históricas permanecem registradas.
 
 ## Troca da aplicação publicada
 

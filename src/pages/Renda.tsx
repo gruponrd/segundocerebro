@@ -1,18 +1,14 @@
 import { money } from "@/lib/planningTools";
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useFinanceStore } from "@/stores/financeStore";
-import { supabase } from "@/integrations/supabase/client";
 import {
-  DollarSign, Plus, Trash2, Brain, Loader2, TrendingUp, Target,
-  AlertTriangle, CheckCircle2, Sparkles, RefreshCw
+  DollarSign, Plus, Trash2, TrendingUp, Target,
+  AlertTriangle, CheckCircle2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import DOMPurify from "dompurify";
 import { PageHeader } from "@/components/PageHeader";
-import { aiAnalysisEnabled } from "@/lib/features";
 
 /* ─── Income Source Row ─── */
 function IncomeSourceRow({
@@ -93,101 +89,9 @@ function GoalRow({ goal }: { goal: { title: string; targetAmount: number; savedA
   );
 }
 
-/* ─── AI Analysis Card ─── */
-function AIAnalysisCard({
-  analysis,
-  loading,
-  onAnalyze,
-  error,
-}: {
-  analysis: string | null;
-  loading: boolean;
-  onAnalyze: () => void;
-  error: string | null;
-}) {
-  if (!aiAnalysisEnabled) return null;
-  return (
-    <Card className="glass-card border-primary/20 overflow-hidden">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <div className="w-9 h-9 rounded-xl bg-primary/15 flex items-center justify-center">
-              <Brain className="w-5 h-5 text-primary" />
-            </div>
-            Análise Inteligente
-          </CardTitle>
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-xl gap-2"
-            onClick={onAnalyze}
-            disabled={loading}
-          >
-            {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : analysis ? (
-              <RefreshCw className="w-4 h-4" />
-            ) : (
-              <Sparkles className="w-4 h-4" />
-            )}
-            {loading ? "Analisando..." : analysis ? "Reanalisar" : "Analisar com IA"}
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {error && (
-          <div className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm mb-4">
-            <AlertTriangle className="w-4 h-4 inline mr-2" />
-            {error}
-          </div>
-        )}
-        {!analysis && !loading && !error && (
-          <div className="text-center py-10">
-            <Brain className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-muted-foreground text-sm">
-              Clique em "Analisar com IA" para receber uma análise personalizada
-            </p>
-            <p className="text-muted-foreground/60 text-xs mt-1">
-              A IA vai considerar sua renda, objetivos, dívidas e despesas
-            </p>
-          </div>
-        )}
-        {loading && (
-          <div className="text-center py-10">
-            <Loader2 className="w-10 h-10 text-primary animate-spin mx-auto mb-3" />
-            <p className="text-muted-foreground text-sm">Gerando análise personalizada...</p>
-          </div>
-        )}
-        {analysis && !loading && (
-          <div className="prose prose-sm dark:prose-invert max-w-none text-foreground/90 leading-relaxed [&_h2]:text-foreground [&_h2]:text-base [&_h2]:font-bold [&_h2]:mt-5 [&_h2]:mb-2 [&_strong]:text-foreground [&_li]:text-sm [&_p]:text-sm">
-            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(markdownToHtml(analysis)) }} />
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-/* ─── Simple markdown to HTML ─── */
-function markdownToHtml(md: string): string {
-  return md
-    .replace(/## (.*)/g, '<h2>$1</h2>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/^- (.*)/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-    .replace(/\n\n/g, '</p><p>')
-    .replace(/\n/g, '<br/>')
-    .replace(/^/, '<p>')
-    .replace(/$/, '</p>');
-}
-
 /* ─── Main Page ─── */
 export default function RendaPage() {
   const store = useFinanceStore();
-  const { toast } = useToast();
-  const [analysis, setAnalysis] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const totalIncome = store.incomeSources.reduce((s, i) => s + i.amount, 0);
   const totalGoalsRemaining = store.goals.reduce((s, g) => s + Math.max(g.targetAmount - g.savedAmount, 0), 0);
@@ -201,31 +105,6 @@ export default function RendaPage() {
     if (monthlyAvailable < store.totalExpense * 0.2) return { label: "Margem apertada", color: "text-warning", icon: AlertTriangle };
     return { label: "Renda saudável", color: "text-income", icon: CheckCircle2 };
   }, [totalIncome, monthlyAvailable, store.totalExpense]);
-
-  const handleAnalyze = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data, error: fnError } = await supabase.functions.invoke("analyze-income", {
-        body: {
-          incomeSources: store.incomeSources,
-          goals: store.goals,
-          totalDebt: store.totalDebt,
-          totalExpense: store.totalExpense,
-          savingsGoalMonth: store.savingsGoalMonth,
-        },
-      });
-      if (fnError) throw fnError;
-      if (data?.error) throw new Error(data.error);
-      setAnalysis(data.analysis);
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Erro ao gerar análise";
-      setError(msg);
-      toast({ title: "Erro", description: msg, variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="page-container min-h-screen bg-background space-y-8">
@@ -364,13 +243,6 @@ export default function RendaPage() {
         </Card>
       </div>
 
-      {/* AI Analysis */}
-      <AIAnalysisCard
-        analysis={analysis}
-        loading={loading}
-        onAnalyze={handleAnalyze}
-        error={error}
-      />
     </div>
   );
 }

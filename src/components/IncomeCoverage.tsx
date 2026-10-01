@@ -1,23 +1,16 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useFinanceStore } from "@/stores/financeStore";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Sparkles, Loader2, RefreshCw, ShieldCheck, AlertTriangle, ShieldAlert } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { ShieldCheck, AlertTriangle, ShieldAlert } from "lucide-react";
 import { cardSpendingForMonth } from "@/lib/financeCalculations";
-import { aiAnalysisEnabled } from "@/lib/features";
 
 const MONTH_MAP: Record<string, number> = {
   Janeiro: 1, Fevereiro: 2, "Março": 3, Abril: 4, Maio: 5, Junho: 6,
   Julho: 7, Agosto: 8, Setembro: 9, Outubro: 10, Novembro: 11, Dezembro: 12,
 };
 
-export function IncomeCoverageAI() {
+export function IncomeCoverage() {
   const store = useFinanceStore();
-  const { toast } = useToast();
-  const [insight, setInsight] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
 
   const months = useMemo(() => {
     const MONTHS_PT = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
@@ -51,20 +44,6 @@ export function IncomeCoverageAI() {
     return { totalIncome, totalCost, ratio, status, label, Icon, color };
   }, [months]);
 
-  const analyze = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("income-coverage", { body: { months } });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      setInsight(data.insight);
-    } catch (e: unknown) {
-      toast({ title: "Erro", description: e instanceof Error ? e.message : "Falha ao analisar", variant: "destructive" });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <Card className="glass-card overflow-hidden border-primary/20">
       <CardHeader className="pb-3">
@@ -74,14 +53,10 @@ export function IncomeCoverageAI() {
               <overall.Icon className="w-5 h-5" style={{ color: overall.color }} />
             </div>
             <div>
-              <div>Cobertura de Renda{aiAnalysisEnabled ? " — IA" : ""}</div>
+              <div>Cobertura de Renda</div>
               <p className="text-xs text-muted-foreground font-normal">Próximos 3 meses</p>
             </div>
           </CardTitle>
-          {aiAnalysisEnabled && <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={analyze} disabled={loading}>
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : insight ? <RefreshCw className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
-            {loading ? "Analisando..." : insight ? "Reanalisar" : "Analisar com IA"}
-          </Button>}
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -134,17 +109,9 @@ export function IncomeCoverageAI() {
           })}
         </div>
 
-        {/* AI insight */}
-        {insight && (
-          <div className="rounded-xl p-4 bg-primary/5 border border-primary/15 text-sm leading-relaxed text-foreground/90">
-            {insight}
-          </div>
-        )}
-        {!insight && !loading && (
-          <p className="text-xs text-muted-foreground text-center pt-2">
-            {aiAnalysisEnabled ? 'Clique em "Analisar com IA" para um diagnóstico personalizado.' : "Cobertura calculada a partir das receitas, despesas e parcelas cadastradas."}
-          </p>
-        )}
+        <p className="text-xs text-muted-foreground text-center pt-2">
+          Cobertura calculada a partir das receitas, despesas e parcelas cadastradas.
+        </p>
       </CardContent>
     </Card>
   );
