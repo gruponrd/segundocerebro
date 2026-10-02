@@ -13,6 +13,7 @@ export function accountStorageKey(userId: string, key: string): string {
 }
 
 export function readAccountJson<T>(userId: string, key: string, fallback: T): T {
+  if (!userId) return fallback;
   try {
     const raw = localStorage.getItem(accountStorageKey(userId, key));
     return raw ? JSON.parse(raw) as T : fallback;
@@ -22,6 +23,7 @@ export function readAccountJson<T>(userId: string, key: string, fallback: T): T 
 }
 
 export function writeAccountJson(userId: string, key: string, value: unknown): void {
+  if (!userId) return;
   localStorage.setItem(accountStorageKey(userId, key), JSON.stringify(value));
 }
 

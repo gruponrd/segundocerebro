@@ -2,13 +2,14 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { supabase } from "@/integrations/supabase/client";
 import { isPreviewMode } from "@/lib/previewMode";
 import type { User, Session, AuthError } from "@supabase/supabase-js";
+import { accountDisplayName, normalizeDisplayName } from "@/lib/accountIdentity";
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
   displayName: string;
-  signUp: (email: string, password: string, displayName: string) => Promise<{ error: AuthError | null }>;
+  signUp: (email: string, password: string, displayName: string) => Promise<{ error: AuthError | null; needsEmailConfirmation: boolean }>;
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signOut: () => Promise<void>;
 }
@@ -32,67 +33,74 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (session?.user) {
           setSession(session);
           setUser(session.user);
-          setDisplayName(session.user.user_metadata?.display_name ?? "Gabriel");
+          setDisplayName(accountDisplayName(session.user.user_metadata));
         } else {
           const previewUser = {
             id: "preview-user",
             email: "preview@local",
             app_metadata: {},
-            user_metadata: { display_name: "Gabriel" },
+            user_metadata: { display_name: "Prévia" },
             aud: "authenticated",
             created_at: new Date(0).toISOString(),
           } as User;
           setUser(previewUser);
           setSession(null);
-          setDisplayName("Gabriel");
+          setDisplayName("Prévia");
         }
         setLoading(false);
       });
       return () => { cancelled = true; };
     }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        // Fetch display name from profiles
-        setTimeout(async () => {
-          const { data } = await supabase
-            .from("profiles")
-            .select("display_name")
-            .eq("user_id", session.user.id)
-            .single();
-          if (data?.display_name) setDisplayName(data.display_name);
-        }, 0);
-      } else {
-        setDisplayName("");
-      }
+    let alive = true;
+    let generation = 0;
+    let receivedAuthEvent = false;
+    const applySession = (nextSession: Session | null) => {
+      if (!alive) return;
+      const currentGeneration = ++generation;
+      const nextUser = nextSession?.user ?? null;
+      setSession(nextSession);
+      setUser(nextUser);
+      setDisplayName(accountDisplayName(nextUser?.user_metadata));
       setLoading(false);
+      if (!nextUser) return;
+      // Keep the auth callback synchronous. Ignore any response for an old account.
+      setTimeout(async () => {
+        if (!alive || generation !== currentGeneration) return;
+        try {
+          const { data } = await supabase.from("profiles")
+            .select("display_name").eq("user_id", nextUser.id).maybeSingle();
+          if (alive && generation === currentGeneration && data?.display_name?.trim()) {
+            setDisplayName(data.display_name.trim());
+          }
+        } catch { /* The name supplied at registration remains available. */ }
+      }, 0);
+    };
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      receivedAuthEvent = true;
+      applySession(nextSession);
     });
+    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
+      if (!receivedAuthEvent) applySession(initialSession);
+    }).catch(() => { if (!receivedAuthEvent) applySession(null); });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (!session) setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    return () => { alive = false; subscription.unsubscribe(); };
   }, []);
 
   const signUp = async (email: string, password: string, name: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
+    const { data, error } = await supabase.auth.signUp({
+      email: email.trim(),
       password,
       options: {
-        data: { display_name: name },
+        data: { display_name: normalizeDisplayName(name) },
         emailRedirectTo: window.location.origin,
       },
     });
-    return { error };
+    return { error, needsEmailConfirmation: !error && !data.session };
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
     return { error };
   };
 

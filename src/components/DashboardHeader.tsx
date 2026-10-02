@@ -32,7 +32,7 @@ export function DashboardHeader({
 }: DashboardHeaderProps) {
   const greeting = useMemo(() => getGreeting(), []);
   const { displayName } = useAuth();
-  const name = displayName || "Gabriel";
+  const name = displayName.trim().split(/\s+/)[0];
 
   return (
     <header className="mb-6 animate-float-in">
@@ -45,7 +45,7 @@ export function DashboardHeader({
             <span>{monthLabel}</span>
           </div>
           <h1 className="font-display text-3xl font-semibold tracking-tight text-foreground">
-            {greeting}, {name.split(" ")[0]}.
+            {greeting}{name ? `, ${name}` : ""}.
           </h1>
           <p className="mt-2 max-w-xl text-sm text-muted-foreground">
             Confira seu mês, revise as contas e acompanhe seus objetivos.

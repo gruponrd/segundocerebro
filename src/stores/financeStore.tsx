@@ -4,7 +4,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { cardSpendingForMonth, remainingBankDebt } from "@/lib/financeCalculations";
 import { mergeCashflowMonths } from "@/lib/cashflowMonths";
 import type { Json } from "@/integrations/supabase/types";
-import { hasLegacyModuleData, importLegacyModuleData } from "@/lib/accountStorage";
 import { isPreviewMode } from "@/lib/previewMode";
 import {
   type Bank,
@@ -131,15 +130,9 @@ export interface FinanceStore {
   syncError: string | null;
   retryCloudLoad: () => void;
   retryCloudSave: () => void;
-  legacyImportAvailable: boolean;
-  importLegacyData: () => void;
-  dismissLegacyImport: () => void;
   localRecoveryAvailable: boolean;
   useLocalRecovery: () => void;
   useCloudRecovery: () => void;
-  legacyModuleImportAvailable: boolean;
-  importLegacyModules: () => void;
-  dismissLegacyModules: () => void;
 }
 
 const DEFAULTS: PersistedData = {
@@ -206,10 +199,6 @@ function hasLegacyFinanceData(): boolean {
 
 function userStorageKey(userId: string): string {
   return `fin_user_${userId}`;
-}
-
-function legacyReviewKey(userId: string): string {
-  return `fin_legacy_modules_reviewed_${userId}`;
 }
 
 function saveToLocal(userId: string, data: PersistedData) {
@@ -279,9 +268,7 @@ function useFinanceStoreInternal(): FinanceStore {
   const [hydratedUserId, setHydratedUserId] = useState<string | null>(null);
   const [syncStatus, setSyncStatus] = useState<FinanceStore["syncStatus"]>("saved");
   const [syncError, setSyncError] = useState<string | null>(null);
-  const [legacyImportAvailable, setLegacyImportAvailable] = useState(false);
   const [localRecoveryAvailable, setLocalRecoveryAvailable] = useState(false);
-  const [legacyModuleImportAvailable, setLegacyModuleImportAvailable] = useState(false);
   const [loadNonce, setLoadNonce] = useState(0);
   const [saveNonce, setSaveNonce] = useState(0);
   const activeUserIdRef = useRef<string | null>(null);
@@ -315,48 +302,8 @@ function useFinanceStoreInternal(): FinanceStore {
 
   const finishHydration = useCallback((accountId: string, status: FinanceStore["syncStatus"]) => {
     setSyncStatus(status);
-    if (isPreviewMode) {
-      setHydratedUserId(accountId);
-      return;
-    }
-    if (hasLegacyModuleData() && localStorage.getItem(legacyReviewKey(accountId)) !== "1") {
-      setLegacyModuleImportAvailable(true);
-    } else {
-      setHydratedUserId(accountId);
-    }
+    setHydratedUserId(accountId);
   }, []);
-
-  const importLegacyModules = useCallback(() => {
-    if (!userId) return;
-    importLegacyModuleData(userId);
-    localStorage.setItem(legacyReviewKey(userId), "1");
-    setLegacyModuleImportAvailable(false);
-    setHydratedUserId(userId);
-  }, [userId]);
-
-  const dismissLegacyModules = useCallback(() => {
-    if (!userId) return;
-    localStorage.setItem(legacyReviewKey(userId), "1");
-    setLegacyModuleImportAvailable(false);
-    setHydratedUserId(userId);
-  }, [userId]);
-
-  const importLegacyData = useCallback(() => {
-    if (!userId) return;
-    const data = normalizeData(getLocalData());
-    applyData(data);
-    lastSavedSnapshotRef.current = null;
-    setLegacyImportAvailable(false);
-    finishHydration(userId, "saving");
-  }, [applyData, userId, finishHydration]);
-
-  const dismissLegacyImport = useCallback(() => {
-    if (!userId) return;
-    applyData(DEFAULTS);
-    lastSavedSnapshotRef.current = null;
-    setLegacyImportAvailable(false);
-    finishHydration(userId, "saving");
-  }, [applyData, userId, finishHydration]);
 
   const useLocalRecovery = useCallback(() => {
     if (!userId || !recoveryLocalRef.current) return;
@@ -381,9 +328,7 @@ function useFinanceStoreInternal(): FinanceStore {
     activeUserIdRef.current = userId;
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     setHydratedUserId(null);
-    setLegacyImportAvailable(false);
     setLocalRecoveryAvailable(false);
-    setLegacyModuleImportAvailable(false);
     setSyncError(null);
     remoteUpdatedAtRef.current = null;
     lastSavedSnapshotRef.current = null;
@@ -452,12 +397,9 @@ function useFinanceStoreInternal(): FinanceStore {
           const scoped = loadFromStorage<PersistedData | null>(userStorageKey(userId), null);
           if (scoped) {
             applyData(normalizeData(scoped));
-          } else if (localStorage.getItem("fin_banks") !== null) {
-            // Legacy keys have no owner, so ask before importing them into an account.
-            setLegacyImportAvailable(true);
-            setCloudLoading(false);
-            return;
           } else {
+            // Unowned legacy keys may belong to someone else on a shared device.
+            // New accounts start empty; existing scoped backups are kept above.
             applyData(DEFAULTS);
           }
         }
@@ -888,9 +830,7 @@ function useFinanceStoreInternal(): FinanceStore {
     lifeXp, lifeTasks, addLifeTask, removeLifeTask, completeLifeTask, resetWeeklyTasks,
     transportEntries, transportBalance, addTransportEntry, removeTransportEntry, setTransportBalance,
     cloudLoading, cloudReady: hydratedUserId === userId, syncStatus, syncError, retryCloudLoad, retryCloudSave,
-    legacyImportAvailable, importLegacyData, dismissLegacyImport,
     localRecoveryAvailable, useLocalRecovery, useCloudRecovery,
-    legacyModuleImportAvailable, importLegacyModules, dismissLegacyModules,
   };
 }
 

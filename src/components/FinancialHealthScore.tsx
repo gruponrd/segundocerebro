@@ -71,6 +71,17 @@ export function FinancialHealthScore() {
     return { score: finalScore, tips };
   }, [store.banks, store.goals, store.totalIncome, store.totalExpense, store.cardExpensesForMonth, store.expectedBalance, store.totalCreditorsDebt, store.totalCreditorsPaid, store.currentCashflow]);
 
+  const hasRecords = store.banks.length || store.creditors.length || store.goals.length
+    || store.incomeSources.length || store.salary
+    || store.cashflowMonths.some(month => month.incomes.length || month.expenses.length);
+  if (!hasRecords) return (
+    <div className="rounded-2xl bg-card border border-border/50 p-5">
+      <h3 className="flex items-center gap-3 text-sm font-semibold"><Shield className="h-5 w-5 text-muted-foreground" />Saúde Financeira</h3>
+      <p className="mt-6 text-lg font-medium">Aguardando seus dados</p>
+      <p className="mt-2 text-sm leading-6 text-muted-foreground">Cadastre sua renda e seus lançamentos para calcular este indicador. Uma conta vazia ainda não tem uma avaliação financeira.</p>
+    </div>
+  );
+
   const health = getHealthData(score);
   const Icon = health.icon;
   const circumference = 2 * Math.PI * 54;

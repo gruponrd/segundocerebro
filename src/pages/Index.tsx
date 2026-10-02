@@ -1,6 +1,7 @@
 import { money } from "@/lib/planningTools";
 import { useFinanceStore } from "@/stores/financeStore";
 import { DashboardHeader } from "@/components/DashboardHeader";
+import { GettingStarted } from "@/components/GettingStarted";
 import { QuickTools } from "@/components/QuickTools";
 import { DashboardOverview } from "@/components/DashboardOverview";
 import { BankCard } from "@/components/BankCard";
@@ -339,6 +340,7 @@ const Index = () => {
           cashflowMonths={store.cashflowMonths}
         />
 
+        <GettingStarted />
         <DashboardOverview />
         <QuickTools />
 

@@ -28,7 +28,7 @@ const copy = {
   signup: {
     eyebrow: "Um novo começo",
     title: "Organize o futuro que você quer viver.",
-    subtitle: "Crie seu espaço pessoal para transformar intenção em movimento.",
+    subtitle: "Informe seu nome e crie sua conta. Seu painel começa vazio, pronto para os seus dados.",
   },
   forgot: {
     eyebrow: "Recuperar acesso",
@@ -45,41 +45,51 @@ export default function AuthPage() {
   const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [notice, setNotice] = useState("");
+
+  const changeView = (next: View) => {
+    setView(next);
+    setNotice("");
+    setPassword("");
+    setShowPassword(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
-    if (view === "forgot") {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-      if (error) {
-        toast.error(error.message);
-      } else {
-        toast.success("Email de redefinição enviado! Verifique sua caixa de entrada.");
-      }
-      setLoading(false);
-      return;
-    }
-
-    if (view === "login") {
-      const { error } = await signIn(email, password);
-      if (error) toast.error(error.message);
-    } else {
-      if (!name.trim()) {
-        toast.error("Informe seu nome");
-        setLoading(false);
+    setNotice("");
+    try {
+      if (view === "forgot") {
+        const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        if (error) toast.error(error.message);
+        else setNotice("Verifique sua caixa de entrada e o spam para redefinir sua senha.");
         return;
       }
-      const { error } = await signUp(email, password, name);
-      if (error) {
-        toast.error(error.message);
+      if (view === "login") {
+        const { error } = await signIn(email, password);
+        if (error) toast.error(error.message);
       } else {
-        toast.success("Conta criada! Verifique seu email para confirmar.");
+        if (!name.trim()) {
+          toast.error("Informe seu nome");
+          return;
+        }
+        const { error, needsEmailConfirmation } = await signUp(email, password, name);
+        if (error) toast.error(error.message);
+        else if (needsEmailConfirmation) {
+          setNotice("Confira seu email e o spam. Confirme o cadastro pelo link recebido e depois entre na sua conta.");
+          setPassword("");
+          setView("login");
+        } else {
+          toast.success("Seu espaço está pronto. Bem-vindo!");
+        }
       }
+    } catch {
+      toast.error("Não foi possível conectar. Tente novamente.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const isLogin = view === "login";
@@ -160,6 +170,8 @@ export default function AuthPage() {
                 <Input
                   autoComplete="name"
                   placeholder="Seu nome"
+                  required
+                  maxLength={80}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="auth-input"
@@ -216,10 +228,13 @@ export default function AuthPage() {
             </Button>
           </form>
 
+          {notice && <p role="status" className="mt-4 rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm leading-6">{notice}</p>}
+          {isSignup && <p className="mt-4 text-xs leading-5 text-muted-foreground">Sua conta terá seus próprios cartões, lançamentos e objetivos. Nenhuma informação de outra pessoa será copiada.</p>}
+
           <div className="mt-6 space-y-3 text-center">
             {isLogin && (
               <>
-                <button type="button" onClick={() => setView("forgot")} className="auth-link text-sm text-muted-foreground">
+                <button type="button" onClick={() => changeView("forgot")} className="auth-link text-sm text-muted-foreground">
                   Esqueci minha senha
                 </button>
                 <div className="flex items-center gap-3 pt-2 text-xs text-muted-foreground/60">
@@ -227,18 +242,18 @@ export default function AuthPage() {
                   <span>ou</span>
                   <span className="h-px flex-1 bg-border/70" />
                 </div>
-                <button type="button" onClick={() => setView("signup")} className="auth-link text-sm font-medium text-primary">
+                <button type="button" onClick={() => changeView("signup")} className="auth-link text-sm font-medium text-primary">
                   Criar uma conta nova
                 </button>
               </>
             )}
             {isSignup && (
-              <button type="button" onClick={() => setView("login")} className="auth-link flex items-center justify-center gap-1 text-sm text-primary">
+              <button type="button" onClick={() => changeView("login")} className="auth-link flex items-center justify-center gap-1 text-sm text-primary">
                 <ArrowLeft className="h-3.5 w-3.5" /> Já tenho uma conta
               </button>
             )}
             {isForgot && (
-              <button type="button" onClick={() => setView("login")} className="auth-link flex items-center justify-center gap-1 text-sm text-primary">
+              <button type="button" onClick={() => changeView("login")} className="auth-link flex items-center justify-center gap-1 text-sm text-primary">
                 <ArrowLeft className="h-3.5 w-3.5" /> Voltar ao login
               </button>
             )}

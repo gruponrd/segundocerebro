@@ -11,6 +11,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:telegram-db": "node --test scripts/telegram-db.test.mjs",
+    "test:accounts-db": "node --test scripts/account-isolation.test.mjs",
     "test:watch": "vitest"
   },
   "dependencies": {

@@ -14,6 +14,7 @@ import { CommandCenter } from "@/components/CommandCenter";
 import { ExpenseFAB } from "@/components/ExpenseFAB";
 import { MigratedModulesGate } from "@/components/MigratedModulesGate";
 import { RouteRecovery } from "@/components/RouteRecovery";
+import { AccountWorkspace } from "@/components/AccountWorkspace";
 const FerramentasPage = lazy(() => import("./pages/Ferramentas"));
 const IntegracoesPage = lazy(() => import("./pages/Integracoes"));
 const Index = lazy(() => import("./pages/Index"));
@@ -60,22 +61,6 @@ function AppRoutes() {
     );
   }
 
-  if (finance.legacyImportAvailable) {
-    return (
-      <main className="min-h-screen bg-background flex items-center justify-center p-6">
-        <div className="max-w-md rounded-2xl border border-border bg-card p-6 space-y-4">
-          <h1 className="text-xl font-semibold">Dados locais encontrados</h1>
-          <p className="text-sm text-muted-foreground">Há dados financeiros antigos neste navegador sem identificação da conta. Confira se são seus antes de importá-los para esta conta.</p>
-          <div className="flex flex-wrap gap-3">
-            <button className="rounded-lg bg-primary px-4 py-2 text-primary-foreground" onClick={finance.importLegacyData}>Importar meus dados</button>
-            <button className="rounded-lg border border-border px-4 py-2" onClick={finance.dismissLegacyImport}>Continuar sem importar</button>
-          </div>
-          <p className="text-xs text-muted-foreground">Os dados locais antigos não serão apagados.</p>
-        </div>
-      </main>
-    );
-  }
-
   if (finance.localRecoveryAvailable) {
     return (
       <main className="min-h-screen bg-background flex items-center justify-center p-6">
@@ -87,22 +72,6 @@ function AppRoutes() {
             <button className="rounded-lg border border-border px-4 py-2" onClick={finance.useCloudRecovery}>Usar versão da nuvem</button>
           </div>
           <p className="text-xs text-muted-foreground">Ao escolher a cópia local, ela será salva na nuvem. A outra versão poderá ser substituída.</p>
-        </div>
-      </main>
-    );
-  }
-
-  if (finance.legacyModuleImportAvailable) {
-    return (
-      <main className="min-h-screen bg-background flex items-center justify-center p-6">
-        <div className="max-w-md rounded-2xl border border-border bg-card p-6 space-y-4">
-          <h1 className="text-xl font-semibold">Outros dados locais encontrados</h1>
-          <p className="text-sm text-muted-foreground">Há dados antigos de Trade, Desejos, Dream Board, rotina ou LifeGame neste navegador sem identificação de conta. Importe apenas se forem seus.</p>
-          <div className="flex flex-wrap gap-3">
-            <button className="rounded-lg bg-primary px-4 py-2 text-primary-foreground" onClick={finance.importLegacyModules}>Importar para esta conta</button>
-            <button className="rounded-lg border border-border px-4 py-2" onClick={finance.dismissLegacyModules}>Continuar sem importar</button>
-          </div>
-          <p className="text-xs text-muted-foreground">Os dados antigos permanecem neste dispositivo.</p>
         </div>
       </main>
     );
@@ -178,11 +147,13 @@ const App = () => (
     <ThemeProvider>
       <TooltipProvider>
         <AuthProvider>
+          <AccountWorkspace>
           <MigratedModulesGate>
           <FinanceProvider>
             <AppRoutes />
           </FinanceProvider>
           </MigratedModulesGate>
+          </AccountWorkspace>
         </AuthProvider>
       </TooltipProvider>
     </ThemeProvider>

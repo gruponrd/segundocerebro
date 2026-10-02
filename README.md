@@ -29,7 +29,13 @@ Uma conta nova começa sem bancos, faturas, credores, objetivos ou receitas de e
 
 Cada registro de parcela/fatura representa um lançamento com vencimento próprio. A dívida dos cartões soma uma vez cada lançamento em aberto; `totalInstallments` informa a posição no plano, sem multiplicar o lançamento. O fluxo mensal inclui apenas os lançamentos cadastrados naquele mês. Parcelas futuras que ainda não foram cadastradas não são estimadas automaticamente.
 
-Dados antigos salvos neste navegador sem identificação de conta exigem confirmação explícita antes de serem associados à conta aberta. Os módulos Trade, Desejos, Dream Board, sessões de pagamento, rotina, LifeGame e preferências de notificação passam a usar armazenamento local separado por conta. Esses módulos ainda não sincronizam com o Supabase e permanecem neste dispositivo.
+Dados antigos salvos neste navegador sem identificação de conta não são oferecidos nem importados para contas novas. As cópias antigas permanecem intactas para recuperação; contas existentes continuam usando seus registros na nuvem e suas cópias locais identificadas. Os módulos Trade, Desejos, Dream Board, sessões de pagamento, rotina, LifeGame e preferências de notificação usam armazenamento local separado por conta. Esses módulos ainda não sincronizam continuamente com o Supabase e permanecem neste dispositivo. Ao trocar de conta, o estado em memória dos módulos é recriado.
+
+## Cadastro de novas contas
+
+Na tela de acesso, escolha **Criar uma conta nova** e informe nome, email e senha. O nome fica nos metadados da autenticação e no perfil da própria conta. O painel não usa o nome de um usuário existente como alternativa. Novas contas recebem somente um calendário vazio e configurações iniciais, sem dados financeiros de exemplo; um guia no painel aponta para renda, cartões e objetivos.
+
+No Supabase, mantenha o cadastro por email habilitado e as políticas de acesso por `auth.uid()` nas tabelas de perfil e finanças. Se a confirmação de email estiver ativa, configure um SMTP capaz de enviar para usuários externos: o envio padrão do Supabase é restrito aos membros do projeto. Sem SMTP próprio, confirmação e recuperação de senha para convidados não estão prontas para uso. O frontend distingue confirmação pendente de uma conta com sessão já iniciada; não desativa a confirmação por conta própria.
 
 ## Telegram
 

@@ -6,7 +6,7 @@ const mock = vi.hoisted(() => ({
   userId: "account-a",
   updates: vi.fn(),
   inserts: vi.fn(),
-  cloudData: {} as Record<string, unknown>,
+  cloudData: {} as Record<string, unknown> | null,
   revision: "2026-09-21T00:00:00.000Z",
 }));
 
@@ -26,7 +26,7 @@ vi.mock("@/integrations/supabase/client", () => ({
         },
         maybeSingle: () => selectedUser === "account-b"
           ? new Promise(() => undefined)
-          : Promise.resolve({ data: { data: mock.cloudData, updated_at: mock.revision }, error: null }),
+          : Promise.resolve({ data: mock.cloudData === null ? null : { data: mock.cloudData, updated_at: mock.revision }, error: null }),
         update: mock.updates,
         insert: mock.inserts,
       };
@@ -102,5 +102,42 @@ describe("isolamento financeiro por conta", () => {
     await waitFor(() => expect(second.result.current.cloudReady).toBe(true));
     expect(second.result.current.localRecoveryAvailable).toBe(false);
     expect(second.result.current.goals[0]?.id).toBe("bot");
+  });
+
+  it("conta nova começa vazia apesar de dados de outra conta e dados antigos no navegador", async () => {
+    mock.cloudData = null;
+    const original = JSON.stringify({ banks: [{ id: "existing", limitUsed: 900 }], salary: 5000 });
+    localStorage.setItem("fin_user_other", original);
+    localStorage.setItem("fin_banks", '[{"id":"unowned","limitUsed":1200}]');
+    localStorage.setItem("fin_wishes_v1", '[{"id":"old-wish"}]');
+    const { result } = renderHook(() => useFinanceStore(), { wrapper });
+    await waitFor(() => expect(result.current.cloudReady).toBe(true));
+    expect(result.current.banks).toEqual([]);
+    expect(result.current.creditors).toEqual([]);
+    expect(result.current.goals).toEqual([]);
+    expect(result.current.salary).toBe(0);
+    expect(result.current.totalDebt).toBe(0);
+    expect(result.current.totalIncome).toBe(0);
+    expect(result.current.lifeXp).toBe(0);
+    expect(result.current.cashflowMonths.every(month => !month.incomes.length && !month.expenses.length)).toBe(true);
+    expect(localStorage.getItem("fin_user_other")).toBe(original);
+    expect(localStorage.getItem("fin_banks")).toContain("unowned");
+    expect(localStorage.getItem("fin_account_account-a_fin_wishes_v1")).toBeNull();
+    expect(JSON.parse(localStorage.getItem("fin_user_account-a")!).banks).toEqual([]);
+  });
+
+  it("conta existente mantém dados da nuvem mesmo com dados sem dono no navegador", async () => {
+    const original = { banks: [{ id: "mine", name: "Meu cartão", limitUsed: 100, installments: [] }], salary: 3500,
+      goals: [{ id: "mine-goal", title: "Minha meta", targetAmount: 1000, savedAmount: 50 }] };
+    mock.cloudData = original;
+    localStorage.setItem("fin_banks", '[{"id":"unowned"}]');
+    localStorage.setItem("fin_trades", '[{"id":"unowned-trade"}]');
+    const { result } = renderHook(() => useFinanceStore(), { wrapper });
+    await waitFor(() => expect(result.current.cloudReady).toBe(true));
+    expect(result.current.banks[0].id).toBe("mine");
+    expect(result.current.salary).toBe(3500);
+    expect(result.current.goals).toEqual(original.goals);
+    expect(mock.updates).not.toHaveBeenCalled();
+    expect(mock.inserts).not.toHaveBeenCalled();
   });
 });
