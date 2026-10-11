@@ -7,3 +7,7 @@ verify_jwt = false
 [functions.telegram-account]
 # Always verifies the user's JWT via auth.getUser before accessing account data.
 verify_jwt = false
+
+[functions.telegram-reminders]
+# Scheduler credential is validated against Vault via service-role-only RPC.
+verify_jwt = false

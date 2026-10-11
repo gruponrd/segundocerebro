@@ -24,11 +24,19 @@ Deno.serve(async req => {
   try {
     const body = await req.text();
     if (body.length > 1000) return reply({ error: "Requisição muito grande." }, 413);
-    const { action } = JSON.parse(body);
+    const { action, reminders } = JSON.parse(body);
     const botUsername = Deno.env.get("TELEGRAM_BOT_USERNAME") ?? "SecondB2Bot";
     const token = Deno.env.get("TELEGRAM_BOT_TOKEN") ?? "";
     const configured = !!token;
-    if (!["status", "connect", "disconnect"].includes(action)) return reply({ error: "Ação inválida." }, 400);
+    if (!["status", "connect", "disconnect", "reminders"].includes(action)) return reply({ error: "Ação inválida." }, 400);
+    if (action === "reminders") {
+      if (!reminders || typeof reminders.enabled !== "boolean" || typeof reminders.includeAmounts !== "boolean" || ![0,1,3,7].includes(reminders.daysAhead) || !Number.isInteger(reminders.hour) || reminders.hour < 7 || reminders.hour > 21) return reply({error:"Configuração de lembrete inválida."},400);
+      const {data: ready} = await db.rpc("telegram_reminder_scheduler_status");
+      if (reminders.enabled && (!configured || ready !== true)) return reply({error:"O agendamento dos lembretes ainda não foi ativado."},409);
+      const {error} = await db.rpc("telegram_set_reminders",{p_enabled:reminders.enabled,p_days:reminders.daysAhead,p_hour:reminders.hour,p_amounts:reminders.includeAmounts});
+      if (error) return reply({error:"Não foi possível salvar. Confirme se o Telegram está conectado."},409);
+      return reply({saved:true});
+    }
     if (action === "disconnect") {
       const { error } = await db.rpc("telegram_disconnect");
       if (error) throw error;
@@ -55,8 +63,12 @@ Deno.serve(async req => {
       // to clients; filtering that column would fail its SELECT permission check.
       .eq("status", "saved").order("created_at", { ascending: false }).limit(8);
     if (historyError) throw historyError;
+    const {data: pref} = await db.from("telegram_reminder_settings").select("enabled,days_ahead,hour,include_amounts").eq("user_id",user.id).maybeSingle();
+    const {data: scheduleReady} = await db.rpc("telegram_reminder_scheduler_status");
+    const {data: delivery} = await db.from("telegram_reminder_deliveries").select("day,status,finished_at").order("day",{ascending:false}).limit(1).maybeSingle();
     return reply({ configured: true, botUsername, connected: !!connection?.telegram_user_id,
-      username: connection?.telegram_username, linkedAt: connection?.linked_at, history: history ?? [] });
+      username: connection?.telegram_username, linkedAt: connection?.linked_at, history: history ?? [],
+      reminders: {ready:scheduleReady === true,enabled:pref?.enabled ?? false,daysAhead:pref?.days_ahead ?? 3,hour:pref?.hour ?? 9,includeAmounts:pref?.include_amounts ?? false,lastDelivery:delivery} });
   } catch {
     // Never print a JWT, pairing code or transaction description to logs.
     return reply({ error: "Não foi possível acessar a integração. Tente novamente." }, 503);

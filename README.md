@@ -2,6 +2,8 @@
 
 Painel pessoal de finanças e organização, desenvolvido com React, TypeScript, Vite, Tailwind CSS e Supabase.
 
+Importação de extratos, divisão da economia entre metas e verificações antes da publicação: [planejamento e ferramentas](docs/planning-tools.md). Lembretes opcionais de vencimento: [Telegram](docs/telegram.md).
+
 ## Desenvolvimento local
 
 Requisitos: Node.js e npm.

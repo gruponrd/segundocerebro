@@ -36,6 +36,7 @@ vi.mock("@/integrations/supabase/client", () => ({
 }));
 
 import { FinanceProvider, useFinanceStore } from "./financeStore";
+import { parseStatementCsv, previewStatement, suggestMapping } from "@/lib/statementImport";
 
 const wrapper = ({ children }: { children: ReactNode }) => <FinanceProvider>{children}</FinanceProvider>;
 
@@ -49,6 +50,34 @@ describe("isolamento financeiro por conta", () => {
     mock.revision = "2026-09-21T00:00:00.000Z";
   });
   afterEach(() => vi.useRealTimers());
+
+  it("salva o plano das metas junto do orçamento, mantendo saldos e identificadores", async () => {
+    const original = [{ id:"a",title:"A",targetAmount:1000,savedAmount:123,image:"a",color:"c" },{ id:"b",title:"B",targetAmount:2000,savedAmount:234,image:"b",color:"d" }];
+    mock.cloudData = {goals:original,savingsGoalMonth:100};
+    const {result} = renderHook(()=>useFinanceStore(),{wrapper});
+    await waitFor(()=>expect(result.current.cloudReady).toBe(true));
+    act(()=>result.current.saveGoalPlan(150,{a:50,b:100}));
+    expect(result.current.savingsGoalMonth).toBe(150);
+    expect(result.current.goals).toEqual(original.map((g,i)=>({...g,monthlyAllocation:i?100:50})));
+    expect(()=>result.current.saveGoalPlan(150,{a:151,b:0})).toThrow();
+    expect(result.current.savingsGoalMonth).toBe(150);
+    expect(result.current.goals[0].savedAmount).toBe(123);
+  });
+
+  it("importa e desfaz somente o lote novo, preservando os lançamentos originais", async () => {
+    const original = {month:"Outubro",year:2026,incomes:[],expenses:[{label:"Original",amount:20,paid:true}]};
+    mock.cloudData = {cashflowMonths:[original]};
+    const {result} = renderHook(()=>useFinanceStore(),{wrapper});
+    await waitFor(()=>expect(result.current.cloudReady).toBe(true));
+    const csv=parseStatementCsv("data;descricao;valor\n10/10/2026;Compra nova;-10");
+    const entry=previewStatement(csv,suggestMapping(csv[0]),"br","signed",result.current.cashflowMonths)[0].entry!;
+    act(()=>result.current.importStatement([entry],"batch",true));
+    expect(result.current.cashflowMonths.find(m=>m.month==="Outubro")?.expenses).toHaveLength(2);
+    act(()=>result.current.importStatement([entry],"second",true));
+    expect(result.current.cashflowMonths.find(m=>m.month==="Outubro")?.expenses).toHaveLength(2);
+    act(()=>result.current.undoStatementImport("batch"));
+    expect(result.current.cashflowMonths.find(m=>m.month==="Outubro")).toEqual(original);
+  });
 
   it("não grava o estado da conta anterior enquanto a próxima conta carrega", async () => {
     const { result, rerender } = renderHook(() => useFinanceStore(), { wrapper });

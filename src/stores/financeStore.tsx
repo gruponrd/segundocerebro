@@ -3,6 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { cardSpendingForMonth, remainingBankDebt } from "@/lib/financeCalculations";
 import { mergeCashflowMonths } from "@/lib/cashflowMonths";
+import { appendStatement, undoStatement, type StatementEntry } from "@/lib/statementImport";
+import { validateGoalPlan } from "@/lib/goalAllocation";
 import type { Json } from "@/integrations/supabase/types";
 import { isPreviewMode } from "@/lib/previewMode";
 import {
@@ -56,6 +58,9 @@ interface PersistedData {
 }
 
 export interface FinanceStore {
+  importStatement: (entries: StatementEntry[], batchId: string, paid: boolean) => void;
+  undoStatementImport: (batchId: string) => void;
+  saveGoalPlan: (budget: number, allocations: Record<string, number>) => void;
   banks: Bank[];
   cashflowMonths: CashflowMonth[];
   creditors: Creditor[];
@@ -616,6 +621,20 @@ function useFinanceStoreInternal(): FinanceStore {
     );
   }, []);
 
+  const importStatement = useCallback((entries: StatementEntry[], batchId: string, paid: boolean) => {
+    if (!batchId || entries.length > 1000) throw new Error("Importação inválida.");
+    setCashflowMonths(prev => appendStatement(prev, entries, batchId, paid));
+  }, []);
+  const undoStatementImport = useCallback((batchId: string) => {
+    setCashflowMonths(prev => undoStatement(prev, batchId));
+  }, []);
+  const saveGoalPlan = useCallback((budget: number, allocations: Record<string, number>) => {
+    const error = validateGoalPlan(goals, budget, allocations);
+    if (error) throw new Error(error);
+    setSavingsGoalMonth(Math.round(budget * 100) / 100);
+    setGoals(prev => prev.map(g => ({ ...g, monthlyAllocation: Math.round((allocations[g.id] ?? 0) * 100) / 100 })));
+  }, [goals]);
+
   const addCashflowItem = useCallback((monthIdx: number, type: "incomes" | "expenses", label: string, amount: number, category?: string) => {
     setCashflowMonths((prev) =>
       prev.map((m, mi) => {
@@ -812,6 +831,7 @@ function useFinanceStoreInternal(): FinanceStore {
   }, []);
 
   return {
+    importStatement, undoStatementImport, saveGoalPlan,
     banks, cashflowMonths, creditors, goals, monthlySnapshots: [], incomeSources,
     selectedMonth, selectedBank, currentCashflow,
     totalDebt, totalIncome, totalExpense, cardExpensesForMonth, expectedBalance,

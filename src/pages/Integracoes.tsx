@@ -7,14 +7,15 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { supabase } from "@/integrations/supabase/client";
 import { isPreviewMode } from "@/lib/previewMode";
 import { money } from "@/lib/planningTools";
+import { TelegramReminders, type ReminderPreferences, type ReminderStatus } from "@/components/TelegramReminders";
 
 interface TelegramHistory { id: string; kind: string; amount: number; label: string; month: number; year: number; saved_at: string; credit?: { bankName: string; installments: number } }
-interface ConnectionStatus { configured: boolean; connected: boolean; botUsername: string; username?: string; history: TelegramHistory[] }
+interface ConnectionStatus { configured: boolean; connected: boolean; botUsername: string; username?: string; history: TelegramHistory[]; reminders?: ReminderStatus }
 const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 const FINANCE_REFRESH = "segundo-cerebro:finance-refresh";
 
-async function accountAction<T>(action: string): Promise<T> {
-  const { data, error } = await supabase.functions.invoke("telegram-account", { body: { action } });
+async function accountAction<T>(action: string, reminders?: ReminderPreferences): Promise<T> {
+  const { data, error } = await supabase.functions.invoke("telegram-account", { body: { action, reminders } });
   if (error) {
     let message = "Não foi possível acessar o Telegram. A ativação no servidor pode ainda estar pendente.";
     if (error.context instanceof Response) {
@@ -91,6 +92,11 @@ export default function IntegracoesPage() {
     finally { setBusy(false); }
   };
   const secondsLeft = pairing ? Math.max(0, Math.ceil((Date.parse(pairing.expiresAt) - now) / 1000)) : 0;
+  const saveReminders = async (pref: ReminderPreferences) => {
+    setBusy(true);
+    try { await accountAction("reminders",pref); await refresh(true); }
+    finally { setBusy(false); }
+  };
 
   return (
     <main className="page-container space-y-7">
@@ -127,6 +133,7 @@ export default function IntegracoesPage() {
           <p className="mt-4 text-xs leading-relaxed text-muted-foreground">No Fluxo, usamos o mês da mensagem no horário de Brasília e a situação pago/recebido. Para crédito, informe o valor total da compra, o cartão, as parcelas (1x a 60x) e a data do primeiro vencimento. O total é dividido sem juros; cada parcela fica pendente no cartão, sem duplicar uma despesa no Fluxo. Áudio e fotos ainda não são aceitos.</p>
         </section>
       </div>
+      <TelegramReminders status={status?.reminders} connected={!!status?.connected} busy={busy || loading} save={saveReminders} />
       <section className="glass-card p-5 sm:p-6" aria-labelledby="telegram-history-title">
         <div className="flex flex-wrap items-center justify-between gap-3"><h2 id="telegram-history-title" className="text-lg font-semibold">Últimos lançamentos pelo bot</h2><div className="flex flex-wrap gap-4"><Link to="/carteira" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">Abrir Carteira <ArrowRight className="h-4 w-4" /></Link><Link to="/fluxo" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">Abrir Fluxo <ArrowRight className="h-4 w-4" /></Link></div></div>
         {status?.history.length ? <ul className="mt-5 divide-y divide-border/50">{status.history.map(item => <li key={item.id} className="flex items-center justify-between gap-4 py-3"><div className="min-w-0"><p className="truncate text-sm font-medium">{item.label}</p><p className="mt-1 text-xs text-muted-foreground">{MONTHS[item.month - 1]} {item.year} · {item.kind === "credit" ? `Crédito · ${item.credit?.bankName ?? "Cartão"} · ${item.credit?.installments ?? 1}x` : item.kind === "expenses" ? "Despesa" : "Receita"}</p></div><span className={`shrink-0 text-sm font-semibold tabular-nums ${item.kind === "incomes" ? "text-income" : "text-expense"}`}>{money(Number(item.amount))}</span></li>)}</ul>

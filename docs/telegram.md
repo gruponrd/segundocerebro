@@ -28,6 +28,18 @@ Se não houver acesso ao projeto, a integração permanece em preparação. Não
 
 ## Uso
 
+### Lembretes opcionais
+
+Em Integrações, ative os lembretes e escolha o horário de Brasília (7h a 21h), horizonte (hoje, 1, 3 ou 7 dias) e se deseja incluir valores. São enviados resumos de parcelas pendentes da Carteira e saldos de credores com vencimento cadastrado. Não inclui datas de transação como se fossem vencimentos nem altera pagamentos. O padrão é desligado e sem valores. Desconectar o bot desativa os lembretes.
+
+Aplicar somente as migrações novas `20261010010000_telegram_reminders.sql` e `20261010020000_telegram_reminder_schedule.sql` no projeto próprio, sem reexecutar migrações antigas. Publicar `telegram-reminders` e atualizar `telegram-account`. O job `telegram-due-reminders` usa pg_cron/pg_net e Vault; a credencial interna é gerada no banco e nunca precisa ser copiada para o frontend ou enviada pelo chat. Não troca o token do bot nem seu webhook.
+
+O scheduler executa a cada hora, e a preferência define a hora de envio. Uma chave por conta/dia e uma reserva atômica permitem no máximo uma tentativa diária. Um timeout ambíguo não causa reenvio automático, evitando duplicação; a tela mostra a última tentativa. Contas sem pendências não recebem mensagens. O worker processa até 100 contas elegíveis por execução; ampliar com paginação antes de alcançar essa escala.
+
+Para deploy pelo editor, `node scripts/prepare-reminders-editor.mjs` gera arquivos autocontidos, sem segredos, em `.review.local`. A função de lembretes usa `verify_jwt=false` com validação de credencial interna contra Vault; somente o serviço pode executar a validação e reservar envios. Não remover essa proteção.
+
+Validação de produção: conferir funções, cron e padrões desligados; usar `dryRun:true` na chamada protegida do worker, que não reserva envios nem envia mensagens. Testes de envio usam adapters simulados ou conta dedicada de teste, nunca dados fictícios na conta real.
+
 ```text
 /gasto 45,90 mercado
 /receita 3000 salário

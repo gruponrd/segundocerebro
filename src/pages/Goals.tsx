@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DolphinEffect } from "@/components/DolphinEffect";
 import { DreamBoard } from "@/components/DreamBoard";
+import { GoalAllocation } from "@/components/GoalAllocation";
+import { goalMonthlyAmount, toCents } from "@/lib/goalAllocation";
 import {
   Dialog,
   DialogContent,
@@ -86,11 +88,11 @@ function ProjectionBadge({
 }) {
   const projection = useMemo(() => {
     if (remaining <= 0) return { text: "Meta atingida! 🎉", months: 0, date: "" };
-    if (monthlySavings <= 0) return { text: "Defina uma meta de economia", months: 0, date: "" };
+    if (monthlySavings <= 0) return { text: "Defina a parcela mensal desta meta", months: 0, date: "" };
 
     const monthsNeeded = Math.ceil(remaining / monthlySavings);
-    const targetDate = new Date();
-    targetDate.setMonth(targetDate.getMonth() + monthsNeeded);
+    const now = new Date();
+    const targetDate = new Date(now.getFullYear(), now.getMonth() + monthsNeeded, 1);
 
     const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
     const dateStr = `${monthNames[targetDate.getMonth()]}/${targetDate.getFullYear()}`;
@@ -213,6 +215,7 @@ export default function GoalsPage() {
   const overallPercent = totalTarget > 0 ? (totalSaved / totalTarget) * 100 : 0;
 
   const depositGoal = goals.find((g) => g.id === depositGoalId);
+  const overBudget = goals.reduce((sum, g) => sum + toCents(goalMonthlyAmount(g)), 0) > toCents(savingsGoalMonth);
 
   return (
     <div className="page-container min-h-screen bg-background">
@@ -226,6 +229,8 @@ export default function GoalsPage() {
 
         <OverallProgressBar percent={overallPercent} saved={totalSaved} total={totalTarget} />
       </div>
+
+      <div className="mb-6"><GoalAllocation />{overBudget && <p role="alert" className="mt-3 text-sm text-destructive">A divisão salva ultrapassa a economia mensal atual. Ajuste o plano para atualizar as projeções.</p>}</div>
 
       {/* Dream Board + Dolphin Effect */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -327,7 +332,7 @@ export default function GoalsPage() {
                 <div className="mb-4">
                   <ProjectionBadge
                     remaining={remaining}
-                    monthlySavings={savingsGoalMonth}
+                    monthlySavings={overBudget ? 0 : goalMonthlyAmount(goal)}
                     color={goal.color}
                   />
                 </div>
@@ -407,19 +412,7 @@ export default function GoalsPage() {
               <Input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="Nome do objetivo" className="rounded-xl flex-1" autoFocus />
             </div>
             <Input type="number" value={newTarget} onChange={(e) => setNewTarget(e.target.value)} placeholder="Valor alvo (R$)" className="rounded-xl" min={0} />
-            {newTarget && parseFloat(newTarget) > 0 && savingsGoalMonth > 0 && (
-              <div className="p-3 rounded-xl bg-secondary/40 border border-border/30">
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-primary" />
-                  <p className="text-xs text-muted-foreground">
-                    Com {money(savingsGoalMonth)}/mês, você atingiria em{" "}
-                    <span className="text-foreground font-semibold">
-                      {Math.ceil(parseFloat(newTarget) / savingsGoalMonth)} meses
-                    </span>
-                  </p>
-                </div>
-              </div>
-            )}
+            <p className="text-sm text-muted-foreground">Depois de criar, reserve uma parcela da sua economia mensal para calcular o prazo desta meta.</p>
             <Button className="w-full rounded-xl gap-2" onClick={handleAddGoal}>
               <Plus className="w-4 h-4" /> Criar Objetivo
             </Button>

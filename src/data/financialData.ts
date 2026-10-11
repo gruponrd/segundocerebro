@@ -25,6 +25,11 @@ export interface Installment {
 }
 
 export interface CashflowItem {
+  id?: string;
+  date?: string;
+  source?: string;
+  importBatchId?: string;
+  importKey?: string;
   label: string;
   amount: number;
   paid?: boolean;
@@ -49,6 +54,7 @@ export interface Creditor {
 }
 
 export interface Goal {
+  monthlyAllocation?: number;
   id: string;
   title: string;
   targetAmount: number;
