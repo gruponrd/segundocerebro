@@ -185,8 +185,7 @@ const FluxoPage = () => {
       <div className="page-container">
         <PageHeader title="Fluxo de caixa" description={`Entradas e saídas de ${store.currentCashflow.month} ${store.currentCashflow.year}, com pagamentos e projeções.`} icon={ArrowLeftRight} className="mb-8" actions={<PeriodPicker months={store.cashflowMonths} selected={store.selectedMonth} onChange={store.setSelectedMonth} />} />
 
-        <div className="mb-6"><MonthlyCashflowChart key={`${store.currentCashflow.month}-${store.currentCashflow.year}`} /></div>
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-4 items-start">
+        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-4 items-start">
           <div key={`cf-${store.selectedMonth}`} className="animate-float-in">
             <CashflowCard
               cashflow={store.currentCashflow}
@@ -207,7 +206,10 @@ const FluxoPage = () => {
               onReplicateFixed={store.replicateFixedItem}
             />
           </div>
-          <SmartEntryPanel />
+          <aside className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-1" aria-label="Movimento diário e lançamento rápido">
+            <MonthlyCashflowChart compact key={`${store.currentCashflow.month}-${store.currentCashflow.year}`} />
+            <SmartEntryPanel />
+          </aside>
         </div>
 
         <div className="mt-4">

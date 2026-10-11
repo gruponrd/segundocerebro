@@ -26,7 +26,7 @@ function DayTooltip({ active, payload }: TooltipProps<number, string>) {
   </div>;
 }
 
-export function MonthlyCashflowChart() {
+export function MonthlyCashflowChart({ compact = false }: { compact?: boolean }) {
   const { currentCashflow, banks } = useFinanceStore();
   const { map } = usePaymentSessionMap();
   const [confirmedOnly, setConfirmedOnly] = useState(false);
@@ -37,40 +37,44 @@ export function MonthlyCashflowChart() {
   const hasDated = data.entries.some(e => e.day !== null);
   const datedDays = data.points.filter(point => point.entries.length > 0).map(p => p.day);
   const visibleEntries = data.entries.filter(entry => selectedDay === "all" || (selectedDay === "undated" ? entry.day === null : entry.day === Number(selectedDay))).sort((a, b) => (a.day ?? 32) - (b.day ?? 32));
+  const filters = <div className="flex w-fit gap-1 rounded-xl border border-border bg-secondary/30 p-1" role="group" aria-label="Situação dos lançamentos no gráfico">
+    <Button size="sm" variant={confirmedOnly ? "ghost" : "secondary"} className="min-h-10 rounded-lg" aria-pressed={!confirmedOnly} onClick={() => { setConfirmedOnly(false); setSelectedDay("all"); }}>Todos</Button>
+    <Button size="sm" variant={confirmedOnly ? "secondary" : "ghost"} className="min-h-10 rounded-lg" aria-pressed={confirmedOnly} onClick={() => { setConfirmedOnly(true); setSelectedDay("all"); }}>Recebidos / pagos</Button>
+  </div>;
+  const explanation = <p className="text-xs leading-relaxed text-muted-foreground">Eixo horizontal: dias do mês · Eixo vertical: valor em R$. As linhas mostram valores de cada dia, sem acumular. São usadas as datas registradas, os vencimentos e as referências de dia das descrições ou das sessões de pagamento. Marcar como pago não informa a data efetiva do pagamento.</p>;
+  const undatedNotice = data.undated.length > 0 && <div role="status" className="rounded-xl border border-border bg-secondary/30 p-3 text-sm"><p className="font-medium">{data.undated.length} lançamento(s) sem dia neste mês</p><p className="mt-1 text-xs leading-relaxed text-muted-foreground">Entradas: {money(data.undatedIncome)} · Saídas: {money(data.undatedExpense)}. Incluídos nos totais, separados das linhas diárias.</p></div>;
+  const compactTicks = [...new Set([1, 5, 10, 15, 20, 25, data.points.length])].filter(day => day <= data.points.length);
   return <Card className="glass-card min-w-0 rounded-2xl border-border/60 shadow-none">
-    <CardHeader className="gap-4 p-5 sm:p-6">
+    <CardHeader className={compact ? "gap-2 p-4 pb-3" : "gap-4 p-5 sm:p-6"}>
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0"><CardTitle className="flex items-center gap-2 text-base sm:text-lg"><CalendarDays aria-hidden="true" className="h-5 w-5 shrink-0 text-primary" /> Entradas e saídas por dia</CardTitle><CardDescription className="mt-2">{currentCashflow.month} {currentCashflow.year} · Fluxo e parcelas dos cartões</CardDescription></div>
-        <div className="flex gap-1 rounded-xl border border-border bg-secondary/30 p-1" role="group" aria-label="Situação dos lançamentos no gráfico">
-          <Button size="sm" variant={confirmedOnly ? "ghost" : "secondary"} className="min-h-10 rounded-lg" aria-pressed={!confirmedOnly} onClick={() => { setConfirmedOnly(false); setSelectedDay("all"); }}>Todos</Button>
-          <Button size="sm" variant={confirmedOnly ? "secondary" : "ghost"} className="min-h-10 rounded-lg" aria-pressed={confirmedOnly} onClick={() => { setConfirmedOnly(true); setSelectedDay("all"); }}>Recebidos / pagos</Button>
-        </div>
+        <div className="min-w-0"><CardTitle className={`flex items-center gap-2 ${compact ? "text-sm" : "text-base sm:text-lg"}`}><CalendarDays aria-hidden="true" className={`${compact ? "h-4 w-4" : "h-5 w-5"} shrink-0 text-primary`} /> {compact ? "Movimento diário" : "Entradas e saídas por dia"}</CardTitle><CardDescription className={compact ? "mt-1 text-xs" : "mt-2"}>{currentCashflow.month} {currentCashflow.year}{!compact && " · Fluxo e parcelas dos cartões"}{compact && confirmedOnly && " · Recebidos / pagos"}</CardDescription></div>
+        {!compact && filters}
       </div>
-      <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-3" aria-live="polite" aria-atomic="true">
+      {!compact && <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-3" aria-live="polite" aria-atomic="true">
         <div><p className="text-xs text-muted-foreground">{confirmedOnly ? "Recebido" : "Entradas do mês"}</p><p className="mt-1 text-lg font-semibold tabular-nums text-income">{money(data.totalIncome)}</p></div>
         <div><p className="text-xs text-muted-foreground">{confirmedOnly ? "Pago" : "Saídas do mês"}</p><p className="mt-1 text-lg font-semibold tabular-nums text-expense">{money(data.totalExpense)}</p></div>
         <div><p className="text-xs text-muted-foreground">Diferença do período</p><p className="mt-1 text-lg font-semibold tabular-nums">{money(dailyTotal)}</p></div>
-      </div>
+      </div>}
     </CardHeader>
-    <CardContent className="space-y-4 p-5 pt-0 sm:p-6 sm:pt-0">
+    <CardContent className={compact ? "space-y-3 p-4 pt-0" : "space-y-4 p-5 pt-0 sm:p-6 sm:pt-0"}>
       <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground" aria-label="Legenda do gráfico">
-        <span className="inline-flex items-center gap-2"><span aria-hidden="true" className="w-6 border-t-2 border-dashed border-income" /> Recebimentos · tracejado</span>
-        <span className="inline-flex items-center gap-2"><span aria-hidden="true" className="w-6 border-t-2 border-expense" /> Pagamentos e saídas · contínuo</span>
+        <span className="inline-flex items-center gap-2"><span aria-hidden="true" className="w-6 border-t-2 border-dashed border-income" /> {compact ? "Entradas" : "Recebimentos · tracejado"}</span>
+        <span className="inline-flex items-center gap-2"><span aria-hidden="true" className="w-6 border-t-2 border-expense" /> {compact ? "Saídas" : "Pagamentos e saídas · contínuo"}</span>
       </div>
-      {hasDated ? <ChartContainer config={chartConfig} className="h-[260px] w-full min-w-0 aspect-auto sm:h-[300px]" aria-label={`Valores diários em reais de ${currentCashflow.month} ${currentCashflow.year}. A lista de lançamentos abaixo permite consultar os mesmos dados.`}>
-        <LineChart accessibilityLayer data={data.points} margin={{ left: 0, right: 12, top: 10, bottom: 8 }} onClick={state => { if (state?.activeLabel !== undefined) setSelectedDay(String(state.activeLabel)); }}>
+      {hasDated ? <ChartContainer config={chartConfig} className={`${compact ? "h-[160px]" : "h-[260px] sm:h-[300px]"} w-full min-w-0 aspect-auto`} aria-label={`Valores diários em reais de ${currentCashflow.month} ${currentCashflow.year}. A lista de lançamentos abaixo permite consultar os mesmos dados.`}>
+        <LineChart accessibilityLayer data={data.points} margin={{ left: compact ? 8 : 0, right: compact ? 8 : 12, top: 10, bottom: compact ? 0 : 8 }} onClick={state => { if (state?.activeLabel !== undefined) setSelectedDay(String(state.activeLabel)); }}>
           <CartesianGrid vertical={false} stroke="hsl(var(--border))" strokeOpacity={0.5} />
-          <XAxis dataKey="day" axisLine={false} tickLine={false} tickMargin={10} minTickGap={25} tickFormatter={day => String(day).padStart(2, "0")} />
-          <YAxis width={50} tickLine={false} axisLine={false} tickFormatter={compactMoney} />
+          <XAxis dataKey="day" axisLine={false} tickLine={false} tickMargin={compact ? 8 : 10} minTickGap={compact ? 10 : 25} ticks={compact ? compactTicks : undefined} tickFormatter={day => String(day).padStart(2, "0")} />
+          <YAxis hide={compact} width={50} tickLine={false} axisLine={false} tickFormatter={compactMoney} />
           <ChartTooltip cursor={false} content={<DayTooltip />} />
           <Line type="linear" dataKey="incomes" name="Recebimentos" stroke="var(--color-incomes)" strokeWidth={2.5} strokeDasharray="4 4" dot={false} activeDot={{ r: 5 }} isAnimationActive={false} />
           <Line type="linear" dataKey="expenses" name="Pagamentos e saídas" stroke="var(--color-expenses)" strokeWidth={2.5} dot={{ r: 2.5, fill: "var(--color-expenses)", strokeWidth: 0 }} activeDot={{ r: 5 }} isAnimationActive={false} />
         </LineChart>
-      </ChartContainer> : <div className="flex min-h-48 items-center justify-center rounded-xl border border-dashed border-border bg-secondary/20 p-6 text-center text-sm text-muted-foreground">{data.entries.length ? "Seus lançamentos estão no resumo. Ainda não há dias identificados para desenhar as linhas." : confirmedOnly ? "Nenhum recebimento ou pagamento confirmado neste mês." : "Nenhum lançamento neste mês. As linhas aparecerão quando houver entradas ou saídas com dia definido."}</div>}
-      <p className="text-xs leading-relaxed text-muted-foreground">Eixo horizontal: dias do mês · Eixo vertical: valor em R$. As linhas mostram valores de cada dia, sem acumular. São usadas as datas registradas, os vencimentos e as referências de dia das descrições ou das sessões de pagamento. Marcar como pago não informa a data efetiva do pagamento.</p>
-      {data.undated.length > 0 && <div role="status" className="rounded-xl border border-border bg-secondary/30 p-3 text-sm"><p className="font-medium">{data.undated.length} lançamento(s) sem dia neste mês</p><p className="mt-1 text-xs leading-relaxed text-muted-foreground">Entradas: {money(data.undatedIncome)} · Saídas: {money(data.undatedExpense)}. Incluídos nos totais, separados das linhas diárias.</p></div>}
-      <details className="rounded-xl border border-border p-4">
-        <summary className="min-h-7 cursor-pointer text-sm font-medium">Ver lançamentos por dia ({data.entries.length})</summary>
+      </ChartContainer> : <div className={`flex ${compact ? "min-h-32 p-4 text-xs" : "min-h-48 p-6 text-sm"} items-center justify-center rounded-xl border border-dashed border-border bg-secondary/20 text-center text-muted-foreground`}>{data.entries.length ? "Ainda não há dias identificados para desenhar as linhas. Consulte os lançamentos nos detalhes." : confirmedOnly ? "Nenhum recebimento ou pagamento confirmado neste mês." : "Nenhum lançamento neste mês."}</div>}
+      {!compact && <>{explanation}{undatedNotice}</>}
+      <details className={compact ? "border-t border-border/60 pt-2" : "rounded-xl border border-border p-4"}>
+        <summary className={`min-h-7 cursor-pointer ${compact ? "text-xs text-muted-foreground" : "text-sm font-medium"}`}>{compact ? "Ver detalhes" : "Ver lançamentos por dia"} ({data.entries.length}){compact && data.undated.length > 0 && ` · ${data.undated.length} sem dia`}</summary>
+        {compact && <div className="mt-3 space-y-3">{filters}{explanation}{undatedNotice}</div>}
         <label htmlFor={id} className="mt-4 block text-xs font-medium">Filtrar lançamentos</label>
         <select id={id} value={selectedDay} onChange={e => setSelectedDay(e.target.value)} className="mt-2 h-11 w-full max-w-xs rounded-xl border border-input bg-background px-3 text-sm"><option value="all">Todos os dias</option>{datedDays.map(day => <option key={day} value={String(day)}>Dia {String(day).padStart(2, "0")}</option>)}{data.undated.length > 0 && <option value="undated">Sem dia definido</option>}{selectedDay !== "all" && selectedDay !== "undated" && !datedDays.includes(Number(selectedDay)) && <option value={selectedDay}>Dia {selectedDay} · sem lançamentos</option>}</select>
         <div className="mt-4 max-h-80 overflow-auto"><ul className="divide-y divide-border/60">{visibleEntries.map(entry => <li key={entry.id} className="flex items-start justify-between gap-3 py-3"><div className="min-w-0"><p className="break-words text-sm font-medium">{entry.day === null ? "Sem dia" : `Dia ${String(entry.day).padStart(2, "0")}`} · {entry.label}</p><p className="mt-1 text-xs leading-relaxed text-muted-foreground">{entry.source} · {entry.reference} · {entry.kind === "incomes" ? entry.paid ? "Recebido" : "A receber" : entry.paid ? "Pago" : "A pagar"}</p></div><span className="shrink-0 text-sm font-medium tabular-nums">{entry.kind === "incomes" ? "+" : "−"} {money(entry.amount)}</span></li>)}</ul>{!visibleEntries.length && <p className="py-4 text-sm text-muted-foreground">Nenhum lançamento neste filtro.</p>}</div>
