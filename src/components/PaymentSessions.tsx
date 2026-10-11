@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Layers, ArrowUpCircle } from "lucide-react";
 import { useFinanceStore } from "@/stores/financeStore";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useAuth } from "@/hooks/useAuth";
-import { readAccountJson, writeAccountJson } from "@/lib/accountStorage";
+import { usePaymentSessionMap } from "@/hooks/usePaymentSessionMap";
+import { PAYMENT_SESSIONS as SESSIONS, incomeSessionKey } from "@/lib/monthlyCashflowChart";
 
 const MONTH_MAP: Record<string, number> = {
   "Janeiro": 1, "Fevereiro": 2, "Março": 3, "Abril": 4, "Maio": 5, "Junho": 6,
@@ -13,16 +13,7 @@ const MONTH_MAP: Record<string, number> = {
 
 /** Blocos de pagamento baseados nos dias de recebimento (5, 20 e 30).
  *  Cada recebimento cobre os vencimentos até a chegada do próximo. */
-const SESSIONS = [
-  { id: "s30", label: "Recebimento dia 30", range: "Venc. 1 – 4", from: 1, to: 4, payDay: 30, note: "receita do mês anterior" },
-  { id: "s5", label: "Recebimento dia 5", range: "Venc. 5 – 19", from: 5, to: 19, payDay: 5, note: null },
-  { id: "s20", label: "Recebimento dia 20", range: "Venc. 20 – 29", from: 20, to: 29, payDay: 20, note: null },
-  { id: "s30b", label: "Recebimento dia 30", range: "Venc. 30 – 31", from: 30, to: 31, payDay: 30, note: "fecha o mês" },
-] as const;
-
 type SessionId = typeof SESSIONS[number]["id"];
-
-const STORAGE_KEY = "payment-session-income-map-v1";
 const brl = (n: number) => `R$ ${n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 /** Sessão sugerida a partir de um dia citado no texto da entrada (ex: "Salário dia 20"). */
@@ -37,34 +28,19 @@ function guessSession(label: string): SessionId {
 }
 
 export function PaymentSessions() {
-  const { user } = useAuth();
-  const userId = user?.id ?? "";
+  const { map, assign } = usePaymentSessionMap();
   const { banks, currentCashflow, updateInstallment, selectedMonth, toggleCashflowPaid } = useFinanceStore();
 
   const monthNum = MONTH_MAP[currentCashflow.month];
   const year = currentCashflow.year;
-  const scope = `${currentCashflow.month}-${year}`;
-
-  const [map, setMap] = useState<Record<string, SessionId>>({});
-  useEffect(() => {
-    if (userId) setMap(readAccountJson(userId, STORAGE_KEY, {}));
-  }, [userId]);
-
-  const assign = (key: string, session: SessionId) => {
-    setMap((prev) => {
-      const next = { ...prev, [key]: session };
-      if (userId) writeAccountJson(userId, STORAGE_KEY, next);
-      return next;
-    });
-  };
 
   const incomes = useMemo(
     () =>
       currentCashflow.incomes.map((item, idx) => {
-        const key = `${scope}|${idx}|${item.label}`;
+        const key = incomeSessionKey(currentCashflow, idx, item.label);
         return { item, idx, key, session: map[key] ?? guessSession(item.label) };
       }),
-    [currentCashflow.incomes, map, scope]
+    [currentCashflow, map]
   );
 
   const sessions = useMemo(() => {

@@ -11,6 +11,7 @@ import { CreditorWidget } from "@/components/CreditorWidget";
 import { SpendingChart } from "@/components/SpendingChart";
 import { BankDetailSheet } from "@/components/BankDetailSheet";
 import { HeroChart } from "@/components/HeroChart";
+import { MonthlyCashflowChart } from "@/components/MonthlyCashflowChart";
 import { CalendarCard } from "@/components/CalendarCard";
 import { FinancialHealthScore } from "@/components/FinancialHealthScore";
 import { IncomeCoverage } from "@/components/IncomeCoverage";
@@ -131,6 +132,7 @@ const Index = () => {
               creditors={store.creditors}
               cardExpensesForMonth={store.cardExpensesForMonth}
             />
+            <div className="mt-6"><MonthlyCashflowChart key={`${store.currentCashflow.month}-${store.currentCashflow.year}`} /></div>
           </>
         ),
       },

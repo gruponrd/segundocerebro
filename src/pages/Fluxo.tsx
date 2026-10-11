@@ -5,6 +5,7 @@ import { PeriodPicker } from "@/components/PeriodPicker";
 import { useFinanceStore } from "@/stores/financeStore";
 import { CashflowCard } from "@/components/CashflowCard";
 import { PaymentSessions } from "@/components/PaymentSessions";
+import { MonthlyCashflowChart } from "@/components/MonthlyCashflowChart";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -184,6 +185,7 @@ const FluxoPage = () => {
       <div className="page-container">
         <PageHeader title="Fluxo de caixa" description={`Entradas e saídas de ${store.currentCashflow.month} ${store.currentCashflow.year}, com pagamentos e projeções.`} icon={ArrowLeftRight} className="mb-8" actions={<PeriodPicker months={store.cashflowMonths} selected={store.selectedMonth} onChange={store.setSelectedMonth} />} />
 
+        <div className="mb-6"><MonthlyCashflowChart key={`${store.currentCashflow.month}-${store.currentCashflow.year}`} /></div>
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-4 items-start">
           <div key={`cf-${store.selectedMonth}`} className="animate-float-in">
             <CashflowCard

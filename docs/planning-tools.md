@@ -1,5 +1,13 @@
 # Importação, planejamento e verificação
 
+## Gráfico diário do mês
+
+Na dashboard e no **Fluxo**, o gráfico de linhas acompanha o mês e o ano selecionados. **Todos** inclui receitas e despesas previstas ou confirmadas; **Recebidos / pagos** inclui apenas os registros marcados como recebidos/pagos. As saídas incluem cada parcela de cartão registrada com vencimento no período, inclusive as pagas, excluindo cartões cancelados. Não são projetadas parcelas adicionais nem somados saldos de meses anteriores.
+
+Os pontos representam valores diários, sem acumular. Usa-se primeiro a data do lançamento; sem ela, a atribuição explícita nas sessões de pagamento ou uma referência única como “dia 5” na descrição. Números de parcelas ou descrições com dias ambíguos não viram datas. Dia 30/31 em mês mais curto usa o último dia como referência, com identificação na lista. Datas inválidas ou de outro mês e registros sem dia ficam separados das linhas, mas continuam nos totais do Fluxo.
+
+As datas das parcelas são seus vencimentos, e marcar como pago/recebido não fornece uma data efetiva de liquidação. **Ver lançamentos por dia** oferece os mesmos dados em uma lista com filtro, valores, origem e situação. As atribuições existentes por conta/dispositivo são preservadas e atualizam o gráfico imediatamente. A visualização não grava nem modifica lançamentos financeiros.
+
 ## Extratos CSV
 
 Em **Ferramentas**, selecione CSV com cabeçalho, até 1 MB e 1.000 lançamentos. Confirme o mapeamento de data, descrição, valor e tipo opcional. Aceita UTF-8 e Windows-1252, separadores vírgula, ponto e vírgula ou tabulação, e campos entre aspas.
