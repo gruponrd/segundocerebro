@@ -19,7 +19,9 @@ export interface DailyCashflowPoint { day: number; incomes: number; expenses: nu
 
 // Match an explicit day reference, never an installment count or arbitrary number.
 export function labelPaymentDay(label: string): number | null {
-  const matches = [...label.matchAll(/\bdia\s*(\d{1,2})(?:º|°)?\b/gi)];
+  // A business day needs a holiday calendar; do not treat it as a calendar day.
+  if (/\bdia\s*[uú]til\b/i.test(label)) return null;
+  const matches = [...label.matchAll(/\bdia\s*(\d{1,2})(?:º|°)?\b/gi), ...label.matchAll(/\b(\d{1,2})\s*[º°]?\s*dia\b/gi)];
   const days = [...new Set(matches.map(m => Number(m[1])))];
   return days.length === 1 && days[0] >= 1 && days[0] <= 31 ? days[0] : null;
 }

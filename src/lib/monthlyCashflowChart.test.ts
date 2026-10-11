@@ -53,6 +53,11 @@ describe("gráfico diário por mês", () => {
     expect(labelPaymentDay("Compra 5x")).toBeNull();
     expect(labelPaymentDay("Dias diferentes: dia 5 e dia 20")).toBeNull();
     expect(labelPaymentDay("Recebimento DIA 05")).toBe(5);
+    expect(labelPaymentDay("5° Dia — salário")).toBe(5);
+    expect(labelPaymentDay("20º dia — adiantamento")).toBe(20);
+    expect(labelPaymentDay("5º dia útil")).toBeNull();
+    const ordinal = monthlyCashflowChart({ ...month, incomes: [{ label: "5° Dia — salário", amount: 1400 }] }, []);
+    expect(ordinal.points[4].incomes).toBe(1400);
   });
   it("usa atribuições existentes por conta e dá prioridade à data registrada", () => {
     const dated = { ...month, incomes: [{ label: "Salário dia 5", amount: 100, date: "2026-10-12" }, { label: "Adiantamento", amount: 50 }] };
