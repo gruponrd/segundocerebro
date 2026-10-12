@@ -5,7 +5,6 @@ import { PeriodPicker } from "@/components/PeriodPicker";
 import { useFinanceStore } from "@/stores/financeStore";
 import { CashflowCard } from "@/components/CashflowCard";
 import { PaymentSessions } from "@/components/PaymentSessions";
-import { MonthlyCashflowChart } from "@/components/MonthlyCashflowChart";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -206,10 +205,7 @@ const FluxoPage = () => {
               onReplicateFixed={store.replicateFixedItem}
             />
           </div>
-          <aside className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-1" aria-label="Movimento diário e lançamento rápido">
-            <MonthlyCashflowChart compact key={`${store.currentCashflow.month}-${store.currentCashflow.year}`} />
-            <SmartEntryPanel />
-          </aside>
+          <SmartEntryPanel />
         </div>
 
         <div className="mt-4">
