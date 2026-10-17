@@ -19,6 +19,7 @@ const monthNameToIndex: Record<string, number> = {
 };
 
 interface HeroChartProps {
+  showSavingsGoal?: boolean;
   cashflowMonths: CashflowMonth[];
   totalDebt: number;
   totalExpense: number;
@@ -31,7 +32,7 @@ interface HeroChartProps {
   cardExpensesForMonth: number;
 }
 
-export function HeroChart({ cashflowMonths, totalDebt, totalExpense, expectedBalance, savingsGoalMonth, onSavingsGoalChange, selectedMonth, banks, creditors, cardExpensesForMonth }: HeroChartProps) {
+export function HeroChart({ showSavingsGoal = true, cashflowMonths, totalDebt, totalExpense, expectedBalance, savingsGoalMonth, onSavingsGoalChange, selectedMonth, banks, creditors, cardExpensesForMonth }: HeroChartProps) {
   const { theme } = useTheme();
   const isLight = theme === "light";
   const isMonochrome = theme === "monochrome";
@@ -121,76 +122,8 @@ export function HeroChart({ cashflowMonths, totalDebt, totalExpense, expectedBal
   const expenseColor = isMonochrome ? "hsl(0 0% 60%)" : "hsl(var(--expense))";
 
   return (
-    <section className="financial-panorama mb-8 animate-float-in">
+    <section className={`financial-panorama mb-8 animate-float-in${showSavingsGoal ? "" : " debt-priority"}`}>
       <div className="panorama-grid grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
-        <div className="panorama-chart data-surface p-5 relative overflow-hidden flex flex-col">
-
-          <div className="relative flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-foreground">
-              Entradas e saídas
-            </h3>
-            <span className="text-[10px] font-medium text-primary/80 px-2 py-0.5 rounded-full bg-primary/10 ring-1 ring-primary/20">
-              {cashflowMonths[selectedMonth]?.month.slice(0, 3)}/{cashflowMonths[selectedMonth]?.year}
-            </span>
-          </div>
-          <div key={selectedMonth} className="panorama-plot relative flex-1 min-h-[240px] animate-float-in" role="img" aria-label="Entradas e saídas até março de 2027, com corte após dezembro de 2026. Saídas incluem as parcelas dos cartões. Valores e hipóteses disponíveis na tabela abaixo.">
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="grad-income" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={incomeColor} stopOpacity={0.07} />
-                    <stop offset="100%" stopColor={incomeColor} stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="grad-expense" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={expenseColor} stopOpacity={0.05} />
-                    <stop offset="100%" stopColor={expenseColor} stopOpacity={0} />
-                  </linearGradient>
-                  <filter id="glow-line" x="-20%" y="-20%" width="140%" height="140%">
-                    <feGaussianBlur stdDeviation="3.5" result="blur" />
-                    <feMerge>
-                      <feMergeNode in="blur" />
-                      <feMergeNode in="SourceGraphic" />
-                    </feMerge>
-                  </filter>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke={isLight ? "hsl(240 5% 90%)" : isMonochrome ? "hsl(0 0% 18% / 0.5)" : "hsl(240 5% 18% / 0.5)"} />
-                <XAxis dataKey="period" type="number" domain={["dataMin", "dataMax"]} ticks={panoramaTicks(chartData)} tickFormatter={periodLabel} interval="preserveStartEnd" minTickGap={18} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis width={58} tick={{ fill: isLight ? "hsl(240 5% 40%)" : isMonochrome ? "hsl(0 0% 55%)" : "hsl(240 5% 55%)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={compactReais} />
-                <ReferenceLine x={(cashflowMonths[selectedMonth]?.year ?? 2026) * 12 + (monthNameToIndex[cashflowMonths[selectedMonth]?.month] ?? 0)} stroke="hsl(var(--accent))" strokeOpacity={0.45} strokeDasharray="2 4" />
-                <ReferenceLine x={YEAR_CUT} stroke="hsl(var(--muted-foreground))" strokeWidth={1.5} strokeDasharray="5 4" label={{ value: "2027", position: "insideTopLeft", fill: "hsl(var(--foreground))", fontSize: 11 }} />
-                <Tooltip
-                  content={({ active, payload }) => {
-                    const row = payload?.[0]?.payload;
-                    return active && row ? <div className="rounded-xl border border-border bg-popover px-3 py-2 text-xs text-foreground shadow-lg"><p className="text-muted-foreground">{row.month} · {row.estimated ? `Estimativa, base ${row.baseline}` : "Previsto nos lançamentos"}</p><p className="mt-1">Entradas: {money(row.entradas ?? row.future_entradas ?? 0)}</p><p>Saídas: {money(row.saidas ?? row.future_saidas ?? 0)}</p></div> : null;
-                  }}
-                />
-                {/* Gradient area fills */}
-                <Area type="monotone" dataKey="entradas" stroke="none" fill="url(#grad-income)" isAnimationActive={false} connectNulls={false} />
-                <Area type="monotone" dataKey="saidas" stroke="none" fill="url(#grad-expense)" isAnimationActive={false} connectNulls={false} />
-                {/* Glowing lines */}
-                <Line type="monotone" dataKey="entradas" stroke={incomeColor} strokeWidth={1.75} dot={{ r: 2, fill: incomeColor }} activeDot={{ r: 6 }} name="entradas" connectNulls={false}  isAnimationActive={false} />
-                <Line type="monotone" dataKey="saidas" stroke={expenseColor} strokeWidth={1.75} dot={{ r: 2, fill: expenseColor }} activeDot={{ r: 6 }} name="saidas" connectNulls={false}  isAnimationActive={false} />
-                {/* Future/dashed lines */}
-                <Line type="monotone" dataKey="future_entradas" stroke={incomeColor} strokeWidth={1.5} strokeDasharray="4 5" dot={{ r: 3, fill: incomeColor, strokeDasharray: "" }} name="future_entradas" connectNulls={false} isAnimationActive={false} />
-                <Line type="monotone" dataKey="future_saidas" stroke={expenseColor} strokeWidth={1.5} strokeDasharray="4 5" dot={{ r: 3, fill: expenseColor, strokeDasharray: "" }} name="future_saidas" connectNulls={false} isAnimationActive={false} />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="relative flex gap-5 mt-3">
-            <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><span className="w-3 h-3 rounded-sm bg-income inline-block shadow-[0_0_8px_hsl(145_63%_42%/0.6)]" /> Entradas</span>
-            <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><span className="w-3 h-3 rounded-sm bg-expense inline-block shadow-[0_0_8px_hsl(0_72%_51%/0.6)]" /> Saídas</span>
-            <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><span className="w-3 h-0.5 border-t-2 border-dashed border-muted-foreground inline-block" /> Projeção</span>
-          </div>
-          <p className="mt-2 text-xs text-muted-foreground">Até mar/2027 · Corte após dez/2026{chartData.some(point => point.estimated) ? " · 2027 estimado" : ""}</p>
-          <details className="surplus-values mt-2 text-xs text-muted-foreground"><summary className="cursor-pointer">Ver entradas e saídas mensais</summary>
-            <p className="mt-2 leading-5">Valores previstos, incluindo lançamentos pagos e pendentes. Saídas já incluem as parcelas dos cartões. O tracejado indica os próximos meses.</p>
-            {chartData.some(point => point.estimated) && <p className="mt-2 leading-5">Meses de 2027 sem lançamentos usam receitas e despesas manuais de {chartData.find(point => point.estimated)?.baseline}, mais as parcelas cadastradas para cada mês. Estimativa visual, sem criar ou alterar registros.</p>}
-            <table className="mt-2 w-full text-left"><caption className="sr-only">Entradas e saídas previstas por mês em reais</caption><thead><tr><th scope="col" className="py-2 font-medium">Mês</th><th scope="col" className="py-2 text-right font-medium">Entradas</th><th scope="col" className="py-2 text-right font-medium">Saídas</th></tr></thead><tbody>{chartData.map(point => <tr key={point.month} className="border-t border-border"><th scope="row" className="py-2 font-normal">{point.month}{point.estimated && <small className="block">Estimativa</small>}</th><td className="py-2 text-right tabular-nums">{money(point.entradas ?? point.future_entradas ?? 0)}</td><td className="py-2 text-right tabular-nums">{money(point.saidas ?? point.future_saidas ?? 0)}</td></tr>)}</tbody></table>
-          </details>
-        </div>
-
-        <MonthlySurplusChart data={chartData} monthLabel={`${cashflowMonths[selectedMonth]?.month.slice(0,3)}/${cashflowMonths[selectedMonth]?.year}`} balance={expectedBalance} />
-
         <div className="panorama-metrics flex flex-col gap-3 stagger-children">
 
           {/* Dívida Total */}
@@ -309,7 +242,7 @@ export function HeroChart({ cashflowMonths, totalDebt, totalExpense, expectedBal
           </div>
 
           {/* Meta de Economia */}
-          <div
+          {showSavingsGoal && <div
             className="widget-card p-4 flex-1 group flex flex-col justify-between"
             style={{ ["--widget-accent" as string]: "var(--widget-accent-goal)" }}
           >
@@ -356,8 +289,78 @@ export function HeroChart({ cashflowMonths, totalDebt, totalExpense, expectedBal
                 </p>
               </>
             )}
-          </div>
+          </div>}
         </div>
+
+        <div className="panorama-chart data-surface p-5 relative overflow-hidden flex flex-col">
+
+          <div className="relative flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-foreground">
+              Entradas e saídas
+            </h3>
+            <span className="text-[10px] font-medium text-primary/80 px-2 py-0.5 rounded-full bg-primary/10 ring-1 ring-primary/20">
+              {cashflowMonths[selectedMonth]?.month.slice(0, 3)}/{cashflowMonths[selectedMonth]?.year}
+            </span>
+          </div>
+          <div key={selectedMonth} className="panorama-plot relative flex-1 min-h-[240px] animate-float-in" role="img" aria-label="Entradas e saídas até março de 2027, com corte após dezembro de 2026. Saídas incluem as parcelas dos cartões. Valores e hipóteses disponíveis na tabela abaixo.">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="grad-income" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={incomeColor} stopOpacity={0.07} />
+                    <stop offset="100%" stopColor={incomeColor} stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="grad-expense" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={expenseColor} stopOpacity={0.05} />
+                    <stop offset="100%" stopColor={expenseColor} stopOpacity={0} />
+                  </linearGradient>
+                  <filter id="glow-line" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="3.5" result="blur" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke={isLight ? "hsl(240 5% 90%)" : isMonochrome ? "hsl(0 0% 18% / 0.5)" : "hsl(240 5% 18% / 0.5)"} />
+                <XAxis dataKey="period" type="number" domain={["dataMin", "dataMax"]} ticks={panoramaTicks(chartData)} tickFormatter={periodLabel} interval="preserveStartEnd" minTickGap={18} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis width={58} tick={{ fill: isLight ? "hsl(240 5% 40%)" : isMonochrome ? "hsl(0 0% 55%)" : "hsl(240 5% 55%)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={compactReais} />
+                <ReferenceLine x={(cashflowMonths[selectedMonth]?.year ?? 2026) * 12 + (monthNameToIndex[cashflowMonths[selectedMonth]?.month] ?? 0)} stroke="hsl(var(--accent))" strokeOpacity={0.45} strokeDasharray="2 4" />
+                <ReferenceLine x={YEAR_CUT} stroke="hsl(var(--muted-foreground))" strokeWidth={1.5} strokeDasharray="5 4" label={{ value: "2027", position: "insideTopLeft", fill: "hsl(var(--foreground))", fontSize: 11 }} />
+                <Tooltip
+                  content={({ active, payload }) => {
+                    const row = payload?.[0]?.payload;
+                    return active && row ? <div className="rounded-xl border border-border bg-popover px-3 py-2 text-xs text-foreground shadow-lg"><p className="text-muted-foreground">{row.month} · {row.estimated ? `Estimativa, base ${row.baseline}` : "Previsto nos lançamentos"}</p><p className="mt-1">Entradas: {money(row.entradas ?? row.future_entradas ?? 0)}</p><p>Saídas: {money(row.saidas ?? row.future_saidas ?? 0)}</p></div> : null;
+                  }}
+                />
+                {/* Gradient area fills */}
+                <Area type="monotone" dataKey="entradas" stroke="none" fill="url(#grad-income)" isAnimationActive={false} connectNulls={false} />
+                <Area type="monotone" dataKey="saidas" stroke="none" fill="url(#grad-expense)" isAnimationActive={false} connectNulls={false} />
+                {/* Glowing lines */}
+                <Line type="monotone" dataKey="entradas" stroke={incomeColor} strokeWidth={1.75} dot={{ r: 2, fill: incomeColor }} activeDot={{ r: 6 }} name="entradas" connectNulls={false}  isAnimationActive={false} />
+                <Line type="monotone" dataKey="saidas" stroke={expenseColor} strokeWidth={1.75} dot={{ r: 2, fill: expenseColor }} activeDot={{ r: 6 }} name="saidas" connectNulls={false}  isAnimationActive={false} />
+                {/* Future/dashed lines */}
+                <Line type="monotone" dataKey="future_entradas" stroke={incomeColor} strokeWidth={1.5} strokeDasharray="4 5" dot={{ r: 3, fill: incomeColor, strokeDasharray: "" }} name="future_entradas" connectNulls={false} isAnimationActive={false} />
+                <Line type="monotone" dataKey="future_saidas" stroke={expenseColor} strokeWidth={1.5} strokeDasharray="4 5" dot={{ r: 3, fill: expenseColor, strokeDasharray: "" }} name="future_saidas" connectNulls={false} isAnimationActive={false} />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="relative flex gap-5 mt-3">
+            <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><span className="w-3 h-3 rounded-sm bg-income inline-block shadow-[0_0_8px_hsl(145_63%_42%/0.6)]" /> Entradas</span>
+            <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><span className="w-3 h-3 rounded-sm bg-expense inline-block shadow-[0_0_8px_hsl(0_72%_51%/0.6)]" /> Saídas</span>
+            <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><span className="w-3 h-0.5 border-t-2 border-dashed border-muted-foreground inline-block" /> Projeção</span>
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">Até mar/2027 · Corte após dez/2026{chartData.some(point => point.estimated) ? " · 2027 estimado" : ""}</p>
+          <details className="surplus-values mt-2 text-xs text-muted-foreground"><summary className="cursor-pointer">Ver entradas e saídas mensais</summary>
+            <p className="mt-2 leading-5">Valores previstos, incluindo lançamentos pagos e pendentes. Saídas já incluem as parcelas dos cartões. O tracejado indica os próximos meses.</p>
+            {chartData.some(point => point.estimated) && <p className="mt-2 leading-5">Meses de 2027 sem lançamentos usam receitas e despesas manuais de {chartData.find(point => point.estimated)?.baseline}, mais as parcelas cadastradas para cada mês. Estimativa visual, sem criar ou alterar registros.</p>}
+            <table className="mt-2 w-full text-left"><caption className="sr-only">Entradas e saídas previstas por mês em reais</caption><thead><tr><th scope="col" className="py-2 font-medium">Mês</th><th scope="col" className="py-2 text-right font-medium">Entradas</th><th scope="col" className="py-2 text-right font-medium">Saídas</th></tr></thead><tbody>{chartData.map(point => <tr key={point.month} className="border-t border-border"><th scope="row" className="py-2 font-normal">{point.month}{point.estimated && <small className="block">Estimativa</small>}</th><td className="py-2 text-right tabular-nums">{money(point.entradas ?? point.future_entradas ?? 0)}</td><td className="py-2 text-right tabular-nums">{money(point.saidas ?? point.future_saidas ?? 0)}</td></tr>)}</tbody></table>
+          </details>
+        </div>
+
+        <MonthlySurplusChart data={chartData} monthLabel={`${cashflowMonths[selectedMonth]?.month.slice(0,3)}/${cashflowMonths[selectedMonth]?.year}`} balance={expectedBalance} />
+
+
 
       </div>
     </section>

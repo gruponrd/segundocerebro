@@ -347,6 +347,7 @@ const Index = () => {
         <section aria-labelledby="first-panorama-title" className="dashboard-first-panorama">
           <h2 id="first-panorama-title" className="mb-3 text-base font-medium">Panorama financeiro</h2>
           <HeroChart
+            showSavingsGoal={false}
             cashflowMonths={store.cashflowMonths}
             totalDebt={store.totalDebt}
             totalExpense={store.totalExpense}

@@ -80,3 +80,7 @@ Aprovadas as cinco prioridades, com equilíbrio entre quanto pode sobrar e o que
 - Ajustados espaços dos eixos, cartões sem corte de limite/dívida e linhas de parcelas no celular. Dados, identificadores, autenticação, persistência e integrações não foram alterados.
 
 Verificação completa: tipos, ESLint (zero erros, os 11 avisos anteriores de Fast Refresh), 126 testes de aplicação, 29 testes de banco local isolado e build aprovados. Após os ajustes finais, passaram os 9 testes direcionados de projeção/interação, tipos, lint e build. Resultado confirmado visualmente em desktop e 375 px, sem rolagem horizontal. A conferência por teclado usa apenas os dados demonstrativos locais, restaura as ordens de cartões/seções e mantém a meta anterior. Produção não foi usada para testes. Permanecem os avisos prévios de tamanho de bundle e Browserslist desatualizado.
+
+## Prioridade das dívidas após publicação — 17/10/2026
+
+Dívida total e saldo após parcelas previstas agora antecedem os dois gráficos, logo após o resumo de saldo, no desktop e celular. Em até 600 px são empilhados; nas demais larguras ficam juntos em duas colunas. O card de meta de economia foi retirado da visão geral; o valor persistido permanece intacto. Ordem de leitura acompanha a ordem visual. Conferido visualmente no desktop e em 390 px, sem transbordamento horizontal. Nenhum cálculo ou registro financeiro foi alterado.

@@ -44,3 +44,8 @@
 @media(max-width:1199px), (pointer:coarse) {
   .dashboard-first-panorama .panorama-metrics .widget-card:last-child .savings-goal-trigger { min-height:44px; }
 }
+
+/* Debt context precedes the plots. */
+.dashboard-first-panorama .debt-priority .panorama-metrics { grid-column:1/-1; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+.dashboard-first-panorama .debt-priority .panorama-metrics > .widget-card:first-child { grid-column:auto; }
+@media(max-width:600px) { .dashboard-first-panorama .debt-priority .panorama-metrics { grid-template-columns:minmax(0,1fr); } }
