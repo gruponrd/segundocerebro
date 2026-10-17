@@ -1,3 +1,4 @@
+import { isAccountPreview, isDesignPreview, setDesignAccountPreview } from "@/lib/previewMode";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -56,6 +57,8 @@ export default function AuthPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isDesignPreview && !isAccountPreview) { setNotice("Prévia visual: login, cadastro e recuperação não enviam dados ao servidor. Use a navegação para voltar ao painel de demonstração."); return; }
+    if (isAccountPreview && view !== "login") { setNotice("Entre com a conta existente para carregar uma cópia. Cadastro e recuperação ficam no aplicativo publicado."); return; }
     setLoading(true);
     setNotice("");
     try {
@@ -134,7 +137,7 @@ export default function AuthPage() {
                 <div className="auth-progress h-full w-[72%] rounded-full bg-gradient-to-r from-primary/40 via-primary to-primary/40" />
               </div>
             </div>
-            <div className="auth-float-delayed absolute bottom-0 right-0 flex items-center gap-3 rounded-2xl border border-white/10 bg-[#171715]/80 px-4 py-3 shadow-2xl shadow-black/30 backdrop-blur-xl">
+            <div className="auth-float-delayed absolute bottom-0 right-0 flex items-center gap-3 rounded-2xl border border-white/10 bg-card/80 px-4 py-3 shadow-2xl shadow-black/30 backdrop-blur-xl">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary"><ShieldCheck className="h-4 w-4" /></span>
               <div>
                 <p className="text-xs font-medium text-foreground/80">Tudo em um só lugar</p>
@@ -162,6 +165,7 @@ export default function AuthPage() {
             <p className="mt-3 text-sm leading-6 text-muted-foreground">{copy[view].subtitle}</p>
           </div>
 
+          {isAccountPreview && <p role="status" className="mb-5 text-sm text-muted-foreground">Entre com sua conta para visualizar uma cópia dos seus dados. Alterações nesta prévia não são enviadas ao aplicativo publicado. <button type="button" className="underline" onClick={() => setDesignAccountPreview(false)}>Voltar aos exemplos</button></p>}
           <form onSubmit={handleSubmit} className="space-y-4">
             {isSignup && (
               <label className="auth-field group block">

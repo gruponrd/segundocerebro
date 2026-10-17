@@ -1,0 +1,46 @@
+/* Local refinement of the retained layout: close siblings, clearer group boundaries. */
+.dashboard-page {
+  --dashboard-card-gap:12px;
+  --dashboard-section-gap:16px;
+  --dashboard-group-gap:20px;
+}
+.dashboard-page .overview-balance-only { margin-bottom:var(--dashboard-group-gap); }
+.dashboard-page .dashboard-first-panorama > section { margin-bottom:var(--dashboard-group-gap); }
+.dashboard-page > .dashboard-disclosure,
+.dashboard-page > [aria-label="Ferramentas rápidas"] { margin-bottom:var(--dashboard-section-gap); }
+.dashboard-first-panorama .panorama-grid,
+.dashboard-first-panorama .panorama-metrics { gap:var(--dashboard-card-gap); }
+.dashboard-first-panorama .panorama-chart > .surplus-values { margin-top:auto; padding-top:8px; }
+.dashboard-first-panorama .panorama-metrics .widget-value { font-variant-numeric:tabular-nums; }
+
+/* The sidebar consumes a substantial part of these viewports. Three narrow
+   columns break currency amounts; the first KPI becomes a compact full row. */
+@media(min-width:768px) and (max-width:1199px) {
+  .dashboard-first-panorama .panorama-metrics { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .dashboard-first-panorama .panorama-metrics > .widget-card:first-child { grid-column:1/-1; }
+  .dashboard-first-panorama .panorama-metrics .widget-card { padding:16px; }
+  .dashboard-first-panorama .panorama-metrics .widget-value { font-size:26px; line-height:1.2; white-space:nowrap; }
+}
+
+/* Below the wide desktop, balance label and amount retain enough shared width. */
+@media(min-width:1024px) and (max-width:1199px) {
+  .overview-balance-only .overview-balance { grid-template-columns:minmax(0,1fr) minmax(0,1fr); column-gap:20px; row-gap:12px; }
+  .overview-balance-only .overview-balance > a { grid-column:1; grid-row:3; }
+  .overview-balance-only .overview-balance > details { grid-column:2; grid-row:3; }
+}
+
+/* Amount, monthly unit and pencil are one control; allow the unit to wrap only
+   when the actual amount needs the space. The complete button remains tappable. */
+.dashboard-first-panorama .panorama-metrics .widget-card:last-child .savings-goal-trigger {
+  display:flex; flex-wrap:wrap; align-items:center; column-gap:6px; row-gap:4px;
+  min-height:36px; max-width:100%; width:fit-content; white-space:nowrap;
+}
+.dashboard-first-panorama .panorama-metrics .widget-card:last-child .savings-goal-trigger > .widget-sub {
+  display:inline-block; margin:0;
+}
+.dashboard-first-panorama .panorama-metrics .widget-card:last-child .savings-goal-trigger > svg {
+  position:static; align-self:center; margin:0; width:14px; height:14px;
+}
+@media(max-width:1199px), (pointer:coarse) {
+  .dashboard-first-panorama .panorama-metrics .widget-card:last-child .savings-goal-trigger { min-height:44px; }
+}

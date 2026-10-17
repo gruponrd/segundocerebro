@@ -1,3 +1,4 @@
+import { isDesignPreview } from "@/lib/previewMode";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
 type Theme = "dark" | "light" | "monochrome";
@@ -14,8 +15,8 @@ const THEME_ORDER: Theme[] = ["light", "dark", "monochrome"];
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
-    const stored = localStorage.getItem("fin_theme");
-    return (stored === "light" || stored === "dark" || stored === "monochrome") ? stored : "light";
+    const stored = localStorage.getItem(isDesignPreview ? "design_theme" : "fin_theme");
+    return (stored === "light" || stored === "dark" || stored === "monochrome") ? stored : "dark";
   });
 
   useEffect(() => {
@@ -26,7 +27,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     } else if (theme === "monochrome") {
       root.classList.add("monochrome");
     }
-    localStorage.setItem("fin_theme", theme);
+    localStorage.setItem(isDesignPreview ? "design_theme" : "fin_theme", theme);
   }, [theme]);
 
   const toggleTheme = () => {

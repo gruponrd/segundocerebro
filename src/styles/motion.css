@@ -1,0 +1,47 @@
+/* Operate motion: acknowledge the action, preserve the financial reading. */
+:root {
+  --motion-feedback: 120ms;
+  --motion-state: 220ms;
+  --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+.app-shell .motion-control,
+.app-shell .icon-action,
+.app-shell .workspace-search {
+  transition: color var(--motion-feedback) ease, background-color var(--motion-feedback) ease,
+    border-color var(--motion-feedback) ease, transform var(--motion-feedback) var(--motion-ease);
+}
+.app-shell :is(.motion-control,.icon-action,.workspace-search):not(:disabled):active {
+  transform: scale(.98);
+}
+.app-shell .app-sidebar nav a,
+.app-shell nav[aria-label] a {
+  transition: color var(--motion-feedback) ease, background-color var(--motion-state) ease,
+    border-color var(--motion-state) ease;
+}
+.app-shell .dashboard-disclosure > summary > svg {
+  transition: transform var(--motion-state) var(--motion-ease);
+}
+.app-shell .dashboard-disclosure[open] > .disclosure-content {
+  animation: disclosure-unfold var(--motion-state) var(--motion-ease);
+}
+.app-shell [role="checkbox"][data-state="checked"] svg {
+  animation: selection-confirm 150ms var(--motion-ease);
+}
+.app-shell [role="progressbar"] > div {
+  transition: transform 300ms var(--motion-ease);
+}
+@keyframes disclosure-unfold {
+  from { clip-path: inset(0 0 12px 0); opacity:.8; }
+  to { clip-path: inset(0); opacity:1; }
+}
+@keyframes selection-confirm {
+  from { transform:scale(.75); }
+  to { transform:scale(1); }
+}
+@media (prefers-reduced-motion:reduce) {
+  .app-shell :is(.motion-control,.icon-action,.workspace-search):not(:disabled):active { transform:none; }
+  .app-shell .dashboard-disclosure[open] > .disclosure-content,
+  .app-shell [role="checkbox"][data-state="checked"] svg { animation:none; }
+  .app-shell .dashboard-disclosure > summary > svg,
+  .app-shell [role="progressbar"] > div { transition:none; }
+}

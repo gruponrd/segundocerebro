@@ -64,19 +64,19 @@ function EditableInstallment({ inst, bankId, onUpdate, onRemove, onDuplicate }: 
   if (editing) {
     return (
       <div className="p-4 rounded-xl bg-secondary/40 space-y-2">
-        <Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Descrição" className="h-7 text-xs rounded-lg" autoFocus />
+        <Input aria-label="Descrição da parcela" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Descrição" className="h-7 text-xs rounded-lg" autoFocus />
         <div className="grid grid-cols-2 gap-2">
-          <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Valor parcela" className="h-7 text-xs rounded-lg" />
-          <Input type="number" value={total} onChange={(e) => setTotal(e.target.value)} placeholder="Valor total" className="h-7 text-xs rounded-lg" />
+          <Input type="number" aria-label="Valor da parcela em reais" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Valor parcela" className="h-7 text-xs rounded-lg" />
+          <Input type="number" aria-label="Valor total em reais" value={total} onChange={(e) => setTotal(e.target.value)} placeholder="Valor total" className="h-7 text-xs rounded-lg" />
         </div>
         <div className="grid grid-cols-3 gap-2">
-          <Input type="number" value={current} onChange={(e) => setCurrent(e.target.value)} placeholder="Parcela atual" className="h-7 text-xs rounded-lg" />
-          <Input type="number" value={totalInst} onChange={(e) => setTotalInst(e.target.value)} placeholder="Total parcelas" className="h-7 text-xs rounded-lg" />
-          <Input type="date" value={due} onChange={(e) => setDue(e.target.value)} className="h-7 text-xs rounded-lg" />
+          <Input type="number" aria-label="Parcela atual" value={current} onChange={(e) => setCurrent(e.target.value)} placeholder="Parcela atual" className="h-7 text-xs rounded-lg" />
+          <Input type="number" aria-label="Quantidade de parcelas" value={totalInst} onChange={(e) => setTotalInst(e.target.value)} placeholder="Total parcelas" className="h-7 text-xs rounded-lg" />
+          <Input type="date" aria-label="Vencimento da parcela" value={due} onChange={(e) => setDue(e.target.value)} className="h-7 text-xs rounded-lg" />
         </div>
         <div className="flex gap-1 justify-end">
-          <button onClick={handleSave} className="p-1 rounded hover:bg-income/20 text-income"><Check className="w-3.5 h-3.5" /></button>
-          <button onClick={() => setEditing(false)} className="p-1 rounded hover:bg-expense/20 text-expense"><X className="w-3.5 h-3.5" /></button>
+          <button onClick={handleSave} aria-label="Salvar parcela" className="icon-action hover:bg-income/20 text-income"><Check className="w-3.5 h-3.5" /></button>
+          <button onClick={() => setEditing(false)} aria-label="Cancelar edição de parcela" className="icon-action hover:bg-expense/20 text-expense"><X className="w-3.5 h-3.5" /></button>
         </div>
       </div>
     );
@@ -92,8 +92,8 @@ function EditableInstallment({ inst, bankId, onUpdate, onRemove, onDuplicate }: 
     <div className={`relative overflow-hidden p-4 pl-5 rounded-xl bg-secondary/30 hover:bg-secondary/50 transition-colors group ${isPaid ? "opacity-70" : ""}`}>
       <span className={`absolute left-0 top-0 bottom-0 w-1 ${accent}`} />
 
-      <div className="flex justify-between items-start gap-2">
-        <div className="cursor-pointer min-w-0" onClick={() => { setDesc(inst.description); setAmount(String(inst.installmentAmount)); setTotal(String(inst.totalAmount)); setCurrent(String(inst.currentInstallment)); setTotalInst(String(inst.totalInstallments)); setDue(inst.dueDate); setEditing(true); }}>
+      <div className="flex flex-wrap justify-between items-start gap-2">
+        <div className="cursor-pointer min-w-0 flex-1 rounded focus-visible:ring-2 focus-visible:ring-ring" role="button" tabIndex={0} aria-label={`Editar parcela ${inst.description}`} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); event.currentTarget.click(); } }} onClick={() => { setDesc(inst.description); setAmount(String(inst.installmentAmount)); setTotal(String(inst.totalAmount)); setCurrent(String(inst.currentInstallment)); setTotalInst(String(inst.totalInstallments)); setDue(inst.dueDate); setEditing(true); }}>
           <p className="text-sm font-medium text-foreground hover:text-primary transition-colors truncate">
             {inst.description}
             <Pencil className="w-3 h-3 inline ml-1.5 opacity-0 group-hover:opacity-50" />
@@ -105,21 +105,20 @@ function EditableInstallment({ inst, bankId, onUpdate, onRemove, onDuplicate }: 
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
-          <Badge
-            variant="outline"
-            className={`text-[10px] cursor-pointer ${statusStyles[inst.status]}`}
+          <button type="button" aria-label={`Alterar status da parcela ${inst.description}: ${inst.status}`}
+            className={`min-h-9 px-2 rounded-md border text-[10px] cursor-pointer focus-visible:ring-2 focus-visible:ring-ring ${statusStyles[inst.status]}`}
             onClick={cycleStatus}
           >
             {inst.status === "pago" ? "Pago" : inst.status === "atrasado" ? "Atrasado" : "Pendente"}
-          </Badge>
+          </button>
           <button
             onClick={() => onDuplicate(inst)}
-            className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-primary/20 text-muted-foreground hover:text-primary transition-all"
+            aria-label={`Duplicar parcela ${inst.description}`} className="icon-action hover:bg-primary/20 text-muted-foreground hover:text-primary"
             title="Duplicar fatura"
           >
             <Copy className="w-3 h-3" />
           </button>
-          <button onClick={() => onRemove(bankId, inst.id)} className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-expense/20 text-muted-foreground hover:text-expense transition-all">
+          <button onClick={() => onRemove(bankId, inst.id)} aria-label={`Excluir parcela ${inst.description}`} className="icon-action hover:bg-expense/20 text-muted-foreground hover:text-expense">
             <Trash2 className="w-3 h-3" />
           </button>
         </div>
@@ -171,18 +170,18 @@ function AddInstallmentRow({ bankId, onAdd }: { bankId: BankId; onAdd: BankDetai
 
   return (
     <div className="p-3 rounded-xl bg-secondary/30 space-y-2 mt-3">
-      <Input value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Descrição" className="h-7 text-xs rounded-lg" autoFocus />
+      <Input aria-label="Descrição da parcela" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Descrição" className="h-7 text-xs rounded-lg" autoFocus />
       <div className="grid grid-cols-2 gap-2">
-        <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Valor parcela" className="h-7 text-xs rounded-lg" />
-        <Input type="number" value={totalAmt} onChange={(e) => setTotalAmt(e.target.value)} placeholder="Valor total" className="h-7 text-xs rounded-lg" />
+        <Input type="number" aria-label="Valor da parcela em reais" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Valor parcela" className="h-7 text-xs rounded-lg" />
+        <Input type="number" aria-label="Valor total em reais" value={totalAmt} onChange={(e) => setTotalAmt(e.target.value)} placeholder="Valor total" className="h-7 text-xs rounded-lg" />
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <Input type="number" value={totalInst} onChange={(e) => setTotalInst(e.target.value)} placeholder="Nº parcelas" className="h-7 text-xs rounded-lg" />
-        <Input type="date" value={due} onChange={(e) => setDue(e.target.value)} className="h-7 text-xs rounded-lg" />
+        <Input type="number" aria-label="Quantidade de parcelas" value={totalInst} onChange={(e) => setTotalInst(e.target.value)} placeholder="Nº parcelas" className="h-7 text-xs rounded-lg" />
+        <Input type="date" aria-label="Vencimento da parcela" value={due} onChange={(e) => setDue(e.target.value)} className="h-7 text-xs rounded-lg" />
       </div>
       <div className="flex gap-1 justify-end">
-        <button onClick={handleAdd} className="p-1 rounded hover:bg-income/20 text-income"><Check className="w-3.5 h-3.5" /></button>
-        <button onClick={() => setAdding(false)} className="p-1 rounded hover:bg-expense/20 text-expense"><X className="w-3.5 h-3.5" /></button>
+        <button onClick={handleAdd} aria-label="Salvar parcela" className="icon-action hover:bg-income/20 text-income"><Check className="w-3.5 h-3.5" /></button>
+        <button onClick={() => setAdding(false)} aria-label="Cancelar edição de parcela" className="icon-action hover:bg-expense/20 text-expense"><X className="w-3.5 h-3.5" /></button>
       </div>
     </div>
   );

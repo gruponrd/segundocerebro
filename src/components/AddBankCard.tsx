@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useId } from "react";
 import { Plus, CreditCard } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ interface AddBankCardProps {
 }
 
 export function AddBankCard({ onAdd }: AddBankCardProps) {
+  const inputId = useId();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [limit, setLimit] = useState("");
@@ -36,10 +37,10 @@ export function AddBankCard({ onAdd }: AddBankCardProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <div className="w-full rounded-2xl border-2 border-dashed border-muted-foreground/20 hover:border-primary/40 cursor-pointer flex items-center justify-center gap-3 text-muted-foreground hover:text-primary transition-colors p-8" style={{ aspectRatio: "1.586/1" }}>
+        <button type="button" className="w-full rounded-2xl border-2 border-dashed border-muted-foreground/20 hover:border-primary/40 cursor-pointer flex items-center justify-center gap-3 text-muted-foreground hover:text-primary transition-colors p-8" style={{ aspectRatio: "1.586/1" }}>
           <Plus className="w-6 h-6" />
           <span className="text-sm font-medium">Novo Cartão</span>
-        </div>
+        </button>
       </DialogTrigger>
       <DialogContent className="bg-card border-border">
         <DialogHeader>
@@ -51,19 +52,19 @@ export function AddBankCard({ onAdd }: AddBankCardProps) {
         <div className="space-y-4 pt-2">
           <CardColorPicker value={colorId} onChange={(id) => setColorId(id)} label="Cor / bandeira do cartão" />
           <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Nome do cartão</label>
+            <label htmlFor={`${inputId}-name`} className="text-xs text-muted-foreground mb-1 block">Nome do cartão</label>
             <Input
-              value={name}
+              id={`${inputId}-name`} value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Ex: Nubank Platinum"
               className="bg-secondary border-border"
             />
           </div>
           <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Limite total (R$)</label>
+            <label htmlFor={`${inputId}-limit`} className="text-xs text-muted-foreground mb-1 block">Limite total (R$)</label>
             <Input
               type="number"
-              value={limit}
+              id={`${inputId}-limit`} value={limit}
               onChange={(e) => setLimit(e.target.value)}
               placeholder="10000"
               className="bg-secondary border-border"

@@ -6,7 +6,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -126,11 +125,6 @@ export function ExpenseFAB() {
 
   return (
     <Dialog open={open} onOpenChange={(o) => { setOpen(o); if (!o) reset(); }}>
-      <DialogTrigger asChild>
-        <button aria-label="Novo lançamento" className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-40 flex h-12 items-center justify-center gap-2 rounded-2xl bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-lg transition-transform active:scale-95 md:hidden">
-          <Plus className="h-5 w-5" /> Novo lançamento
-        </button>
-      </DialogTrigger>
       <DialogContent className="w-[calc(100%-2rem)] rounded-2xl border-border/70 sm:max-w-md max-h-[85dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-foreground">Novo lançamento</DialogTitle>

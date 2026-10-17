@@ -15,8 +15,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Work Sans", "system-ui", "sans-serif"],
-        display: ["JetBrains Mono", "ui-monospace", "monospace"],
+        sans: ["Manrope", "system-ui", "sans-serif"],
+        display: ["Manrope", "system-ui", "sans-serif"],
         mono: ["JetBrains Mono", "monospace"],
       },
       colors: {
@@ -71,6 +71,12 @@ export default {
           bb: "hsl(var(--bank-bb))",
           other: "hsl(var(--bank-other))",
         },
+        warning: "hsl(var(--warning))",
+        "chart-1": "hsl(var(--chart-1))",
+        "chart-2": "hsl(var(--chart-2))",
+        "chart-3": "hsl(var(--chart-3))",
+        "chart-4": "hsl(var(--chart-4))",
+        "chart-5": "hsl(var(--chart-5))",
         income: "hsl(var(--income))",
         expense: "hsl(var(--expense))",
       },

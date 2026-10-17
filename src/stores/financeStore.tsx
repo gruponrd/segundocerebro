@@ -6,7 +6,8 @@ import { mergeCashflowMonths } from "@/lib/cashflowMonths";
 import { appendStatement, undoStatement, type StatementEntry } from "@/lib/statementImport";
 import { validateGoalPlan } from "@/lib/goalAllocation";
 import type { Json } from "@/integrations/supabase/types";
-import { isPreviewMode } from "@/lib/previewMode";
+import { isAccountPreview, isDesignPreview, isPreviewMode } from "@/lib/previewMode";
+import { createDesignPreviewData } from "@/lib/designPreviewData";
 import {
   type Bank,
   type BankId,
@@ -41,7 +42,7 @@ export interface LifeTask {
   completedThisWeek: boolean;
 }
 
-interface PersistedData {
+export interface PersistedData {
   banks: Bank[];
   cashflowMonths: CashflowMonth[];
   creditors: Creditor[];
@@ -203,7 +204,7 @@ function hasLegacyFinanceData(): boolean {
 }
 
 function userStorageKey(userId: string): string {
-  return `fin_user_${userId}`;
+  return isAccountPreview ? `fin_design_account_${userId}` : `fin_user_${userId}`;
 }
 
 function saveToLocal(userId: string, data: PersistedData) {
@@ -355,7 +356,9 @@ function useFinanceStoreInternal(): FinanceStore {
           // stable account-scoped backup so it will not repeat the import.
           const restored = scoped
             ? normalizeData(scoped)
-            : hasLegacyFinanceData()
+            : isDesignPreview
+              ? createDesignPreviewData()
+              : hasLegacyFinanceData()
               ? normalizeData(getLocalData())
               : null;
           applyData(restored ?? DEFAULTS);
@@ -391,7 +394,7 @@ function useFinanceStoreInternal(): FinanceStore {
           // In local preview, prefer the previous project's device copy for
           // inspection. The save effect below is disabled in preview mode, so
           // this never replaces the cloud version.
-          const selectedData = isPreviewMode && localData ? localData : normalized;
+          const selectedData = isPreviewMode && !isAccountPreview && localData ? localData : normalized;
           applyData(selectedData);
           lastSavedSnapshotRef.current = JSON.stringify(selectedData);
           if (!isPreviewMode) {
@@ -400,7 +403,7 @@ function useFinanceStoreInternal(): FinanceStore {
           }
         } else {
           const scoped = loadFromStorage<PersistedData | null>(userStorageKey(userId), null);
-          if (scoped) {
+          if (scoped && !isAccountPreview) {
             applyData(normalizeData(scoped));
           } else {
             // Unowned legacy keys may belong to someone else on a shared device.

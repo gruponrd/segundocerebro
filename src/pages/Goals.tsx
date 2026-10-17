@@ -230,16 +230,8 @@ export default function GoalsPage() {
         <OverallProgressBar percent={overallPercent} saved={totalSaved} total={totalTarget} />
       </div>
 
-      <div className="mb-6"><GoalAllocation />{overBudget && <p role="alert" className="mt-3 text-sm text-destructive">A divisão salva ultrapassa a economia mensal atual. Ajuste o plano para atualizar as projeções.</p>}</div>
-
-      {/* Dream Board + Dolphin Effect */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <DreamBoard />
-        <DolphinEffect />
-      </div>
-
       {/* Goal Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 stagger-children">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-5 stagger-children">
         {goals.map((goal) => {
           const pct = goal.targetAmount > 0 ? (goal.savedAmount / goal.targetAmount) * 100 : 0;
           const remaining = Math.max(goal.targetAmount - goal.savedAmount, 0);
@@ -257,14 +249,16 @@ export default function GoalsPage() {
                 {/* Top row: emoji + actions */}
                 <div className="flex items-start justify-between mb-3">
                   <div className="text-4xl leading-none filter drop-shadow-sm">{goal.image}</div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity">
                     <button
+                      aria-label={`Editar objetivo ${goal.title}`}
                       onClick={() => startEdit(goal)}
                       className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-all"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
                     <button
+                      aria-label={`Excluir objetivo ${goal.title}`}
                       onClick={() => removeGoal(goal.id)}
                       className="p-1.5 rounded-lg hover:bg-expense/20 text-muted-foreground hover:text-expense transition-all"
                     >
@@ -359,6 +353,14 @@ export default function GoalsPage() {
             </WaveFillCard>
           );
         })}
+      </div>
+
+      <div className="mb-6"><GoalAllocation />{overBudget && <p role="alert" className="mt-3 text-sm text-destructive">A divisão salva ultrapassa a economia mensal atual. Ajuste o plano para atualizar as projeções.</p>}</div>
+
+      {/* Dream Board + Dolphin Effect */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <DreamBoard />
+        <DolphinEffect />
       </div>
 
       {/* Deposit dialog */}

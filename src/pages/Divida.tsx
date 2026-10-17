@@ -627,17 +627,6 @@ export default function DividaPage() {
     <div className="page-container min-h-screen bg-background space-y-8">
       <PageHeader title="Dívidas" description="Confira os valores em aberto e acompanhe sua evolução." icon={TrendingDown} actions={<ExportXlsxButton />} />
 
-      {/* Payoff Time (48h/semana) */}
-      <PayoffTimeCard totalRemaining={totalRemaining} cashflowMonths={store.cashflowMonths} />
-
-      {/* Ideal income suggestion */}
-      <IdealIncomeCard
-        banks={store.banks}
-        cashflowMonths={store.cashflowMonths}
-        totalRemaining={totalRemaining}
-        currentIncome={store.totalIncome}
-      />
-
       {/* 4 Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
@@ -669,6 +658,17 @@ export default function DividaPage() {
           color="bg-accent/50 text-accent-foreground"
         />
       </div>
+
+      {/* Payoff Time (48h/semana) */}
+      <PayoffTimeCard totalRemaining={totalRemaining} cashflowMonths={store.cashflowMonths} />
+
+      {/* Ideal income suggestion */}
+      <IdealIncomeCard
+        banks={store.banks}
+        cashflowMonths={store.cashflowMonths}
+        totalRemaining={totalRemaining}
+        currentIncome={store.totalIncome}
+      />
 
       {/* Extra info cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

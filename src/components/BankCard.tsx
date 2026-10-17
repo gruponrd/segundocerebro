@@ -2,7 +2,6 @@ import { useState } from "react";
 import { type Bank, type BankId } from "@/data/financialData";
 import { AlertTriangle, Pencil, Check, X, Wifi } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { getCardColor } from "@/data/cardColors";
 
@@ -57,11 +56,11 @@ export function BankCard({ bank, index, onClick, onUpdateBank }: BankCardProps) 
 
   return (
     <div
-      onClick={editingName || editingLimit || isCancelled ? undefined : onClick}
-      className={`w-full text-left rounded-2xl cursor-pointer group animate-float-in overflow-hidden ${isOverLimit ? "animate-over-limit" : ""} ${isCancelled ? "opacity-50 grayscale" : ""}`}
-      style={{ animationDelay: `${index * 80}ms`, aspectRatio: "1.586/1" }}
+      className={`bank-summary-card relative w-full text-left rounded-2xl cursor-pointer group animate-float-in overflow-hidden ${isOverLimit ? "animate-over-limit" : ""} ${isCancelled ? "opacity-50 grayscale" : ""}`}
+      style={{ animationDelay: `${index * 80}ms`, minHeight: "224px", aspectRatio: "1.586/1" }}
     >
-      <div className={`relative w-full h-full bg-gradient-to-br ${gradient} px-4 py-3 flex flex-col justify-between gap-1 ${textColor}`} style={cardColor.style}>
+      {!isCancelled && !editingName && !editingLimit && <button type="button" onClick={onClick} aria-label={`Ver detalhes do cartão ${bank.name}`} className="absolute inset-0 z-10 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white" />}
+      <div className={`relative pointer-events-none w-full h-full bg-gradient-to-br ${gradient} px-4 py-3 flex flex-col justify-between gap-1 ${textColor}`} style={cardColor.style}>
         {/* Subtle pattern */}
         <div className="absolute inset-0 opacity-[0.07] pointer-events-none" style={{
           backgroundImage: `radial-gradient(circle at 20% 80%, white 1px, transparent 1px), radial-gradient(circle at 80% 20%, white 1px, transparent 1px)`,
@@ -69,11 +68,12 @@ export function BankCard({ bank, index, onClick, onUpdateBank }: BankCardProps) 
         }} />
 
         {/* Top: name + status */}
-        <div className="relative z-10 flex items-start justify-between shrink-0">
-          <div className="flex-1">
+        <div className="relative z-20 flex items-start justify-between gap-2 shrink-0">
+          <div className="flex-1 min-w-0">
             {editingName ? (
-              <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+              <div className="pointer-events-auto flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                 <Input
+                  aria-label="Nome do cartão"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   className="h-7 text-sm rounded-lg w-32 bg-black/20 border-white/20 text-white placeholder:text-white/50"
@@ -83,28 +83,28 @@ export function BankCard({ bank, index, onClick, onUpdateBank }: BankCardProps) 
                     if (e.key === "Escape") setEditingName(false);
                   }}
                 />
-                <button onClick={(e) => { e.stopPropagation(); onUpdateBank?.(bank.id, { name: editName }); setEditingName(false); }} className="p-1"><Check className="w-3.5 h-3.5" /></button>
-                <button onClick={(e) => { e.stopPropagation(); setEditingName(false); }} className="p-1"><X className="w-3.5 h-3.5" /></button>
+                <button onClick={(e) => { e.stopPropagation(); onUpdateBank?.(bank.id, { name: editName }); setEditingName(false); }} aria-label="Salvar nome do cartão" className="icon-action"><Check className="w-3.5 h-3.5" /></button>
+                <button onClick={(e) => { e.stopPropagation(); setEditingName(false); }} aria-label="Cancelar edição do nome do cartão" className="icon-action"><X className="w-3.5 h-3.5" /></button>
               </div>
             ) : (
-              <div
-                className="flex items-center gap-1.5 group/name"
+              <button type="button" disabled={!onUpdateBank}
+                aria-label={`Editar nome do cartão ${bank.name}`}
+                className="pointer-events-auto text-left min-w-0 max-w-full min-h-8 flex items-center gap-1.5 group/name rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-white disabled:cursor-default"
                 onClick={(e) => { if (onUpdateBank) { e.stopPropagation(); setEditName(bank.name); setEditingName(true); } }}
               >
-                <h3 className="font-bold text-base tracking-wide truncate max-w-[8.5rem]">{bank.name}</h3>
-                {onUpdateBank && <Pencil className="w-3 h-3 opacity-0 group-hover/name:opacity-60 transition-opacity" />}
-              </div>
+                <span className="font-bold text-base tracking-wide truncate max-w-full">{bank.name}</span>
+                {onUpdateBank && <Pencil aria-hidden className="w-3 h-3 opacity-60" />}
+              </button>
             )}
             <p className="text-[10px] opacity-60 mt-0.5">{bank.installments.filter(i => i.status !== "pago").length} parcelas ativas</p>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge
-              variant="outline"
-              className={`text-[10px] cursor-pointer border-white/30 ${statusStyles[bank.status]}`}
+          <div className="flex shrink-0 items-center gap-2">
+            <button type="button" disabled={!onUpdateBank} aria-label={`Alterar status de ${bank.name}: ${statusLabels[bank.status]}`}
+              className={`pointer-events-auto min-h-8 px-2 rounded-md border text-[10px] cursor-pointer border-white/30 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white ${statusStyles[bank.status]}`}
               onClick={cycleStatus}
             >
               {statusLabels[bank.status]}
-            </Badge>
+            </button>
             <Wifi className="w-5 h-5 opacity-40 rotate-90" />
           </div>
         </div>
@@ -116,7 +116,7 @@ export function BankCard({ bank, index, onClick, onUpdateBank }: BankCardProps) 
         </div>
 
         {/* Bottom: Financial info */}
-        <div className="relative z-10 space-y-1 shrink-0">
+        <div className="relative z-20 space-y-1 shrink-0">
           {/* Progress bar */}
           <div>
             <div className="flex justify-between text-[10px] opacity-70 mb-1">
@@ -131,9 +131,10 @@ export function BankCard({ bank, index, onClick, onUpdateBank }: BankCardProps) 
             <div>
               <p className="text-[10px] opacity-60">Limite</p>
               {editingLimit ? (
-                <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                <div className="pointer-events-auto flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                   <Input
                     type="number"
+                    aria-label="Limite do cartão em reais"
                     value={editLimit}
                     onChange={(e) => setEditLimit(e.target.value)}
                     className="h-6 text-xs rounded w-20 bg-black/20 border-white/20 text-white"
@@ -145,13 +146,13 @@ export function BankCard({ bank, index, onClick, onUpdateBank }: BankCardProps) 
                   />
                 </div>
               ) : (
-                <p
-                  className="text-sm font-bold tabular-nums cursor-pointer group/limit flex items-center gap-1"
+                <button type="button" disabled={!onUpdateBank} aria-label={`Editar limite do cartão ${bank.name}`}
+                  className="pointer-events-auto min-h-8 text-sm font-bold tabular-nums cursor-pointer group/limit flex items-center gap-1 rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
                   onClick={(e) => { if (onUpdateBank) { e.stopPropagation(); setEditLimit(String(bank.limitTotal)); setEditingLimit(true); } }}
                 >
                   R$ {bank.limitTotal.toLocaleString("pt-BR")}
-                  {onUpdateBank && <Pencil className="w-2.5 h-2.5 opacity-0 group-hover/limit:opacity-60 transition-opacity" />}
-                </p>
+                  {onUpdateBank && <Pencil aria-hidden className="w-2.5 h-2.5 opacity-60" />}
+                </button>
               )}
             </div>
 

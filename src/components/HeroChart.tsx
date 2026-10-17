@@ -1,13 +1,16 @@
-import { useState, useMemo } from "react";
-import { ComposedChart, Area, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { useState, useMemo, useId, useRef } from "react";
+import { ComposedChart, Area, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from "recharts";
 import { type CashflowMonth, type Bank } from "@/data/financialData";
 import { TrendingDown, Target, Pencil, Check, X, ChevronDown, ChevronUp, CreditCard, Users } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "@/hooks/use-theme";
 import { type Creditor } from "@/data/financialData";
+import { MonthlySurplusChart } from "@/components/MonthlySurplusChart";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { cardSpendingForMonth, remainingBankDebt, unpaidCardSpendingForMonth } from "@/lib/financeCalculations";
+import { compactReais, parseSavingsGoal } from "@/lib/dashboardPresentation";
 import { money } from "@/lib/planningTools";
+import { buildPanoramaSeries, panoramaTicks, periodLabel, YEAR_CUT } from "@/lib/panoramaSeries";
 
 const monthNameToIndex: Record<string, number> = {
   Janeiro: 0, Fevereiro: 1, "Março": 2, Abril: 3,
@@ -34,6 +37,9 @@ export function HeroChart({ cashflowMonths, totalDebt, totalExpense, expectedBal
   const isMonochrome = theme === "monochrome";
   const [editingGoal, setEditingGoal] = useState(false);
   const [goalValue, setGoalValue] = useState(String(savingsGoalMonth));
+  const goalInputId = useId();
+  const goalButton = useRef<HTMLButtonElement>(null);
+  const [goalError, setGoalError] = useState("");
   const [showBreakdown, setShowBreakdown] = useState(false);
 
   // Calculate cumulative card payments from month 0 through selectedMonth
@@ -84,10 +90,19 @@ export function HeroChart({ cashflowMonths, totalDebt, totalExpense, expectedBal
     return items;
   }, [banks, creditors]);
 
-  const handleSaveGoal = () => {
-    const val = parseFloat(goalValue);
-    if (!isNaN(val) && val >= 0) onSavingsGoalChange(val);
+  const closeGoalEditor = () => {
     setEditingGoal(false);
+    setGoalError("");
+    requestAnimationFrame(() => goalButton.current?.focus());
+  };
+  const handleSaveGoal = () => {
+    const val = parseSavingsGoal(goalValue);
+    if (val === null) {
+      setGoalError("Informe um valor válido, igual ou maior que zero, em reais.");
+      return;
+    }
+    onSavingsGoalChange(val);
+    closeGoalEditor();
   };
 
   // Calculate previous month balance for trend
@@ -100,56 +115,17 @@ export function HeroChart({ cashflowMonths, totalDebt, totalExpense, expectedBal
     return inc - exp - card;
   }, [cashflowMonths, selectedMonth, banks]);
 
-  // Build chart data with solid lines for past months & dashed for future
-  const chartData = useMemo(() => {
-    const now = new Date();
-    const currentMonth = now.getMonth(); // 0-based
-    const currentYear = now.getFullYear();
+  const chartData = useMemo(() => buildPanoramaSeries(cashflowMonths, banks), [cashflowMonths, banks]);
 
-    const result = cashflowMonths.flatMap((m) => {
-      const mIdx = monthNameToIndex[m.month] ?? 0;
-      const isPast = m.year < currentYear || (m.year === currentYear && mIdx <= currentMonth);
-      const entradas = m.incomes.reduce((s, i) => s + i.amount, 0);
-      const manualSaidas = m.expenses.reduce((s, e) => s + e.amount, 0);
-
-      // Add card installments for this month
-      const monthNum = mIdx + 1;
-      const cardSaidas = cardSpendingForMonth(banks, monthNum, m.year);
-      const saidas = manualSaidas + cardSaidas;
-
-      // A blank calendar month is not a financial observation.
-      if (m.incomes.length === 0 && m.expenses.length === 0 && cardSaidas === 0) return [];
-
-      return [{
-        month: `${m.month.slice(0, 3)}/${m.year}`,
-        entradas: isPast ? entradas : undefined as number | undefined,
-        saidas: isPast ? saidas : undefined as number | undefined,
-        future_entradas: !isPast ? entradas : undefined as number | undefined,
-        future_saidas: !isPast ? saidas : undefined as number | undefined,
-      }];
-    });
-
-    // Bridge: last past month should also appear in future series for continuity
-    let lastPastIdx = -1;
-    for (let i = result.length - 1; i >= 0; i--) { if (result[i].entradas !== undefined) { lastPastIdx = i; break; } }
-    if (lastPastIdx >= 0 && lastPastIdx < result.length - 1) {
-      result[lastPastIdx].future_entradas = result[lastPastIdx].entradas;
-      result[lastPastIdx].future_saidas = result[lastPastIdx].saidas;
-    }
-
-
-    return result;
-  }, [cashflowMonths, banks]);
-
-  const incomeColor = isMonochrome ? "hsl(0 0% 100%)" : "hsl(145 63% 42%)";
-  const expenseColor = isMonochrome ? "hsl(0 0% 60%)" : "hsl(0 72% 51%)";
+  const incomeColor = isMonochrome ? "hsl(0 0% 100%)" : "hsl(var(--income))";
+  const expenseColor = isMonochrome ? "hsl(0 0% 60%)" : "hsl(var(--expense))";
 
   return (
-    <section className="mb-8 animate-float-in">
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
-        <div className="data-surface p-5 relative overflow-hidden flex flex-col">
+    <section className="financial-panorama mb-8 animate-float-in">
+      <div className="panorama-grid grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-4">
+        <div className="panorama-chart data-surface p-5 relative overflow-hidden flex flex-col">
 
-          <div className="relative flex items-center justify-between mb-4">
+          <div className="relative flex items-center justify-between mb-3">
             <h3 className="text-sm font-medium text-foreground">
               Entradas e saídas
             </h3>
@@ -157,16 +133,16 @@ export function HeroChart({ cashflowMonths, totalDebt, totalExpense, expectedBal
               {cashflowMonths[selectedMonth]?.month.slice(0, 3)}/{cashflowMonths[selectedMonth]?.year}
             </span>
           </div>
-          <div key={selectedMonth} className="relative flex-1 min-h-[240px] animate-float-in">
+          <div key={selectedMonth} className="panorama-plot relative flex-1 min-h-[240px] animate-float-in" role="img" aria-label="Entradas e saídas até março de 2027, com corte após dezembro de 2026. Saídas incluem as parcelas dos cartões. Valores e hipóteses disponíveis na tabela abaixo.">
             <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
+              <ComposedChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="grad-income" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={incomeColor} stopOpacity={0.45} />
+                    <stop offset="0%" stopColor={incomeColor} stopOpacity={0.07} />
                     <stop offset="100%" stopColor={incomeColor} stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="grad-expense" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={expenseColor} stopOpacity={0.35} />
+                    <stop offset="0%" stopColor={expenseColor} stopOpacity={0.05} />
                     <stop offset="100%" stopColor={expenseColor} stopOpacity={0} />
                   </linearGradient>
                   <filter id="glow-line" x="-20%" y="-20%" width="140%" height="140%">
@@ -178,31 +154,25 @@ export function HeroChart({ cashflowMonths, totalDebt, totalExpense, expectedBal
                   </filter>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke={isLight ? "hsl(240 5% 90%)" : isMonochrome ? "hsl(0 0% 18% / 0.5)" : "hsl(240 5% 18% / 0.5)"} />
-                <XAxis dataKey="month" tick={{ fill: isLight ? "hsl(240 5% 40%)" : isMonochrome ? "hsl(0 0% 55%)" : "hsl(240 5% 55%)", fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: isLight ? "hsl(240 5% 40%)" : isMonochrome ? "hsl(0 0% 55%)" : "hsl(240 5% 55%)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
+                <XAxis dataKey="period" type="number" domain={["dataMin", "dataMax"]} ticks={panoramaTicks(chartData)} tickFormatter={periodLabel} interval="preserveStartEnd" minTickGap={18} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis width={58} tick={{ fill: isLight ? "hsl(240 5% 40%)" : isMonochrome ? "hsl(0 0% 55%)" : "hsl(240 5% 55%)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={compactReais} />
+                <ReferenceLine x={(cashflowMonths[selectedMonth]?.year ?? 2026) * 12 + (monthNameToIndex[cashflowMonths[selectedMonth]?.month] ?? 0)} stroke="hsl(var(--accent))" strokeOpacity={0.45} strokeDasharray="2 4" />
+                <ReferenceLine x={YEAR_CUT} stroke="hsl(var(--muted-foreground))" strokeWidth={1.5} strokeDasharray="5 4" label={{ value: "2027", position: "insideTopLeft", fill: "hsl(var(--foreground))", fontSize: 11 }} />
                 <Tooltip
-                  formatter={(value: number, name: string) => {
-                    const labels: Record<string, string> = { entradas: "Entradas", saidas: "Saídas", future_entradas: "Entradas (Projeção)", future_saidas: "Saídas (Projeção)" };
-                    return [value === undefined ? "—" : money(value), labels[name] || name];
-                  }}
-                  contentStyle={{
-                    background: isLight ? "hsl(0 0% 100% / 0.95)" : isMonochrome ? "hsl(0 0% 6% / 0.95)" : "hsl(240 6% 10% / 0.95)",
-                    border: `1px solid ${isLight ? "hsl(240 5% 87%)" : isMonochrome ? "hsl(0 0% 25% / 0.4)" : "hsl(240 5% 25% / 0.4)"}`,
-                    borderRadius: "12px",
-                    fontSize: "12px",
-                    color: isLight ? "hsl(240 10% 10%)" : isMonochrome ? "hsl(0 0% 95%)" : "hsl(0 0% 95%)",
-                    boxShadow: "0 8px 32px -8px hsl(var(--primary) / 0.25)",
+                  content={({ active, payload }) => {
+                    const row = payload?.[0]?.payload;
+                    return active && row ? <div className="rounded-xl border border-border bg-popover px-3 py-2 text-xs text-foreground shadow-lg"><p className="text-muted-foreground">{row.month} · {row.estimated ? `Estimativa, base ${row.baseline}` : "Previsto nos lançamentos"}</p><p className="mt-1">Entradas: {money(row.entradas ?? row.future_entradas ?? 0)}</p><p>Saídas: {money(row.saidas ?? row.future_saidas ?? 0)}</p></div> : null;
                   }}
                 />
                 {/* Gradient area fills */}
-                <Area type="monotone" dataKey="entradas" stroke="none" fill="url(#grad-income)" isAnimationActive animationDuration={800} connectNulls={false} />
-                <Area type="monotone" dataKey="saidas" stroke="none" fill="url(#grad-expense)" isAnimationActive animationDuration={800} connectNulls={false} />
+                <Area type="monotone" dataKey="entradas" stroke="none" fill="url(#grad-income)" isAnimationActive={false} connectNulls={false} />
+                <Area type="monotone" dataKey="saidas" stroke="none" fill="url(#grad-expense)" isAnimationActive={false} connectNulls={false} />
                 {/* Glowing lines */}
-                <Line type="monotone" dataKey="entradas" stroke={incomeColor} strokeWidth={2.5} dot={{ r: 4, fill: incomeColor }} activeDot={{ r: 6 }} name="entradas" connectNulls={false} filter="url(#glow-line)" isAnimationActive animationDuration={900} />
-                <Line type="monotone" dataKey="saidas" stroke={expenseColor} strokeWidth={2.5} dot={{ r: 4, fill: expenseColor }} activeDot={{ r: 6 }} name="saidas" connectNulls={false} filter="url(#glow-line)" isAnimationActive animationDuration={900} />
+                <Line type="monotone" dataKey="entradas" stroke={incomeColor} strokeWidth={1.75} dot={{ r: 2, fill: incomeColor }} activeDot={{ r: 6 }} name="entradas" connectNulls={false}  isAnimationActive={false} />
+                <Line type="monotone" dataKey="saidas" stroke={expenseColor} strokeWidth={1.75} dot={{ r: 2, fill: expenseColor }} activeDot={{ r: 6 }} name="saidas" connectNulls={false}  isAnimationActive={false} />
                 {/* Future/dashed lines */}
-                <Line type="monotone" dataKey="future_entradas" stroke={incomeColor} strokeWidth={2} strokeDasharray="6 4" dot={{ r: 3, fill: incomeColor, strokeDasharray: "" }} name="future_entradas" connectNulls={false} isAnimationActive animationDuration={900} />
-                <Line type="monotone" dataKey="future_saidas" stroke={expenseColor} strokeWidth={2} strokeDasharray="6 4" dot={{ r: 3, fill: expenseColor, strokeDasharray: "" }} name="future_saidas" connectNulls={false} isAnimationActive animationDuration={900} />
+                <Line type="monotone" dataKey="future_entradas" stroke={incomeColor} strokeWidth={1.5} strokeDasharray="4 5" dot={{ r: 3, fill: incomeColor, strokeDasharray: "" }} name="future_entradas" connectNulls={false} isAnimationActive={false} />
+                <Line type="monotone" dataKey="future_saidas" stroke={expenseColor} strokeWidth={1.5} strokeDasharray="4 5" dot={{ r: 3, fill: expenseColor, strokeDasharray: "" }} name="future_saidas" connectNulls={false} isAnimationActive={false} />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
@@ -211,9 +181,17 @@ export function HeroChart({ cashflowMonths, totalDebt, totalExpense, expectedBal
             <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><span className="w-3 h-3 rounded-sm bg-expense inline-block shadow-[0_0_8px_hsl(0_72%_51%/0.6)]" /> Saídas</span>
             <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><span className="w-3 h-0.5 border-t-2 border-dashed border-muted-foreground inline-block" /> Projeção</span>
           </div>
+          <p className="mt-2 text-xs text-muted-foreground">Até mar/2027 · Corte após dez/2026{chartData.some(point => point.estimated) ? " · 2027 estimado" : ""}</p>
+          <details className="surplus-values mt-2 text-xs text-muted-foreground"><summary className="cursor-pointer">Ver entradas e saídas mensais</summary>
+            <p className="mt-2 leading-5">Valores previstos, incluindo lançamentos pagos e pendentes. Saídas já incluem as parcelas dos cartões. O tracejado indica os próximos meses.</p>
+            {chartData.some(point => point.estimated) && <p className="mt-2 leading-5">Meses de 2027 sem lançamentos usam receitas e despesas manuais de {chartData.find(point => point.estimated)?.baseline}, mais as parcelas cadastradas para cada mês. Estimativa visual, sem criar ou alterar registros.</p>}
+            <table className="mt-2 w-full text-left"><caption className="sr-only">Entradas e saídas previstas por mês em reais</caption><thead><tr><th scope="col" className="py-2 font-medium">Mês</th><th scope="col" className="py-2 text-right font-medium">Entradas</th><th scope="col" className="py-2 text-right font-medium">Saídas</th></tr></thead><tbody>{chartData.map(point => <tr key={point.month} className="border-t border-border"><th scope="row" className="py-2 font-normal">{point.month}{point.estimated && <small className="block">Estimativa</small>}</th><td className="py-2 text-right tabular-nums">{money(point.entradas ?? point.future_entradas ?? 0)}</td><td className="py-2 text-right tabular-nums">{money(point.saidas ?? point.future_saidas ?? 0)}</td></tr>)}</tbody></table>
+          </details>
         </div>
 
-        <div className="flex flex-col gap-3 stagger-children">
+        <MonthlySurplusChart data={chartData} monthLabel={`${cashflowMonths[selectedMonth]?.month.slice(0,3)}/${cashflowMonths[selectedMonth]?.year}`} balance={expectedBalance} />
+
+        <div className="panorama-metrics flex flex-col gap-3 stagger-children">
 
           {/* Dívida Total */}
           <div
@@ -340,24 +318,29 @@ export function HeroChart({ cashflowMonths, totalDebt, totalExpense, expectedBal
               <Target className="w-4 h-4 widget-accent" />
             </div>
             {editingGoal ? (
-              <div className="relative flex items-center gap-1 mt-2">
-                <Input type="number" value={goalValue} onChange={(e) => setGoalValue(e.target.value)} className="h-8 text-sm rounded-lg w-28" autoFocus />
-                <button onClick={handleSaveGoal} className="p-1 rounded hover:bg-income/20 text-income"><Check className="w-4 h-4" /></button>
-                <button onClick={() => setEditingGoal(false)} className="p-1 rounded hover:bg-expense/20 text-expense"><X className="w-4 h-4" /></button>
-              </div>
+              <form noValidate className="relative mt-2" onSubmit={(event) => { event.preventDefault(); handleSaveGoal(); }} onKeyDown={(event) => { if (event.key === "Escape") { event.preventDefault(); closeGoalEditor(); } }}>
+                <label htmlFor={goalInputId} className="block text-xs text-muted-foreground mb-2">Meta mensal em reais</label>
+                <div className="flex items-center gap-1">
+                  <Input id={goalInputId} type="number" inputMode="decimal" min="0" step="0.01" required value={goalValue} onChange={(e) => { setGoalValue(e.target.value); setGoalError(""); }} aria-invalid={!!goalError} aria-describedby={goalError ? `${goalInputId}-error` : undefined} className="h-10 text-base rounded-lg min-w-0 flex-1" autoFocus />
+                  <button type="submit" aria-label="Salvar meta mensal de economia" className="icon-action text-income hover:bg-income/20"><Check className="w-4 h-4" /></button>
+                  <button type="button" aria-label="Cancelar edição da meta mensal" onClick={closeGoalEditor} className="icon-action text-expense hover:bg-expense/20"><X className="w-4 h-4" /></button>
+                </div>
+                {goalError && <p id={`${goalInputId}-error`} role="alert" className="text-xs text-expense mt-2">{goalError}</p>}
+              </form>
             ) : (
               <>
                 <button
                   type="button"
+                  ref={goalButton}
                   aria-label="Editar meta mensal de economia"
-                  className="relative widget-value text-left text-[2rem] leading-none font-semibold mt-2 cursor-pointer rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
-                  onClick={() => { setGoalValue(String(savingsGoalMonth)); setEditingGoal(true); }}
+                  className="savings-goal-trigger relative widget-value text-left text-[2rem] leading-none font-semibold mt-2 cursor-pointer rounded-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary"
+                  onClick={() => { setGoalValue(String(savingsGoalMonth)); setGoalError(""); setEditingGoal(true); }}
                 >
                   {money(savingsGoalMonth)}
                   <span className="text-xs widget-sub font-normal ml-1">/mês</span>
                   <Pencil className="w-3 h-3 inline ml-2 opacity-60" />
                 </button>
-                <div className="relative mt-3 h-1.5 rounded-full overflow-hidden" style={{ background: "hsl(var(--widget-line) / 0.08)" }}>
+                <div role="progressbar" aria-label="Cobertura prevista da meta mensal" aria-valuemin={0} aria-valuemax={100} aria-valuenow={savingsGoalMonth > 0 ? Math.min(100, Math.max(0, expectedBalance / savingsGoalMonth * 100)) : 0} aria-valuetext={savingsGoalMonth > 0 ? `${Math.round(Math.max(0, expectedBalance / savingsGoalMonth * 100))}% de cobertura pelo saldo projetado; não representa dinheiro guardado` : "Meta mensal não definida"} className="relative mt-3 h-1.5 rounded-full overflow-hidden" style={{ background: "hsl(var(--widget-line) / 0.08)" }}>
                   <div
                     className="h-full rounded-full transition-all duration-700"
                     style={{
@@ -368,7 +351,8 @@ export function HeroChart({ cashflowMonths, totalDebt, totalExpense, expectedBal
                   />
                 </div>
                 <p className="relative text-[10px] widget-sub mt-2">
-                  Saldo previsto: {money(expectedBalance)}
+                  {savingsGoalMonth <= 0 ? "Defina uma meta mensal para ver a cobertura prevista." : expectedBalance >= savingsGoalMonth ? "O saldo projetado cobre a meta mensal." : `Faltam ${money(savingsGoalMonth - Math.max(0, expectedBalance))} de saldo projetado para cobrir a meta.`}
+                  <span className="block mt-1">Cobertura prevista · não é dinheiro guardado.</span>
                 </p>
               </>
             )}

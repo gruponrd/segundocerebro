@@ -14,7 +14,10 @@ import { CommandCenter } from "@/components/CommandCenter";
 import { ExpenseFAB } from "@/components/ExpenseFAB";
 import { MigratedModulesGate } from "@/components/MigratedModulesGate";
 import { RouteRecovery } from "@/components/RouteRecovery";
+import { WorkspaceHeader } from "@/components/WorkspaceHeader";
+import { isAccountPreview, isDesignPreview, isPreviewMode, setDesignAccountPreview } from "@/lib/previewMode";
 import { AccountWorkspace } from "@/components/AccountWorkspace";
+import { WorkspaceMotion } from "@/components/WorkspaceMotion";
 const FerramentasPage = lazy(() => import("./pages/Ferramentas"));
 const IntegracoesPage = lazy(() => import("./pages/Integracoes"));
 const Index = lazy(() => import("./pages/Index"));
@@ -97,15 +100,18 @@ function AppRoutes() {
 
   return (
     <BrowserRouter>
-      <div className="app-shell">
+      <div className={isDesignPreview ? "app-shell design-preview" : "app-shell"}>
+      <a className="workspace-skip" href="#workspace-content">Pular para o conteúdo</a>
+      {isDesignPreview && <div className="design-preview-notice" role="status"><strong>Prévia local</strong><span>{isAccountPreview ? "Cópia da sua conta · testes só neste navegador" : "Dados de exemplo · só neste navegador"}</span><button type="button" className="underline underline-offset-2" onClick={() => setDesignAccountPreview(!isAccountPreview)}>{isAccountPreview ? "Usar exemplos" : "Carregar meus dados"}</button></div>}
       <AppNav />
       <MobileNav />
       <CommandCenter />
       <ExpenseFAB />
-      <div className="min-h-screen md:pl-64">
-        <div role="status" aria-live="polite" className="mx-auto max-w-[1600px] px-4 pt-3 text-xs text-muted-foreground sm:px-6 lg:px-8">
-          {finance.syncStatus === "saving" && "Salvando dados..."}
-          {finance.syncStatus === "saved" && "Dados sincronizados"}
+      <div className="workspace-body min-h-screen">
+        <WorkspaceHeader />
+        <div role="status" aria-live="polite" className={isPreviewMode ? "sr-only" : "mx-auto max-w-[1440px] px-4 pt-3 text-xs text-muted-foreground sm:px-6 lg:px-8"}>
+          {finance.syncStatus === "saving" && (isPreviewMode ? "Salvando nesta prévia..." : "Salvando dados...")}
+          {finance.syncStatus === "saved" && (isPreviewMode ? "Prévia salva neste navegador" : "Dados sincronizados")}
           {(finance.syncStatus === "error" || finance.syncStatus === "conflict") && (
             <span className="text-destructive">
               {finance.syncError}{" "}
@@ -115,9 +121,12 @@ function AppRoutes() {
             </span>
           )}
         </div>
+        <div id="workspace-content" tabIndex={-1}>
+        <WorkspaceMotion>
         <RouteRecovery>
         <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Carregando página...</div>}>
           <Routes>
+            {isDesignPreview && <Route path="/acesso" element={<AuthPage />} />}
             <Route path="/" element={<Index />} />
             <Route path="/objetivos" element={<GoalsPage />} />
             <Route path="/renda" element={<RendaPage />} />
@@ -134,6 +143,8 @@ function AppRoutes() {
           </Routes>
         </Suspense>
         </RouteRecovery>
+        </WorkspaceMotion>
+        </div>
       </div>
       <Toaster />
       <Sonner />

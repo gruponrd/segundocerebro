@@ -1,3 +1,5 @@
+import { isAccountPreview } from "@/lib/previewMode";
+
 export const LEGACY_MODULE_KEYS = [
   "fin_trades",
   "fin_wishes_v1",
@@ -9,7 +11,7 @@ export const LEGACY_MODULE_KEYS = [
 ] as const;
 
 export function accountStorageKey(userId: string, key: string): string {
-  return `fin_account_${userId}_${key}`;
+  return isAccountPreview ? `fin_design_account_${userId}_${key}` : `fin_account_${userId}_${key}`;
 }
 
 export function readAccountJson<T>(userId: string, key: string, fallback: T): T {

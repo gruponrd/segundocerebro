@@ -1,76 +1,68 @@
-@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  /* Ink dark (alternate) */
+  /* Dark blue: neutral surfaces, blue actions and semantic financial colors. */
   :root {
-    --background: 240 6% 5%;
-    --foreground: 43 20% 94%;
-
-
-    --card: 30 5% 10%;
-    --card-foreground: 43 20% 94%;
-
-    --popover: 30 5% 10%;
-    --popover-foreground: 43 20% 94%;
-
-    --primary: 43 22% 92%;
-    --primary-foreground: 30 6% 8%;
-
-    --secondary: 30 5% 15%;
-    --secondary-foreground: 43 12% 82%;
-
-    --muted: 30 5% 15%;
-    --muted-foreground: 35 6% 58%;
-
-    --accent: 20 40% 52%;
-    --accent-foreground: 30 6% 8%;
-
-    --destructive: 8 62% 48%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 30 5% 18%;
-    --input: 30 5% 18%;
-    --ring: 43 22% 92%;
-
-    --radius: 0.5rem;
-
-    /* Bank brand colors */
+    --background: 0 0% 0%;
+    --foreground: 210 20% 96%;
+    --card: 216 12% 8%;
+    --card-foreground: 210 20% 96%;
+    --popover: 216 14% 10%;
+    --popover-foreground: 210 20% 96%;
+    --primary: 216 84% 46%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 218 14% 13%;
+    --secondary-foreground: 215 20% 85%;
+    --muted: 218 14% 13%;
+    --muted-foreground: 218 10% 67%;
+    --accent: 215 100% 71%;
+    --accent-foreground: 220 25% 10%;
+    --destructive: 359 88% 76%;
+    --destructive-foreground: 0 35% 10%;
+    --border: 218 12% 18%;
+    --input: 218 12% 22%;
+    --ring: 215 100% 71%;
+    --radius: 0.75rem;
     --bank-nubank: 280 97% 38%;
     --bank-inter: 27 100% 50%;
     --bank-c6: 220 10% 13%;
     --bank-itau: 27 85% 47%;
     --bank-bb: 45 100% 50%;
     --bank-other: 190 65% 31%;
-
-    /* Semantic */
-    --income: 155 38% 48%;
-    --expense: 8 62% 55%;
-
-    /* Glass */
-    --glass-bg: 30 5% 10% / 0.7;
-    --glass-border: 30 5% 24% / 0.5;
-    --glass-blur: 14px;
-
-    /* Glow */
-    --glow-primary: 43 22% 92%;
-
-    --sidebar-background: 240 6% 4%;
-    --sidebar-foreground: 43 20% 94%;
-
-    --sidebar-primary: 43 22% 92%;
-    --sidebar-primary-foreground: 30 6% 8%;
-    --sidebar-accent: 30 5% 15%;
-    --sidebar-accent-foreground: 43 20% 94%;
-    --sidebar-border: 30 5% 18%;
-    --sidebar-ring: 43 22% 92%;
+    --income: 157 61% 59%;
+    --expense: 359 88% 76%;
+    --warning: 38 68% 66%;
+    --chart-1: 215 100% 71%;
+    --chart-2: 157 61% 59%;
+    --chart-3: 359 88% 76%;
+    --chart-4: 265 65% 75%;
+    --chart-5: 38 68% 66%;
+    --glass-bg: 216 12% 8% / 0.95;
+    --glass-border: 218 12% 24% / 0.7;
+    --glass-blur: 12px;
+    --glow-primary: 215 100% 71%;
+    --sidebar-background: 0 0% 0%;
+    --sidebar-foreground: 210 20% 96%;
+    --sidebar-primary: 215 100% 78%;
+    --sidebar-primary-foreground: 220 25% 10%;
+    --sidebar-accent: 216 48% 15%;
+    --sidebar-accent-foreground: 215 100% 85%;
+    --sidebar-border: 218 12% 15%;
+    --sidebar-ring: 215 100% 71%;
   }
 
-  /* Paper & Ink (default) */
+  /* Optional light theme, preserving the same blue identity. */
   .light {
+    --warning: 34 80% 32%;
+    --chart-1: 216 84% 40%;
+    --chart-2: 155 42% 28%;
+    --chart-3: 8 62% 44%;
+    --chart-4: 265 55% 42%;
+    --chart-5: 34 80% 32%;
     --background: 43 24% 95%;
     --foreground: 0 0% 8%;
 
@@ -80,8 +72,8 @@
     --popover: 42 40% 98%;
     --popover-foreground: 0 0% 8%;
 
-    --primary: 0 0% 9%;
-    --primary-foreground: 43 30% 96%;
+    --primary: 216 84% 40%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 40 18% 90%;
     --secondary-foreground: 0 0% 22%;
@@ -89,8 +81,8 @@
     --muted: 40 18% 90%;
     --muted-foreground: 32 7% 44%;
 
-    --accent: 20 42% 40%;
-    --accent-foreground: 43 30% 96%;
+    --accent: 216 65% 88%;
+    --accent-foreground: 216 84% 25%;
 
     --destructive: 8 62% 42%;
     --destructive-foreground: 43 30% 96%;
@@ -120,6 +112,12 @@
 
   /* Monochrome black & white theme */
   .monochrome {
+    --warning: 0 0% 75%;
+    --chart-1: 0 0% 95%;
+    --chart-2: 0 0% 80%;
+    --chart-3: 0 0% 65%;
+    --chart-4: 0 0% 50%;
+    --chart-5: 0 0% 40%;
     --background: 0 0% 0%;
     --foreground: 0 0% 100%;
 
@@ -183,12 +181,12 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Work Sans', system-ui, sans-serif;
+    font-family: 'Manrope', system-ui, sans-serif;
     font-feature-settings: "ss01", "cv01";
   }
 
   h1, h2, h3, h4 {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-family: 'Manrope', system-ui, sans-serif;
     letter-spacing: -0.02em;
   }
 
@@ -220,7 +218,7 @@
   .glass-card {
     background: hsl(var(--widget-surface));
     border: 1px solid hsl(var(--widget-line) / var(--widget-border-alpha));
-    border-radius: 1.5rem;
+    border-radius: 1rem;
     box-shadow: none;
     transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
   }
@@ -255,12 +253,12 @@
   }
 
   .glass-card-hover {
-    @apply glass-card hover:-translate-y-0.5;
+    @apply glass-card;
   }
 
   /* Small uppercase mono label for editorial section heads */
   .label-mono {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-family: 'Manrope', system-ui, sans-serif;
     @apply text-[10px] uppercase tracking-[0.22em] text-muted-foreground;
   }
 
@@ -270,13 +268,13 @@
 
   /* ---- Widget design language, theme aware ---- */
   :root {
-    --widget-surface: 240 6% 5%;
+    --widget-surface: 216 12% 8%;
     --widget-line: 0 0% 100%;
     --widget-border-alpha: 0.07;
-    --widget-accent: 190 95% 55%;
-    --widget-accent-debt: 6 92% 62%;
-    --widget-accent-next: 190 95% 55%;
-    --widget-accent-goal: 84 82% 55%;
+    --widget-accent: 215 100% 71%;
+    --widget-accent-debt: 359 88% 76%;
+    --widget-accent-next: 215 100% 71%;
+    --widget-accent-goal: 215 100% 71%;
   }
 
   .light {
@@ -302,7 +300,7 @@
   .widget-card {
     background: hsl(var(--widget-surface));
     border: 1px solid hsl(var(--widget-line) / 0.07);
-    border-radius: 1.5rem;
+    border-radius: 1rem;
     position: relative;
     overflow: hidden;
     transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
@@ -327,14 +325,14 @@
   }
 
   .widget-value {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-family: 'Manrope', system-ui, sans-serif;
     letter-spacing: -0.04em;
     color: hsl(var(--widget-accent));
     text-shadow: 0 0 24px hsl(var(--widget-accent) / 0.35);
   }
 
   .widget-label {
-    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-family: 'Manrope', system-ui, sans-serif;
     @apply text-[10px] uppercase tracking-[0.2em];
     color: hsl(var(--widget-line) / 0.55);
   }
@@ -364,8 +362,8 @@
     box-shadow: 0 0 40px -10px hsl(190 65% 31% / 0.3);
   }
   .text-money {
-    @apply font-bold tabular-nums tracking-tight;
-    font-family: 'JetBrains Mono', 'Inter', monospace;
+    @apply font-medium tabular-nums tracking-tight;
+    font-family: 'Manrope', system-ui, sans-serif;
   }
 
   .text-income {
@@ -598,22 +596,14 @@
 }
 
 /* Auth is intentionally dark even when the dashboard remembers a light theme. */
-.auth-shell {
-  --background: 240 6% 5%;
-  --foreground: 43 20% 94%;
-  --card: 30 5% 10%;
-  --card-foreground: 43 20% 94%;
-  --primary: 43 22% 92%;
-  --primary-foreground: 30 6% 8%;
-  --secondary: 30 5% 15%;
-  --secondary-foreground: 43 12% 82%;
-  --muted: 30 5% 15%;
-  --muted-foreground: 35 6% 58%;
-  --accent: 20 40% 52%;
-  --accent-foreground: 30 6% 8%;
-  --border: 30 5% 18%;
-  --input: 30 5% 18%;
-  --ring: 43 22% 92%;
+ .auth-shell {
+  --background: 0 0% 0%; --foreground: 210 20% 96%;
+  --card: 216 12% 8%; --card-foreground: 210 20% 96%;
+  --primary: 216 84% 46%; --primary-foreground: 0 0% 100%;
+  --secondary: 218 14% 13%; --secondary-foreground: 215 20% 85%;
+  --muted: 218 14% 13%; --muted-foreground: 218 10% 67%;
+  --accent: 215 100% 71%; --accent-foreground: 220 25% 10%;
+  --border: 218 12% 18%; --input: 218 12% 22%; --ring: 215 100% 71%;
   background: hsl(var(--background));
 }
 
@@ -761,7 +751,7 @@
 
 .data-surface {
   border: 1px solid hsl(var(--border) / 0.8);
-  border-radius: 1.5rem;
+  border-radius: 1rem;
   background: hsl(var(--card) / 0.8);
 }
 
@@ -776,7 +766,7 @@
 }
 
 .app-shell .font-display {
-  font-family: 'Work Sans', system-ui, sans-serif;
+  font-family: 'Manrope', system-ui, sans-serif;
 }
 
 .app-shell .widget-sub {

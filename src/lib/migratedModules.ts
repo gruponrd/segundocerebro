@@ -1,4 +1,9 @@
 import { accountStorageKey, LEGACY_MODULE_KEYS } from "@/lib/accountStorage";
+import { isAccountPreview } from "@/lib/previewMode";
+
+export function migratedModulesMarker(userId: string, name = "migrated_modules_restored") {
+  return `${isAccountPreview ? "fin_design" : "fin"}_${name}_${userId}`;
+}
 
 export function restoreMigratedModules(userId: string, modules: unknown, storage: Pick<Storage, "getItem" | "setItem">) {
   if (!userId || !modules || typeof modules !== "object" || Array.isArray(modules)) throw new Error("Cópia de módulos inválida.");
@@ -13,6 +18,6 @@ export function restoreMigratedModules(userId: string, modules: unknown, storage
   }
   // Validate every entry first. Never replace newer data on this device.
   for (const [key, raw] of pending) storage.setItem(key, raw);
-  storage.setItem(`fin_legacy_modules_reviewed_${userId}`, "1");
-  storage.setItem(`fin_migrated_modules_restored_${userId}`, "1");
+  storage.setItem(migratedModulesMarker(userId, "legacy_modules_reviewed"), "1");
+  storage.setItem(migratedModulesMarker(userId), "1");
 }

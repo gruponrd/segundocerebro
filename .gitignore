@@ -26,3 +26,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local proposal build output and visual review evidence
+/.impeccable/prototype-build/
+/.impeccable/review/

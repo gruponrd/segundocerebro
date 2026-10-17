@@ -107,13 +107,14 @@ function EditableItem({
 
   return (
     <>
-      <div className="flex items-center gap-2 text-sm group">
+      <div className="cashflow-item flex items-center gap-2 text-sm group">
         <Checkbox
+          aria-label={`${item.paid ? "Desmarcar" : "Confirmar"} ${isIncome ? "recebimento" : "pagamento"} de ${item.label}`}
           checked={item.paid}
           onCheckedChange={() => onTogglePaid(monthIndex, type, idx)}
-          className={`h-4 w-4 rounded border-border ${isIncome ? "data-[state=checked]:bg-income data-[state=checked]:border-income" : "data-[state=checked]:bg-expense data-[state=checked]:border-expense"}`}
+          className={`h-6 w-6 shrink-0 rounded-md border-border ${isIncome ? "data-[state=checked]:bg-income data-[state=checked]:border-income" : "data-[state=checked]:bg-expense data-[state=checked]:border-expense"}`}
         />
-        <div className="flex-1 min-w-0 flex items-center gap-1.5">
+        <div className="flex-1 min-w-0 flex flex-wrap items-center gap-1.5">
           <span
             className={`truncate cursor-pointer hover:text-foreground transition-colors ${item.paid ? "text-muted-foreground line-through" : "text-muted-foreground"}`}
             onClick={() => { setLabel(item.label); setAmount(String(item.amount)); setEditing(true); }}
@@ -136,14 +137,16 @@ function EditableItem({
         {item.paid && <Check className={`w-3.5 h-3.5 ${isIncome ? "text-income" : "text-expense"}`} />}
         <button
           onClick={handlePinClick}
+          aria-label={`${item.fixed ? "Desmarcar como fixo" : "Marcar como fixo"}: ${item.label}`}
           title={item.fixed ? "Desmarcar como fixo" : "Marcar como fixo e replicar"}
-          className={`p-0.5 rounded transition-all ${item.fixed ? "text-primary opacity-100" : "opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-primary"} hover:bg-primary/10`}
+          className={`p-1.5 min-h-8 min-w-8 rounded-lg transition-colors ${item.fixed ? "text-primary opacity-100" : "opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-primary"} hover:bg-primary/10`}
         >
           {item.fixed ? <PinOff className="w-3 h-3" /> : <Pin className="w-3 h-3" />}
         </button>
         <button
           onClick={() => onRemoveItem(monthIndex, type, idx)}
-          className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-expense/20 text-muted-foreground hover:text-expense transition-all"
+          aria-label={`Excluir ${isIncome ? "entrada" : "saída"}: ${item.label}`}
+          className="opacity-0 group-hover:opacity-100 focus-visible:opacity-100 p-1.5 min-h-8 min-w-8 rounded-lg hover:bg-expense/20 text-muted-foreground hover:text-expense transition-all"
         >
           <X className="w-3 h-3" />
         </button>

@@ -38,14 +38,14 @@ function EditableCreditor({ c, onRemove, onUpdate }: {
   if (editing) {
     return (
       <div className="space-y-1.5 p-2 rounded-xl bg-secondary/30">
-        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome" className="h-7 text-xs rounded-lg" autoFocus />
+        <Input aria-label="Nome do credor" value={name} onChange={(e) => setName(e.target.value)} placeholder="Nome" className="h-7 text-xs rounded-lg" autoFocus />
         <div className="flex gap-1.5">
-          <Input type="number" value={debt} onChange={(e) => setDebt(e.target.value)} placeholder="Dívida total" className="h-7 text-xs rounded-lg" />
-          <Input type="number" value={paid} onChange={(e) => setPaid(e.target.value)} placeholder="Pago" className="h-7 text-xs rounded-lg" />
+          <Input type="number" aria-label="Dívida total em reais" value={debt} onChange={(e) => setDebt(e.target.value)} placeholder="Dívida total" className="h-7 text-xs rounded-lg" />
+          <Input type="number" aria-label="Valor pago em reais" value={paid} onChange={(e) => setPaid(e.target.value)} placeholder="Pago" className="h-7 text-xs rounded-lg" />
         </div>
         <div className="flex gap-1 justify-end">
-          <button onClick={handleSave} className="p-1 rounded hover:bg-income/20 text-income"><Check className="w-3.5 h-3.5" /></button>
-          <button onClick={() => setEditing(false)} className="p-1 rounded hover:bg-expense/20 text-expense"><X className="w-3.5 h-3.5" /></button>
+          <button onClick={handleSave} aria-label="Salvar credor" className="icon-action hover:bg-income/20 text-income"><Check className="w-3.5 h-3.5" /></button>
+          <button onClick={() => setEditing(false)} aria-label="Cancelar edição de credor" className="icon-action hover:bg-expense/20 text-expense"><X className="w-3.5 h-3.5" /></button>
         </div>
       </div>
     );
@@ -54,17 +54,17 @@ function EditableCreditor({ c, onRemove, onUpdate }: {
   return (
     <div className="group">
       <div className="flex justify-between items-center mb-1">
-        <span
-          className={`text-sm cursor-pointer hover:text-primary transition-colors ${isComplete ? "text-income line-through" : "text-foreground"}`}
+        <button type="button" aria-label={`Editar credor ${c.name}`}
+          className={`min-h-9 text-left rounded focus-visible:ring-2 focus-visible:ring-ring text-sm cursor-pointer hover:text-primary transition-colors ${isComplete ? "text-income line-through" : "text-foreground"}`}
           onClick={() => { setName(c.name); setDebt(String(c.totalDebt)); setPaid(String(c.amountPaid)); setEditing(true); }}
         >
           {c.name}
-        </span>
+        </button>
         <div className="flex items-center gap-1">
           <span className="text-xs text-muted-foreground">{pct.toFixed(0)}%</span>
           <button
-            onClick={() => onRemove(c.id)}
-            className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-expense/20 text-muted-foreground hover:text-expense transition-all"
+            aria-label={`Excluir credor ${c.name}`} onClick={() => onRemove(c.id)}
+            className="icon-action hover:bg-expense/20 text-muted-foreground hover:text-expense"
           >
             <X className="w-3 h-3" />
           </button>
@@ -75,12 +75,12 @@ function EditableCreditor({ c, onRemove, onUpdate }: {
         className={`h-1.5 bg-secondary ${isComplete ? "[&>div]:bg-income" : "[&>div]:bg-primary"}`}
       />
       <div className="flex justify-between text-[11px] text-muted-foreground mt-0.5">
-        <span
-          className="cursor-pointer hover:text-foreground transition-colors"
+        <button type="button" aria-label={`Editar valor pago a ${c.name}`}
+          className="min-h-9 rounded focus-visible:ring-2 focus-visible:ring-ring cursor-pointer hover:text-foreground transition-colors"
           onClick={() => { setName(c.name); setDebt(String(c.totalDebt)); setPaid(String(c.amountPaid)); setEditing(true); }}
         >
           R$ {c.amountPaid.toLocaleString("pt-BR")}
-        </span>
+        </button>
         <span>R$ {c.totalDebt.toLocaleString("pt-BR")}</span>
       </div>
     </div>
@@ -136,17 +136,17 @@ export function CreditorWidget({ creditors, totalDebt, totalPaid, onAdd, onRemov
       <div className="mt-3">
         {adding ? (
           <div className="space-y-1.5 p-2 rounded-xl bg-secondary/30">
-            <Input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Nome do credor" className="h-7 text-xs rounded-lg" autoFocus />
-            <Input type="number" value={newDebt} onChange={(e) => setNewDebt(e.target.value)} placeholder="Valor da dívida" className="h-7 text-xs rounded-lg" />
+            <Input aria-label="Nome do novo credor" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Nome do credor" className="h-7 text-xs rounded-lg" autoFocus />
+            <Input type="number" aria-label="Dívida do novo credor em reais" value={newDebt} onChange={(e) => setNewDebt(e.target.value)} placeholder="Valor da dívida" className="h-7 text-xs rounded-lg" />
             <div className="flex gap-1 justify-end">
-              <button onClick={handleAdd} className="p-1 rounded hover:bg-income/20 text-income"><Check className="w-3.5 h-3.5" /></button>
-              <button onClick={() => setAdding(false)} className="p-1 rounded hover:bg-expense/20 text-expense"><X className="w-3.5 h-3.5" /></button>
+              <button onClick={handleAdd} aria-label="Salvar credor" className="icon-action hover:bg-income/20 text-income"><Check className="w-3.5 h-3.5" /></button>
+              <button onClick={() => setAdding(false)} aria-label="Cancelar edição de credor" className="icon-action hover:bg-expense/20 text-expense"><X className="w-3.5 h-3.5" /></button>
             </div>
           </div>
         ) : (
           <button
             onClick={() => setAdding(true)}
-            className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+            className="min-h-10 rounded flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
           >
             <Plus className="w-3 h-3" /> Adicionar credor
           </button>

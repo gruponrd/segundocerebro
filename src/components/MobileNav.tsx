@@ -1,139 +1,32 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Target, TrendingDown, Wallet, MoreHorizontal, Sun, Moon, Contrast } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ArrowLeftRight, Brain, Calculator, Contrast, DollarSign, Gamepad2, LayoutDashboard, Link2, Moon, MoreHorizontal, Search, Sparkles, Sun, Target, TrendingDown, TrendingUp, Wallet } from "lucide-react";
 import { useState } from "react";
-import { DollarSign, TrendingUp, Gamepad2, X, Sparkles, ArrowLeftRight, Calculator, Search, Link2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/use-theme";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { openCommandMenu } from "@/lib/commandMenu";
-
-const THEME_LABELS = {
-  dark: "Escuro",
-  light: "Claro",
-  monochrome: "P&B",
-};
-
-const mainTabs = [
-  { to: "/", icon: LayoutDashboard, label: "Home", end: true },
-  { to: "/objetivos", icon: Target, label: "Metas" },
-  { to: "/divida", icon: TrendingDown, label: "Dívida" },
-  { to: "/carteira", icon: Wallet, label: "Carteira" },
-];
-
-const moreTabs = [
-  { to: "/fluxo", icon: ArrowLeftRight, label: "Fluxo" },
-  { to: "/desejos", icon: Sparkles, label: "Desejos" },
-  { to: "/renda", icon: DollarSign, label: "Renda" },
-  { to: "/trade", icon: TrendingUp, label: "Trade" },
-  { to: "/lifegame", icon: Gamepad2, label: "LifeGame" },
-  { to: "/ferramentas", icon: Calculator, label: "Ferramentas" },
-  { to: "/integracoes", icon: Link2, label: "Integrações" },
-];
-
+import { isDesignPreview } from "@/lib/previewMode";
+const labels = { dark:"Escuro", light:"Claro", monochrome:"P&B" };
+const mainTabs = [{to:"/",icon:LayoutDashboard,label:"Início",end:true},{to:"/fluxo",icon:ArrowLeftRight,label:"Fluxo"},{to:"/carteira",icon:Wallet,label:"Carteira"},{to:"/objetivos",icon:Target,label:"Objetivos"}];
+const moreTabs = [{to:"/renda",icon:DollarSign,label:"Renda"},{to:"/divida",icon:TrendingDown,label:"Dívidas"},{to:"/desejos",icon:Sparkles,label:"Desejos"},{to:"/trade",icon:TrendingUp,label:"Trade"},{to:"/lifegame",icon:Gamepad2,label:"LifeGame"},{to:"/ferramentas",icon:Calculator,label:"Ferramentas"},{to:"/integracoes",icon:Link2,label:"Integrações"}];
 export function MobileNav() {
-  const [moreOpen, setMoreOpen] = useState(false);
-  const location = useLocation();
-  const { theme, toggleTheme } = useTheme();
-  const isMoreActive = moreTabs.some(t => location.pathname === t.to);
-  const ThemeIcon = theme === "dark" ? Moon : theme === "light" ? Sun : Contrast;
-
-  return (
-    <>
-      {/* Overlay for "more" menu */}
-      {moreOpen && (
-        <div className="fixed inset-0 z-[38] bg-background/60 backdrop-blur-sm md:hidden" onClick={() => setMoreOpen(false)} />
-      )}
-
-      {/* Expanded more menu */}
-      {moreOpen && (
-        <div className="fixed bottom-20 left-4 right-4 z-[45] md:hidden animate-in slide-in-from-bottom-4 duration-200">
-          <div className="bg-card border border-border/50 rounded-2xl p-3">
-            <Button variant="ghost" className="mb-2 h-11 w-full justify-start gap-2 rounded-xl" onClick={() => { setMoreOpen(false); openCommandMenu(); }}>
-              <Search className="h-4 w-4" /> Buscar no app
-            </Button>
-            <div className="grid grid-cols-4 gap-2">
-              {moreTabs.map(tab => (
-                <NavLink
-                  key={tab.to}
-                  to={tab.to}
-                  onClick={() => setMoreOpen(false)}
-                  className={({ isActive }) => cn(
-                    "flex flex-col items-center gap-1 py-2 px-1 rounded-xl text-xs font-medium transition-all",
-                    isActive ? "bg-primary/15 text-primary" : "text-muted-foreground"
-                  )}
-                >
-                  <tab.icon className="w-5 h-5" />
-                  {tab.label}
-                </NavLink>
-              ))}
-            </div>
-            <div className="mt-2 border-t border-border/50 pt-2">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={toggleTheme}
-                className="h-11 w-full justify-between rounded-xl px-3 text-muted-foreground"
-                aria-label={`Tema atual: ${THEME_LABELS[theme]}. Toque para alterar`}
-              >
-                <span className="flex items-center gap-2 text-xs font-medium">
-                  <ThemeIcon className="h-4 w-4" /> Tema
-                </span>
-                <span className="font-mono text-[10px] uppercase text-foreground">{THEME_LABELS[theme]}</span>
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Bottom navigation bar */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden">
-        <div className="bg-card/95 backdrop-blur-xl border-t border-border/50 px-2 pb-[env(safe-area-inset-bottom)]">
-          <div className="flex items-center justify-around h-16">
-            {mainTabs.map(tab => (
-              <NavLink
-                key={tab.to}
-                to={tab.to}
-                end={tab.end}
-                className={({ isActive }) => cn(
-                  "flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 min-w-[60px]",
-                  isActive
-                    ? "text-primary"
-                    : "text-muted-foreground active:scale-95"
-                )}
-              >
-                {({ isActive }) => (
-                  <>
-                    <div className={cn(
-                      "p-1.5 rounded-xl transition-all duration-300",
-                      isActive && "bg-primary/15 shadow-sm shadow-primary/20"
-                    )}>
-                      <tab.icon className={cn("w-5 h-5 transition-transform", isActive && "scale-110")} />
-                    </div>
-                    <span className={cn("text-[10px] font-medium", isActive && "font-semibold")}>{tab.label}</span>
-                  </>
-                )}
-              </NavLink>
-            ))}
-
-            {/* More button */}
-            <button
-              onClick={() => setMoreOpen(!moreOpen)}
-              className={cn(
-                "flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 min-w-[60px]",
-                (moreOpen || isMoreActive) ? "text-primary" : "text-muted-foreground active:scale-95"
-              )}
-            >
-              <div className={cn(
-                "p-1.5 rounded-xl transition-all duration-300",
-                (moreOpen || isMoreActive) && "bg-primary/15"
-              )}>
-                {moreOpen ? <X className="w-5 h-5" /> : <MoreHorizontal className="w-5 h-5" />}
-              </div>
-              <span className="text-[10px] font-medium">Mais</span>
-            </button>
-          </div>
-        </div>
-      </nav>
-    </>
-  );
+ const [open,setOpen]=useState(false);
+ const {pathname}=useLocation();
+ const {theme,toggleTheme}=useTheme();
+ const ThemeIcon=theme==="dark"?Moon:theme==="light"?Sun:Contrast;
+ const active=moreTabs.some(tab=>tab.to===pathname);
+ return <nav aria-label="Navegação principal no celular" className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-2 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl md:hidden">
+  <div className="flex h-[72px] items-center justify-around gap-1">
+   {mainTabs.map(tab=><NavLink key={tab.to} to={tab.to} end={tab.end} className={({isActive})=>cn("flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl text-xs",isActive?"text-accent":"text-muted-foreground")}><tab.icon aria-hidden className="h-5 w-5" /><span>{tab.label}</span></NavLink>)}
+   <Sheet open={open} onOpenChange={setOpen}><SheetTrigger asChild><button type="button" className={cn("flex min-h-12 min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl text-xs",active?"text-accent":"text-muted-foreground")} aria-label="Mais seções"><MoreHorizontal aria-hidden className="h-5 w-5" /><span>Mais</span></button></SheetTrigger>
+    <SheetContent side="bottom" className="max-h-[85dvh] overflow-y-auto rounded-t-3xl border-border bg-card pb-[max(24px,env(safe-area-inset-bottom))]">
+     <SheetHeader className="text-left"><SheetTitle>Seu espaço</SheetTitle><SheetDescription>Todas as áreas do Segundo Cérebro.</SheetDescription></SheetHeader>
+     <Button variant="outline" className="my-5 w-full justify-start" onClick={()=>{setOpen(false);openCommandMenu();}}><Search aria-hidden className="h-4 w-4" /> Buscar no app</Button>
+     <div className="grid grid-cols-3 gap-2">{moreTabs.map(tab=><NavLink key={tab.to} to={tab.to} onClick={()=>setOpen(false)} className={({isActive})=>cn("flex min-h-20 flex-col items-center justify-center gap-2 rounded-xl text-xs",isActive?"bg-secondary text-accent":"text-muted-foreground hover:bg-secondary")}><tab.icon aria-hidden className="h-5 w-5" />{tab.label}</NavLink>)}{isDesignPreview&&<NavLink to="/acesso" onClick={()=>setOpen(false)} className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-xl text-xs text-muted-foreground"><Brain aria-hidden className="h-5 w-5" />Ver login</NavLink>}</div>
+     <Button variant="ghost" onClick={toggleTheme} className="mt-4 w-full justify-between border-t border-border pt-4"><span className="flex items-center gap-2"><ThemeIcon aria-hidden className="h-4 w-4" />Tema</span><span>{labels[theme]}</span></Button>
+    </SheetContent>
+   </Sheet>
+  </div>
+ </nav>;
 }

@@ -260,7 +260,7 @@ export default function TradePage() {
               )}
               P&L Total (USD)
             </span>
-            <p className={`text-2xl font-bold ${totalPnlUsd >= 0 ? "text-primary" : "text-destructive"}`}>
+            <p className={`text-2xl font-bold ${totalPnlUsd >= 0 ? "text-income" : "text-expense"}`}>
               {fmt(totalPnlUsd)}
             </p>
           </CardContent>
@@ -275,7 +275,7 @@ export default function TradePage() {
               )}
               P&L Total (BRL)
             </span>
-            <p className={`text-2xl font-bold ${totalPnlUsd >= 0 ? "text-primary" : "text-destructive"}`}>
+            <p className={`text-2xl font-bold ${totalPnlUsd >= 0 ? "text-income" : "text-expense"}`}>
               {fmtBrl(totalPnlUsd * usdToBrl)}
             </p>
           </CardContent>
@@ -294,11 +294,11 @@ export default function TradePage() {
           {loading && cryptos.length === 0 ? (
             <div className="text-sm text-muted-foreground text-center py-8">Carregando cotações...</div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-3">
               {cryptos.map((c) => (
                 <div
                   key={c.id}
-                  className="flex items-center gap-3 p-3 rounded-lg bg-secondary/40 hover:bg-secondary/60 transition-colors"
+                  className="grid grid-cols-[32px_minmax(0,1fr)] gap-x-3 gap-y-2 p-4 rounded-xl bg-secondary/40 hover:bg-secondary/60 transition-colors"
                 >
                   <img src={c.image} alt={c.name} className="w-8 h-8 rounded-full" />
                   <div className="flex-1 min-w-0">
@@ -309,10 +309,10 @@ export default function TradePage() {
                     <p className="text-sm font-bold text-foreground">{fmt(c.current_price)}</p>
                     <p className="text-[11px] text-muted-foreground">{fmtBrl(c.current_price * usdToBrl)}</p>
                   </div>
-                  <div className="flex flex-col items-end">
+                  <div className="col-span-2 flex items-end border-t border-border/60 pt-2">
                     <span
                       className={`text-xs font-semibold flex items-center gap-0.5 ${
-                        c.price_change_percentage_24h >= 0 ? "text-primary" : "text-destructive"
+                        c.price_change_percentage_24h >= 0 ? "text-income" : "text-expense"
                       }`}
                     >
                       {c.price_change_percentage_24h >= 0 ? (
@@ -488,7 +488,7 @@ export default function TradePage() {
                           <div className="text-right">
                             <p
                               className={`text-sm font-bold ${
-                                pnl.pnlUsd >= 0 ? "text-primary" : "text-destructive"
+                                pnl.pnlUsd >= 0 ? "text-income" : "text-expense"
                               }`}
                             >
                               {fmt(pnl.pnlUsd)} ({pct(pnl.pnlPct)})

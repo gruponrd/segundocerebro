@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { EXPENSE_CATEGORIES, suggestCategory, getCategory } from "@/data/categories";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { getCardColor } from "@/data/cardColors";
+import { AddBankCard } from "@/components/AddBankCard";
 import { AllCardsGrid } from "@/components/AllCardsGrid";
 import { PageHeader } from "@/components/PageHeader";
 import type { Bank } from "@/data/financialData";
@@ -149,14 +151,6 @@ const bankGradients: Record<string, string> = {
   "bank-other": "linear-gradient(135deg, #1B7085, hsl(190,70%,22%))",
 };
 
-const bankTextColor: Record<string, string> = {
-  "bank-nubank": "text-white",
-  "bank-inter": "text-white",
-  "bank-c6": "text-gray-300",
-  "bank-itau": "text-white",
-  "bank-bb": "text-gray-900",
-  "bank-other": "text-white",
-};
 
 function WalletCard({
   bank,
@@ -172,8 +166,9 @@ function WalletCard({
   const usagePercent = bank.limitTotal > 0 ? Math.min((bank.limitUsed / bank.limitTotal) * 100, 100) : 0;
   const isOverLimit = bank.limitUsed > bank.limitTotal;
   const freeAmount = bank.limitTotal - bank.limitUsed;
-  const gradient = bankGradients[bank.color] || bankGradients["bank-other"];
-  const textColor = bankTextColor[bank.color] || "text-white";
+  const cardColor = getCardColor(bank.color);
+  const gradient = cardColor.style?.backgroundImage ?? bankGradients[bank.color] ?? bankGradients["bank-other"];
+  const textColor = cardColor.text;
   const cardNumber = `•••• •••• •••• ${String(
     Math.abs(
       bank.name.split("").reduce((a: number, c: string) => a + c.charCodeAt(0), 0) % 10000
@@ -298,7 +293,7 @@ function WalletCard({
 }
 
 export default function CarteiraPage() {
-  const { banks } = useFinanceStore();
+  const { banks, addBank } = useFinanceStore();
   const [activeIndex, setActiveIndex] = useState(0);
   const [view, setView] = useState<"carteira" | "todos">("carteira");
   const touchStartRef = useRef<number | null>(null);
@@ -316,8 +311,9 @@ export default function CarteiraPage() {
 
   if (count === 0) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <p className="text-muted-foreground">Nenhum cartão cadastrado.</p>
+      <div className="page-container min-h-screen space-y-6">
+        <PageHeader title="Carteira" description="Seus cartões, limites e parcelas em um só lugar." icon={Wallet} />
+        <div className="glass-card p-6"><h2 className="text-lg font-medium">Sua carteira começa aqui</h2><p className="mt-2 text-sm text-muted-foreground">Cadastre um cartão para acompanhar limites, compras e parcelas.</p><div className="mt-5 max-w-sm"><AddBankCard onAdd={addBank} /></div></div>
       </div>
     );
   }
@@ -363,7 +359,7 @@ export default function CarteiraPage() {
                 onClick={() => setView(v.key)}
                 aria-pressed={view === v.key}
                 className={cn(
-                  "px-4 py-1.5 rounded-full text-[11px] uppercase tracking-wider transition-colors",
+                  "min-h-11 px-4 py-2 rounded-full text-xs transition-colors",
                   view === v.key
                     ? "bg-primary text-primary-foreground"
                     : "text-muted-foreground hover:text-foreground",
@@ -414,12 +410,12 @@ export default function CarteiraPage() {
                 {/* Total balance */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center pt-6">
                   <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-1">
-                    Saldo Total
+                    Uso dos cartões
                   </p>
                   <p className="text-2xl font-bold text-foreground tabular-nums tracking-wide">
-                    ••••••
+                    {money(totalUsed)}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-1">Total Balance</p>
+                  <p className="text-xs text-muted-foreground mt-1">Soma do limite utilizado</p>
                 </div>
                 {/* Wallet icon */}
                 <div className="absolute bottom-3 left-1/2 -translate-x-1/2 opacity-10">

@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { isPreviewMode } from "@/lib/previewMode";
+import { isAccountPreview, isDesignPreview, isPreviewMode } from "@/lib/previewMode";
 import type { User, Session, AuthError } from "@supabase/supabase-js";
 import { accountDisplayName, normalizeDisplayName } from "@/lib/accountIdentity";
 
@@ -23,7 +23,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [displayName, setDisplayName] = useState("");
 
   useEffect(() => {
-    if (isPreviewMode) {
+    if (isDesignPreview && !isAccountPreview) {
+      // The design workspace never reuses the production account or its session.
+      setUser({ id: "preview-user", email: "preview@local", app_metadata: {}, user_metadata: { display_name: "Prévia" }, aud: "authenticated", created_at: new Date(0).toISOString() } as User);
+      setSession(null);
+      setDisplayName("Prévia");
+      setLoading(false);
+      return;
+    }
+    if (isPreviewMode && !isAccountPreview) {
       let cancelled = false;
       // Reuse an already authenticated browser session when one exists. This
       // lets the local redesign display the real account without prompting for

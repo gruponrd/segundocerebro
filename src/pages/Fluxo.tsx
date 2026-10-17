@@ -77,20 +77,20 @@ function SmartEntryPanel() {
       <div className="flex gap-1.5">
         <button
           onClick={() => setKind("expenses")}
-          className={`flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg text-xs font-medium border transition-colors ${isExpense ? "border-expense text-expense bg-expense/10" : "border-border text-muted-foreground hover:text-foreground"}`}
+          className={`flex-1 flex items-center justify-center gap-1.5 h-11 rounded-xl text-sm font-medium border transition-colors ${isExpense ? "border-expense text-expense bg-expense/10" : "border-border text-muted-foreground hover:text-foreground"}`}
         >
           <ArrowDownCircle className="w-3.5 h-3.5" /> Saída
         </button>
         <button
           onClick={() => setKind("incomes")}
-          className={`flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg text-xs font-medium border transition-colors ${!isExpense ? "border-income text-income bg-income/10" : "border-border text-muted-foreground hover:text-foreground"}`}
+          className={`flex-1 flex items-center justify-center gap-1.5 h-11 rounded-xl text-sm font-medium border transition-colors ${!isExpense ? "border-income text-income bg-income/10" : "border-border text-muted-foreground hover:text-foreground"}`}
         >
           <ArrowUpCircle className="w-3.5 h-3.5" /> Entrada
         </button>
       </div>
 
       {/* Single line: description + value + action */}
-      <div className="flex flex-col sm:flex-row gap-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
         <Input
           value={label}
           onChange={(e) => {
@@ -102,7 +102,8 @@ function SmartEntryPanel() {
           }}
           onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
           placeholder={isExpense ? "O que você gastou? (ex: Supermercado)" : "De onde veio? (ex: Salário)"}
-          className="rounded-lg h-10 text-sm flex-1"
+          aria-label={isExpense ? "Descrição da saída" : "Descrição da entrada"}
+          className="col-span-2 rounded-xl h-11 text-sm"
         />
         <Input
           type="number"
@@ -111,9 +112,10 @@ function SmartEntryPanel() {
           onKeyDown={(e) => { if (e.key === "Enter") handleAdd(); }}
           placeholder="Valor"
           min={0}
-          className="rounded-lg h-10 text-sm text-money sm:w-32"
+          aria-label="Valor do lançamento"
+          className="rounded-xl h-11 text-sm text-money"
         />
-        <Button className="rounded-lg h-10 gap-1.5 sm:w-auto" onClick={handleAdd} disabled={!valid}>
+        <Button className="rounded-full h-11 gap-1.5" onClick={handleAdd} disabled={!valid}>
           <Plus className="w-4 h-4" /> Lançar
         </Button>
       </div>

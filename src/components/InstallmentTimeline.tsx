@@ -82,27 +82,27 @@ function EditableInstallment({ item, onUpdate, onRemove }: {
 
   if (editing) {
     return (
-      <div className="p-3 rounded-xl bg-secondary/40 space-y-2" onClick={(e) => e.stopPropagation()}>
+      <div className="installment-editor p-3 rounded-xl bg-secondary/40 space-y-2" onClick={(e) => e.stopPropagation()}>
         <div className="flex gap-2">
-          <Input value={desc} onChange={(e) => setDesc(e.target.value)} className="h-7 text-xs flex-1" placeholder="Descrição" autoFocus />
-          <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="h-7 text-xs w-24" placeholder="Valor" />
+          <Input aria-label="Descrição da parcela" value={desc} onChange={(e) => setDesc(e.target.value)} className="h-9 text-base min-w-0 flex-1" placeholder="Descrição" autoFocus />
+          <Input aria-label="Valor da parcela em reais" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="h-7 text-xs w-24" placeholder="Valor" />
         </div>
-        <div className="flex items-center gap-2">
-          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-7 text-xs w-36" />
-          <select value={category} onChange={(e) => setCategory(e.target.value)} className="h-7 text-xs rounded-lg bg-secondary border border-border/50 px-2 text-foreground">
+        <div className="flex flex-wrap items-center gap-2">
+          <Input aria-label="Vencimento da parcela" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-7 text-xs w-36" />
+          <select aria-label="Categoria da parcela" value={category} onChange={(e) => setCategory(e.target.value)} className="h-7 text-xs rounded-lg bg-secondary border border-border/50 px-2 text-foreground">
             {EXPENSE_CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.emoji} {c.label}</option>)}
           </select>
-          <button onClick={save} className="p-1 rounded hover:bg-income/20 text-income"><Check className="w-3.5 h-3.5" /></button>
-          <button onClick={() => setEditing(false)} className="p-1 rounded hover:bg-expense/20 text-expense"><X className="w-3.5 h-3.5" /></button>
+          <button onClick={save} aria-label="Salvar parcela" className="icon-action hover:bg-income/20 text-income"><Check className="w-3.5 h-3.5" /></button>
+          <button onClick={() => setEditing(false)} aria-label="Cancelar edição de parcela" className="icon-action hover:bg-expense/20 text-expense"><X className="w-3.5 h-3.5" /></button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/40 hover:bg-secondary/70 transition-colors group/item">
+    <div className="installment-row flex flex-wrap items-center gap-3 p-3 rounded-xl bg-secondary/40 hover:bg-secondary/70 transition-colors group/item">
       <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${bankDotColor[item.bankColor] || "bg-muted-foreground"}`} />
-      <div className="flex-1 min-w-0">
+      <div className="installment-description flex-1 min-w-0">
         <p className="text-sm text-foreground truncate">{item.description}</p>
         <div className="flex items-center gap-1.5 flex-wrap">
           <p className="text-xs text-muted-foreground">
@@ -118,16 +118,16 @@ function EditableInstallment({ item, onUpdate, onRemove }: {
           })()}
         </div>
       </div>
-      <span className="text-sm text-money text-foreground shrink-0">
+      <span className="installment-amount text-sm text-money text-foreground shrink-0">
         R$ {item.installmentAmount.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
       </span>
       {onUpdate && (
-        <div className="flex gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity shrink-0">
-          <button onClick={() => { setDesc(item.description); setAmount(String(item.installmentAmount)); setDate(item.dueDate); setCategory(item.category ?? suggestCategory(item.description)); setEditing(true); }} className="p-1 rounded hover:bg-secondary text-muted-foreground">
+        <div className="installment-actions flex gap-1 shrink-0">
+          <button onClick={() => { setDesc(item.description); setAmount(String(item.installmentAmount)); setDate(item.dueDate); setCategory(item.category ?? suggestCategory(item.description)); setEditing(true); }} aria-label={`Editar parcela ${item.description}`} className="icon-action text-muted-foreground">
             <Pencil className="w-3 h-3" />
           </button>
           {onRemove && item.bankId && (
-            <button onClick={() => onRemove(item.bankId!, item.id)} className="p-1 rounded hover:bg-expense/20 text-expense">
+            <button onClick={() => onRemove(item.bankId!, item.id)} aria-label={`Excluir parcela ${item.description}`} className="icon-action hover:bg-expense/20 text-expense">
               <Trash2 className="w-3 h-3" />
             </button>
           )}
@@ -173,22 +173,22 @@ function AddInstallmentRow({ banks, onAdd }: { banks: { id: BankId; name: string
   }
 
   return (
-    <div className="p-3 rounded-xl bg-secondary/40 space-y-2 mt-2">
+    <div className="installment-editor p-3 rounded-xl bg-secondary/40 space-y-2 mt-2">
       <div className="flex gap-2">
-        <Input value={desc} onChange={(e) => setDesc(e.target.value)} className="h-7 text-xs flex-1" placeholder="Descrição" autoFocus />
-        <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="h-7 text-xs w-20" placeholder="Valor" />
+        <Input aria-label="Descrição da parcela" value={desc} onChange={(e) => setDesc(e.target.value)} className="h-9 text-base min-w-0 flex-1" placeholder="Descrição" autoFocus />
+        <Input aria-label="Valor da parcela em reais" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="h-7 text-xs w-20" placeholder="Valor" />
       </div>
-      <div className="flex items-center gap-2">
-        <select value={bankId} onChange={(e) => setBankId(e.target.value as BankId)} className="h-7 text-xs rounded-lg bg-secondary border border-border/50 px-2 text-foreground">
+      <div className="flex flex-wrap items-center gap-2">
+        <select aria-label="Cartão da parcela" value={bankId} onChange={(e) => setBankId(e.target.value as BankId)} className="h-7 text-xs rounded-lg bg-secondary border border-border/50 px-2 text-foreground">
           {banks.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
         </select>
-        <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-7 text-xs w-32" />
-        <Input type="number" value={total} onChange={(e) => setTotal(e.target.value)} className="h-7 text-xs w-14" placeholder="Parcelas" />
-        <select value={category} onChange={(e) => setCategory(e.target.value)} className="h-7 text-xs rounded-lg bg-secondary border border-border/50 px-2 text-foreground">
+        <Input aria-label="Vencimento da parcela" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-7 text-xs w-32" />
+        <Input aria-label="Quantidade de parcelas" type="number" value={total} onChange={(e) => setTotal(e.target.value)} className="h-7 text-xs w-14" placeholder="Parcelas" />
+        <select aria-label="Categoria da parcela" value={category} onChange={(e) => setCategory(e.target.value)} className="h-7 text-xs rounded-lg bg-secondary border border-border/50 px-2 text-foreground">
           {EXPENSE_CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.emoji} {c.label}</option>)}
         </select>
-        <button onClick={save} className="p-1 rounded hover:bg-income/20 text-income"><Check className="w-3.5 h-3.5" /></button>
-        <button onClick={() => setOpen(false)} className="p-1 rounded hover:bg-expense/20 text-expense"><X className="w-3.5 h-3.5" /></button>
+        <button onClick={save} aria-label="Salvar parcela" className="icon-action hover:bg-income/20 text-income"><Check className="w-3.5 h-3.5" /></button>
+        <button onClick={() => setOpen(false)} aria-label="Cancelar edição de parcela" className="icon-action hover:bg-expense/20 text-expense"><X className="w-3.5 h-3.5" /></button>
       </div>
     </div>
   );

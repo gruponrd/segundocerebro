@@ -1,8 +1,10 @@
-import { money } from "@/lib/planningTools";
+import { money, pendingPayments } from "@/lib/planningTools";
 import { useFinanceStore } from "@/stores/financeStore";
 import { DashboardHeader } from "@/components/DashboardHeader";
 import { GettingStarted } from "@/components/GettingStarted";
 import { QuickTools } from "@/components/QuickTools";
+import { ReorderControls } from "@/components/ReorderControls";
+import { DashboardDisclosure } from "@/components/DashboardDisclosure";
 import { DashboardOverview } from "@/components/DashboardOverview";
 import { BankCard } from "@/components/BankCard";
 import { AddBankCard } from "@/components/AddBankCard";
@@ -38,8 +40,8 @@ function SectionHead({
     <div className="mb-6">
       <div className="flex items-end justify-between gap-4">
         <div className="flex items-baseline gap-3 min-w-0">
-          <span aria-hidden className="h-2 w-2 shrink-0 rounded-full bg-primary" />
-          <span className="label-mono shrink-0 text-primary">{index}</span>
+
+          <span className="sr-only">Seção {index}</span>
           <div className="min-w-0">
             <h2 className="font-display text-base sm:text-lg font-semibold tracking-tight text-foreground truncate">
               {title}
@@ -72,6 +74,14 @@ const ORDER_KEY = "dash-section-order-v1";
 
 const Index = () => {
   const store = useFinanceStore();
+  const payments = pendingPayments(store.currentCashflow, store.banks);
+  const pendingTotal = payments.reduce((sum, item) => sum + Math.round(item.amount * 100), 0) / 100;
+  const overdueCount = payments.filter(item => item.overdue).length;
+  const nextDue = payments.filter(item => !item.overdue && item.dueDate).sort((a, b) => a.dueDate!.localeCompare(b.dueDate!))[0]?.dueDate;
+  const pendingDescription = payments.length
+    ? `${payments.length} ${payments.length === 1 ? "pendência" : "pendências"} · ${money(pendingTotal)}${nextDue ? ` · Próximo vencimento ${new Date(`${nextDue}T00:00:00`).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}` : " · Sem próximo vencimento informado"}`
+    : "Nenhuma pendência registrada neste período · Veja seus objetivos";
+  const [reorderMessage, setReorderMessage] = useState("");
   const [showCancelled, setShowCancelled] = useState(false);
   const [dragBankId, setDragBankId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
@@ -119,19 +129,7 @@ const Index = () => {
         title: "Panorama",
         node: (
           <>
-            <SectionHead index="01" title="Panorama financeiro" subtitle="Histórico, projeções e composição das dívidas" />
-            <HeroChart
-              cashflowMonths={store.cashflowMonths}
-              totalDebt={store.totalDebt}
-              totalExpense={store.totalExpense}
-              expectedBalance={store.expectedBalance}
-              savingsGoalMonth={store.savingsGoalMonth}
-              onSavingsGoalChange={store.setSavingsGoalMonth}
-              selectedMonth={store.selectedMonth}
-              banks={store.banks}
-              creditors={store.creditors}
-              cardExpensesForMonth={store.cardExpensesForMonth}
-            />
+            <SectionHead index="01" title="Detalhamento mensal" subtitle="Recebimentos e pagamentos do período selecionado" />
             <div className="mt-6"><MonthlyCashflowChart key={`${store.currentCashflow.month}-${store.currentCashflow.year}`} /></div>
           </>
         ),
@@ -182,12 +180,12 @@ const Index = () => {
                   <p className="text-money text-lg text-income">{money(store.totalIncome)}</p>
                 </div>
                 <div>
-                  <p className="label-mono">Despesas</p>
+                  <p className="label-mono">Saídas totais</p>
                   <p className="text-money text-lg text-expense">{money(store.totalExpense)}</p>
                 </div>
                 <div>
-                  <p className="label-mono">Cartão</p>
-                  <p className="text-money text-lg text-expense">{money(store.cardExpensesForMonth)}</p>
+                  <p className="label-mono">Em cartões</p>
+                  <p className="text-money text-lg text-expense">{money(store.cardExpensesForMonth)}</p><p className="text-xs text-muted-foreground mt-1">Incluídos nas saídas totais</p>
                 </div>
                 <div>
                   <p className="label-mono">Saldo final</p>
@@ -207,7 +205,7 @@ const Index = () => {
             <SectionHead
               index="04"
               title="Cartões de Crédito"
-              subtitle="Saldo usado calculado automaticamente pelas parcelas • arraste para reordenar"
+              subtitle="Saldo usado calculado pelas parcelas · reordene pelas setas ou arraste"
               action={
                 cancelledBanks.length > 0 ? (
                   <button
@@ -220,24 +218,26 @@ const Index = () => {
                 ) : undefined
               }
             />
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 stagger-children">
+            <div className="dashboard-card-grid grid gap-4 stagger-children">
               {activeBanks.map((bank, i) => (
                 <div
                   key={bank.id}
                   draggable
-                  onDragStart={() => setDragBankId(bank.id)}
+                  onDragStart={(e) => { e.stopPropagation(); setDragBankId(bank.id); }}
                   onDragEnd={() => { setDragBankId(null); setDragOverId(null); }}
                   onDragOver={(e) => { e.preventDefault(); if (dragBankId && dragBankId !== bank.id) setDragOverId(bank.id); }}
                   onDragLeave={() => setDragOverId((cur) => (cur === bank.id ? null : cur))}
                   onDrop={(e) => {
                     e.preventDefault();
-                    if (dragBankId && dragBankId !== bank.id) store.moveBank(dragBankId, bank.id);
+                    if (dragBankId && dragBankId !== bank.id) { store.moveBank(dragBankId, bank.id); setReorderMessage("Ordem dos cartões atualizada."); }
+                    e.stopPropagation();
                     setDragBankId(null); setDragOverId(null);
                   }}
                   className={`transition-all duration-200 ${
                     dragBankId === bank.id ? "opacity-40 scale-[0.97]" : ""
                   } ${dragOverId === bank.id ? "ring-2 ring-primary/60 ring-offset-2 ring-offset-background rounded-3xl" : ""}`}
                 >
+                  <div className="flex justify-end mb-2"><ReorderControls label={`cartão ${bank.name}`} index={i} total={activeBanks.length} onMove={(direction) => { store.moveBank(bank.id, activeBanks[i + direction].id); setReorderMessage(`${bank.name} movido para a posição ${i + direction + 1} de ${activeBanks.length}.`); }} /></div>
                   <BankCard
                     bank={bank}
                     index={i}
@@ -331,7 +331,7 @@ const Index = () => {
         }}
       />
 
-      <div className="mx-auto max-w-[1440px] px-4 py-7 pb-28 sm:px-8 lg:px-12 md:pb-16">
+      <div className="page-container dashboard-page">
         <DashboardHeader
           totalDebt={store.totalDebt}
           expectedBalance={store.expectedBalance}
@@ -342,10 +342,30 @@ const Index = () => {
           cashflowMonths={store.cashflowMonths}
         />
 
+        <p role="status" aria-live="polite" aria-atomic="true" className="sr-only">{reorderMessage}</p>
+        <DashboardOverview section="balance" />
+        <section aria-labelledby="first-panorama-title" className="dashboard-first-panorama">
+          <h2 id="first-panorama-title" className="mb-3 text-base font-medium">Panorama financeiro</h2>
+          <HeroChart
+            cashflowMonths={store.cashflowMonths}
+            totalDebt={store.totalDebt}
+            totalExpense={store.totalExpense}
+            expectedBalance={store.expectedBalance}
+            savingsGoalMonth={store.savingsGoalMonth}
+            onSavingsGoalChange={store.setSavingsGoalMonth}
+            selectedMonth={store.selectedMonth}
+            banks={store.banks}
+            creditors={store.creditors}
+            cardExpensesForMonth={store.cardExpensesForMonth}
+          />
+        </section>
+        <DashboardDisclosure title="Vencimentos e objetivos" description={pendingDescription} status={overdueCount ? `${overdueCount} em atraso` : undefined}>
+          <DashboardOverview section="priorities" />
+        </DashboardDisclosure>
         <GettingStarted />
-        <DashboardOverview />
         <QuickTools />
 
+        <DashboardDisclosure title="Relatórios e detalhes" description="Cobertura, fluxo, cartões, parcelas e análises completas">
         {/* Layout controls */}
         <div className="flex flex-wrap items-center justify-end gap-2 mb-6">
           {editLayout && (
@@ -371,12 +391,12 @@ const Index = () => {
 
         {editLayout && (
           <p className="text-xs text-muted-foreground mb-4">
-            Arraste as seções pela alça para reorganizar o dashboard. A ordem é salva automaticamente.
+            Use as setas ou arraste as seções para reorganizar. A ordem é salva neste navegador.
           </p>
         )}
 
-        <div className="space-y-10">
-          {order.map((id) => {
+        <div className="space-y-8">
+          {order.map((id, sectionIndex) => {
             const section = sections[id];
             if (!section) return null;
             return (
@@ -394,19 +414,19 @@ const Index = () => {
                 onDrop={(e) => {
                   if (!editLayout) return;
                   e.preventDefault();
-                  if (dragSection && dragSection !== id) moveSection(dragSection, id);
+                  if (dragSection && dragSection !== id) { moveSection(dragSection, id); setReorderMessage("Ordem das seções atualizada."); }
                   setDragSection(null); setOverSection(null);
                 }}
                 className={`relative transition-all duration-200 ${
-                  editLayout ? "rounded-2xl border border-dashed border-border/70 p-4 pt-10" : ""
+                  editLayout ? "rounded-2xl border border-dashed border-border/70 p-4 pt-16" : ""
                 } ${dragSection === id ? "opacity-40 scale-[0.99]" : ""} ${
                   overSection === id ? "border-foreground/60 ring-1 ring-foreground/30" : ""
                 }`}
               >
                 {editLayout && (
-                  <div className="absolute top-2 left-3 flex items-center gap-1.5 cursor-grab active:cursor-grabbing select-none">
-                    <GripVertical className="w-3.5 h-3.5 text-muted-foreground" />
-                    <span className="label-mono">{section.title}</span>
+                  <div className="absolute top-2 left-3 right-3 flex items-center justify-between gap-2">
+                    <span className="flex items-center gap-1.5 min-w-0 text-xs text-muted-foreground"><GripVertical aria-hidden className="w-3.5 h-3.5 shrink-0" /><span className="truncate">{section.title}</span></span>
+                    <ReorderControls label={`seção ${section.title}`} index={sectionIndex} total={order.length} onMove={(direction) => { moveSection(id, order[sectionIndex + direction]); setReorderMessage(`${section.title} movida para a posição ${sectionIndex + direction + 1} de ${order.length}.`); }} />
                   </div>
                 )}
                 {section.node}
@@ -414,6 +434,7 @@ const Index = () => {
             );
           })}
         </div>
+        </DashboardDisclosure>
       </div>
 
       <BankDetailSheet
