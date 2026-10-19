@@ -91,6 +91,39 @@ describe("isolamento financeiro por conta", () => {
     expect(result.current.banks[0].installments).toEqual(before.installments);
   });
 
+  it("navega até a última fatura e edita o mês certo mesmo depois de inserir meses anteriores", async () => {
+    const year = new Date().getFullYear();
+    const originalMonth = { month: "Outubro", year, incomes: [{ id: "original-income", label: "Original", amount: 1000, paid: true }], expenses: [] };
+    const installment = { id: "future-bill", description: "Compra", totalAmount: 100, installmentAmount: 100, currentInstallment: 1, totalInstallments: 1, dueDate: `${year + 2}-08-20`, status: "pendente" as const };
+    const bank = { id: "card", name: "Meu cartão", color: "bank-other", glowClass: "", limitTotal: 1000, limitUsed: 100, debtFinal: 100, status: "pendente", installments: [installment] };
+    mock.cloudData = { banks: [bank], cashflowMonths: [originalMonth] };
+    const { result } = renderHook(() => useFinanceStore(), { wrapper });
+    await waitFor(() => expect(result.current.cloudReady).toBe(true));
+
+    expect(result.current.cashflowMonths.at(-1)).toMatchObject({ month: "Agosto", year: year + 2 });
+    expect(JSON.parse(localStorage.getItem("fin_user_account-a")!).cashflowMonths.some((month: { year: number }) => month.year === year + 2)).toBe(false);
+    expect(mock.updates).not.toHaveBeenCalled();
+    expect(mock.inserts).not.toHaveBeenCalled();
+
+    act(() => result.current.setSelectedMonth(result.current.cashflowMonths.length - 1));
+    expect(result.current.cardExpensesForMonth).toBe(100);
+    act(() => result.current.addCashflowItem(result.current.selectedMonth, "incomes", "Entrada futura", 300));
+    expect(result.current.currentCashflow.incomes[0]).toMatchObject({ label: "Entrada futura", amount: 300 });
+
+    act(() => result.current.addInstallment("card", { ...installment, description: "Parcela antiga", dueDate: `${year - 1}-06-10` }));
+    expect(result.current.currentCashflow).toMatchObject({ month: "Agosto", year: year + 2 });
+    act(() => result.current.updateCashflowItem(result.current.selectedMonth, "incomes", 0, "Entrada revisada", 350));
+    act(() => result.current.toggleCashflowPaid(result.current.selectedMonth, "incomes", 0));
+    expect(result.current.currentCashflow.incomes[0]).toMatchObject({ label: "Entrada revisada", amount: 350, paid: true });
+    expect(result.current.cashflowMonths.find(month => month.month === "Outubro" && month.year === year)).toEqual(originalMonth);
+    const saved = JSON.parse(localStorage.getItem("fin_user_account-a")!);
+    expect(saved.cashflowMonths.find((month: { month: string; year: number }) => month.month === "Agosto" && month.year === year + 2).incomes[0]).toMatchObject({ label: "Entrada revisada", amount: 350, paid: true });
+    act(() => result.current.prevMonth());
+    expect(result.current.currentCashflow).toMatchObject({ month: "Julho", year: year + 2 });
+    act(() => result.current.nextMonth());
+    expect(result.current.currentCashflow).toMatchObject({ month: "Agosto", year: year + 2 });
+  });
+
   it("importa e desfaz somente o lote novo, preservando os lançamentos originais", async () => {
     const original = {month:"Outubro",year:2026,incomes:[],expenses:[{label:"Original",amount:20,paid:true}]};
     mock.cloudData = {cashflowMonths:[original]};

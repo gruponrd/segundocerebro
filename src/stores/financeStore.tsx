@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef, createContext, useContext, ty
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { cardSpendingForMonth, remainingBankDebt } from "@/lib/financeCalculations";
-import { mergeCashflowMonths } from "@/lib/cashflowMonths";
+import { cashflowPeriod, extendCashflowMonths, mergeCashflowMonths } from "@/lib/cashflowMonths";
 import { appendStatement, undoStatement, type StatementEntry } from "@/lib/statementImport";
 import { validateGoalPlan } from "@/lib/goalAllocation";
 import type { Json } from "@/integrations/supabase/types";
@@ -250,17 +250,23 @@ function useFinanceStoreInternal(): FinanceStore {
   const userId = user?.id ?? null;
   const [cloudLoading, setCloudLoading] = useState(true);
   const [banksRaw, setBanks] = useState<Bank[]>(DEFAULTS.banks);
-  const [cashflowMonths, setCashflowMonths] = useState<CashflowMonth[]>(DEFAULTS.cashflowMonths);
+  const [cashflowMonthsRaw, setCashflowMonthsRaw] = useState<CashflowMonth[]>(DEFAULTS.cashflowMonths);
+  const cashflowMonths = useMemo(() => extendCashflowMonths(cashflowMonthsRaw, banksRaw), [cashflowMonthsRaw, banksRaw]);
+  const setCashflowMonths = useCallback((update: (months: CashflowMonth[]) => CashflowMonth[]) => {
+    setCashflowMonthsRaw(previous => update(extendCashflowMonths(previous, banksRaw)));
+  }, [banksRaw]);
   const [creditors, setCreditors] = useState<Creditor[]>(DEFAULTS.creditors);
   const [goals, setGoals] = useState<Goal[]>(DEFAULTS.goals);
-  const [selectedMonth, setSelectedMonth] = useState(() => {
-    const MONTHS_PT = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+  const [selectedPeriod, setSelectedPeriod] = useState(() => {
     const now = new Date();
-    const idx = DEFAULTS.cashflowMonths.findIndex(
-      (m) => m.month === MONTHS_PT[now.getMonth()] && m.year === now.getFullYear()
-    );
-    return idx >= 0 ? idx : 0;
+    return now.getFullYear() * 12 + now.getMonth();
   });
+  const selectedIndex = cashflowMonths.findIndex(month => (cashflowPeriod(month) ?? -Infinity) >= selectedPeriod);
+  const selectedMonth = selectedIndex < 0 ? cashflowMonths.length - 1 : selectedIndex;
+  const setSelectedMonth = useCallback((index: number) => {
+    const period = cashflowMonths[index] && cashflowPeriod(cashflowMonths[index]);
+    if (period !== undefined) setSelectedPeriod(period);
+  }, [cashflowMonths]);
   const [selectedBankId, setSelectedBankId] = useState<BankId | null>(null);
   const [incomeSources, setIncomeSources] = useState<IncomeSource[]>(DEFAULTS.incomeSources);
   const [savingsGoalMonth, setSavingsGoalMonth] = useState(DEFAULTS.savingsGoalMonth);
@@ -288,7 +294,7 @@ function useFinanceStoreInternal(): FinanceStore {
 
   const applyData = useCallback((data: PersistedData) => {
     setBanks(data.banks);
-    setCashflowMonths(data.cashflowMonths);
+    setCashflowMonthsRaw(data.cashflowMonths);
     setCreditors(data.creditors);
     setGoals(data.goals);
     setIncomeSources(data.incomeSources);
@@ -300,7 +306,6 @@ function useFinanceStoreInternal(): FinanceStore {
     setLifeTasks(data.lifeTasks);
     setTransportEntries(data.transportEntries);
     setTransportBalance(data.transportBalance);
-    setSelectedMonth((month) => Math.min(month, data.cashflowMonths.length - 1));
   }, []);
 
   const retryCloudLoad = useCallback(() => setLoadNonce((nonce) => nonce + 1), []);
@@ -427,7 +432,7 @@ function useFinanceStoreInternal(): FinanceStore {
   // Save to localStorage on changes
   const getPersistedData = useCallback((): PersistedData => ({
     banks: banksRaw,
-    cashflowMonths,
+    cashflowMonths: cashflowMonthsRaw,
     creditors,
     goals,
     incomeSources,
@@ -439,7 +444,7 @@ function useFinanceStoreInternal(): FinanceStore {
     lifeTasks,
     transportEntries,
     transportBalance,
-  }), [banksRaw, cashflowMonths, creditors, goals, incomeSources, savingsGoalMonth, salary, monthlyHours, safetyMargin, lifeXp, lifeTasks, transportEntries, transportBalance]);
+  }), [banksRaw, cashflowMonthsRaw, creditors, goals, incomeSources, savingsGoalMonth, salary, monthlyHours, safetyMargin, lifeXp, lifeTasks, transportEntries, transportBalance]);
 
   // Keep a per-user local backup and serialize cloud writes with optimistic locking.
   useEffect(() => {
@@ -591,12 +596,12 @@ function useFinanceStoreInternal(): FinanceStore {
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
 
   const nextMonth = useCallback(() => {
-    setSelectedMonth((m) => Math.min(m + 1, cashflowMonths.length - 1));
-  }, [cashflowMonths.length]);
+    setSelectedMonth(Math.min(selectedMonth + 1, cashflowMonths.length - 1));
+  }, [cashflowMonths.length, selectedMonth, setSelectedMonth]);
 
   const prevMonth = useCallback(() => {
-    setSelectedMonth((m) => Math.max(m - 1, 0));
-  }, []);
+    setSelectedMonth(Math.max(selectedMonth - 1, 0));
+  }, [selectedMonth, setSelectedMonth]);
 
   const updateBankBalance = useCallback((_bankId: BankId, _newUsed: number) => {}, []);
 
@@ -611,7 +616,7 @@ function useFinanceStoreInternal(): FinanceStore {
         })
       );
     },
-    []
+    [setCashflowMonths]
   );
 
   const depositToGoal = useCallback((goalId: string, amount: number) => {
@@ -627,10 +632,10 @@ function useFinanceStoreInternal(): FinanceStore {
   const importStatement = useCallback((entries: StatementEntry[], batchId: string, paid: boolean) => {
     if (!batchId || entries.length > 1000) throw new Error("Importação inválida.");
     setCashflowMonths(prev => appendStatement(prev, entries, batchId, paid));
-  }, []);
+  }, [setCashflowMonths]);
   const undoStatementImport = useCallback((batchId: string) => {
     setCashflowMonths(prev => undoStatement(prev, batchId));
-  }, []);
+  }, [setCashflowMonths]);
   const saveGoalPlan = useCallback((budget: number, allocations: Record<string, number>) => {
     const error = validateGoalPlan(goals, budget, allocations);
     if (error) throw new Error(error);
@@ -645,7 +650,7 @@ function useFinanceStoreInternal(): FinanceStore {
         return { ...m, [type]: [...m[type], { label, amount, paid: false, category }] };
       })
     );
-  }, []);
+  }, [setCashflowMonths]);
 
   const removeCashflowItem = useCallback((monthIdx: number, type: "incomes" | "expenses", itemIdx: number) => {
     setCashflowMonths((prev) =>
@@ -655,7 +660,7 @@ function useFinanceStoreInternal(): FinanceStore {
         return { ...m, [type]: items };
       })
     );
-  }, []);
+  }, [setCashflowMonths]);
 
   const updateCashflowItem = useCallback((monthIdx: number, type: "incomes" | "expenses", itemIdx: number, label: string, amount: number, category?: string) => {
     setCashflowMonths((prev) =>
@@ -666,7 +671,7 @@ function useFinanceStoreInternal(): FinanceStore {
         return { ...m, [type]: items };
       })
     );
-  }, []);
+  }, [setCashflowMonths]);
 
   const setCashflowItemFixed = useCallback((monthIdx: number, type: "incomes" | "expenses", itemIdx: number, fixed: boolean) => {
     setCashflowMonths((prev) =>
@@ -677,7 +682,7 @@ function useFinanceStoreInternal(): FinanceStore {
         return { ...m, [type]: items };
       })
     );
-  }, []);
+  }, [setCashflowMonths]);
 
   const replicateFixedItem = useCallback((monthIdx: number, type: "incomes" | "expenses", itemIdx: number) => {
     setCashflowMonths((prev) => {
@@ -705,7 +710,7 @@ function useFinanceStoreInternal(): FinanceStore {
         return { ...m, [type]: [...m[type], newItem] };
       });
     });
-  }, []);
+  }, [setCashflowMonths]);
 
   const addCreditor = useCallback((name: string, totalDebt: number) => {
     setCreditors((prev) => [...prev, { id: `cr-${Date.now()}`, name, totalDebt, amountPaid: 0 }]);

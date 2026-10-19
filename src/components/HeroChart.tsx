@@ -10,7 +10,8 @@ import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { cardSpendingForMonth, remainingBankDebt, unpaidCardSpendingForMonth } from "@/lib/financeCalculations";
 import { compactReais, parseSavingsGoal } from "@/lib/dashboardPresentation";
 import { money } from "@/lib/planningTools";
-import { buildPanoramaSeries, panoramaTicks, periodLabel, YEAR_CUT } from "@/lib/panoramaSeries";
+import { buildPanoramaSeries, panoramaTicks, panoramaYearCuts, periodLabel } from "@/lib/panoramaSeries";
+import { cashflowPeriod } from "@/lib/cashflowMonths";
 
 const monthNameToIndex: Record<string, number> = {
   Janeiro: 0, Fevereiro: 1, "Março": 2, Abril: 3,
@@ -116,7 +117,10 @@ export function HeroChart({ showSavingsGoal = true, cashflowMonths, totalDebt, t
     return inc - exp - card;
   }, [cashflowMonths, selectedMonth, banks]);
 
-  const chartData = useMemo(() => buildPanoramaSeries(cashflowMonths, banks), [cashflowMonths, banks]);
+  const selectedChartPeriod = cashflowMonths[selectedMonth] ? cashflowPeriod(cashflowMonths[selectedMonth]) : undefined;
+  const chartData = useMemo(() => buildPanoramaSeries(cashflowMonths, banks, new Date(), selectedChartPeriod), [cashflowMonths, banks, selectedChartPeriod]);
+  const chartYearCuts = panoramaYearCuts(chartData);
+  const chartRange = `${chartData[0]?.month} a ${chartData.at(-1)?.month}`;
 
   const incomeColor = isMonochrome ? "hsl(0 0% 100%)" : "hsl(var(--income))";
   const expenseColor = isMonochrome ? "hsl(0 0% 60%)" : "hsl(var(--expense))";
@@ -302,7 +306,7 @@ export function HeroChart({ showSavingsGoal = true, cashflowMonths, totalDebt, t
               {cashflowMonths[selectedMonth]?.month.slice(0, 3)}/{cashflowMonths[selectedMonth]?.year}
             </span>
           </div>
-          <div key={selectedMonth} className="panorama-plot relative flex-1 min-h-[240px] animate-float-in" role="img" aria-label="Entradas e saídas até março de 2027, com corte após dezembro de 2026. Saídas incluem as parcelas dos cartões. Valores e hipóteses disponíveis na tabela abaixo.">
+          <div key={selectedMonth} className="panorama-plot relative flex-1 min-h-[240px] animate-float-in" role="img" aria-label={`Entradas e saídas de ${chartRange}: mês selecionado, seis anteriores e seis seguintes. Marcadores indicam a mudança de ano. Saídas incluem as parcelas dos cartões. Valores e hipóteses disponíveis na tabela abaixo.`}>
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
                 <defs>
@@ -325,12 +329,12 @@ export function HeroChart({ showSavingsGoal = true, cashflowMonths, totalDebt, t
                 <CartesianGrid strokeDasharray="3 3" stroke={isLight ? "hsl(240 5% 90%)" : isMonochrome ? "hsl(0 0% 18% / 0.5)" : "hsl(240 5% 18% / 0.5)"} />
                 <XAxis dataKey="period" type="number" domain={["dataMin", "dataMax"]} ticks={panoramaTicks(chartData)} tickFormatter={periodLabel} interval="preserveStartEnd" minTickGap={18} tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis width={58} tick={{ fill: isLight ? "hsl(240 5% 40%)" : isMonochrome ? "hsl(0 0% 55%)" : "hsl(240 5% 55%)", fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={compactReais} />
-                <ReferenceLine x={(cashflowMonths[selectedMonth]?.year ?? 2026) * 12 + (monthNameToIndex[cashflowMonths[selectedMonth]?.month] ?? 0)} stroke="hsl(var(--accent))" strokeOpacity={0.45} strokeDasharray="2 4" />
-                <ReferenceLine x={YEAR_CUT} stroke="hsl(var(--muted-foreground))" strokeWidth={1.5} strokeDasharray="5 4" label={{ value: "2027", position: "insideTopLeft", fill: "hsl(var(--foreground))", fontSize: 11 }} />
+                <ReferenceLine x={selectedChartPeriod} stroke="hsl(var(--accent))" strokeOpacity={0.45} strokeDasharray="2 4" />
+                {chartYearCuts.map(cut => <ReferenceLine key={cut.year} x={cut.period} stroke="hsl(var(--muted-foreground))" strokeWidth={1.5} strokeDasharray="5 4" label={{ value: String(cut.year), position: "insideTopLeft", fill: "hsl(var(--foreground))", fontSize: 11 }} />)}
                 <Tooltip
                   content={({ active, payload }) => {
                     const row = payload?.[0]?.payload;
-                    return active && row ? <div className="rounded-xl border border-border bg-popover px-3 py-2 text-xs text-foreground shadow-lg"><p className="text-muted-foreground">{row.month} · {row.estimated ? `Estimativa, base ${row.baseline}` : "Previsto nos lançamentos"}</p><p className="mt-1">Entradas: {money(row.entradas ?? row.future_entradas ?? 0)}</p><p>Saídas: {money(row.saidas ?? row.future_saidas ?? 0)}</p></div> : null;
+                    return active && row ? <div className="rounded-xl border border-border bg-popover px-3 py-2 text-xs text-foreground shadow-lg"><p className="text-muted-foreground">{row.month} · {row.estimated ? `Estimativa, base ${row.baseline}` : row.hasRecords ? "Previsto nos lançamentos" : "Sem lançamentos"}</p><p className="mt-1">Entradas: {money(row.entradas ?? row.future_entradas ?? 0)}</p><p>Saídas: {money(row.saidas ?? row.future_saidas ?? 0)}</p></div> : null;
                   }}
                 />
                 {/* Gradient area fills */}
@@ -350,11 +354,11 @@ export function HeroChart({ showSavingsGoal = true, cashflowMonths, totalDebt, t
             <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><span className="w-3 h-3 rounded-sm bg-expense inline-block shadow-[0_0_8px_hsl(0_72%_51%/0.6)]" /> Saídas</span>
             <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground"><span className="w-3 h-0.5 border-t-2 border-dashed border-muted-foreground inline-block" /> Projeção</span>
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">Até mar/2027 · Corte após dez/2026{chartData.some(point => point.estimated) ? " · 2027 estimado" : ""}</p>
+          <p className="mt-2 text-xs text-muted-foreground">{chartRange} · 6 meses antes e 6 depois</p>
           <details className="surplus-values mt-2 text-xs text-muted-foreground"><summary className="cursor-pointer">Ver entradas e saídas mensais</summary>
             <p className="mt-2 leading-5">Valores previstos, incluindo lançamentos pagos e pendentes. Saídas já incluem as parcelas dos cartões. O tracejado indica os próximos meses.</p>
-            {chartData.some(point => point.estimated) && <p className="mt-2 leading-5">Meses de 2027 sem lançamentos usam receitas e despesas manuais de {chartData.find(point => point.estimated)?.baseline}, mais as parcelas cadastradas para cada mês. Estimativa visual, sem criar ou alterar registros.</p>}
-            <table className="mt-2 w-full text-left"><caption className="sr-only">Entradas e saídas previstas por mês em reais</caption><thead><tr><th scope="col" className="py-2 font-medium">Mês</th><th scope="col" className="py-2 text-right font-medium">Entradas</th><th scope="col" className="py-2 text-right font-medium">Saídas</th></tr></thead><tbody>{chartData.map(point => <tr key={point.month} className="border-t border-border"><th scope="row" className="py-2 font-normal">{point.month}{point.estimated && <small className="block">Estimativa</small>}</th><td className="py-2 text-right tabular-nums">{money(point.entradas ?? point.future_entradas ?? 0)}</td><td className="py-2 text-right tabular-nums">{money(point.saidas ?? point.future_saidas ?? 0)}</td></tr>)}</tbody></table>
+            {chartData.some(point => point.estimated) && <p className="mt-2 leading-5">Meses futuros sem lançamentos usam receitas e despesas manuais de {chartData.find(point => point.estimated)?.baseline}, mais as parcelas cadastradas para cada mês. Estimativa visual, sem criar ou alterar registros. Meses passados sem lançamentos aparecem zerados.</p>}
+            <table className="mt-2 w-full text-left"><caption className="sr-only">Entradas e saídas previstas por mês em reais</caption><thead><tr><th scope="col" className="py-2 font-medium">Mês</th><th scope="col" className="py-2 text-right font-medium">Entradas</th><th scope="col" className="py-2 text-right font-medium">Saídas</th></tr></thead><tbody>{chartData.map(point => <tr key={point.month} className="border-t border-border"><th scope="row" className="py-2 font-normal">{point.month}{point.estimated ? <small className="block">Estimativa</small> : !point.hasRecords && <small className="block">Sem lançamentos</small>}</th><td className="py-2 text-right tabular-nums">{money(point.entradas ?? point.future_entradas ?? 0)}</td><td className="py-2 text-right tabular-nums">{money(point.saidas ?? point.future_saidas ?? 0)}</td></tr>)}</tbody></table>
           </details>
         </div>
 
