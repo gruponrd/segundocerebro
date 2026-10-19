@@ -5,6 +5,7 @@ import { AlertTriangle, CalendarClock, CreditCard, Wifi } from "lucide-react";
 import { getCardColor } from "@/data/cardColors";
 import { cardSpendingForMonth } from "@/lib/financeCalculations";
 import { cn } from "@/lib/utils";
+import { BankLogo } from "@/components/BankLogo";
 import type { Bank } from "@/data/financialData";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -47,7 +48,7 @@ function CardColumn({ bank }: { bank: Bank }) {
             <p className="text-[9px] uppercase tracking-[0.2em] opacity-60">Cartão</p>
             <h3 className="text-lg font-bold tracking-wide truncate">{bank.name}</h3>
           </div>
-          <Wifi className="w-4 h-4 opacity-40 rotate-90 shrink-0" />
+          {bank.logoDataUrl ? <BankLogo bank={bank} size="md" decorative /> : <Wifi className="w-4 h-4 opacity-40 rotate-90 shrink-0" />}
         </div>
 
         <div className="relative mt-3">

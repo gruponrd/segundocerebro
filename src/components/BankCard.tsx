@@ -4,12 +4,13 @@ import { AlertTriangle, Pencil, Check, X, Wifi } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { getCardColor } from "@/data/cardColors";
+import { BankLogo } from "@/components/BankLogo";
 
 interface BankCardProps {
   bank: Bank;
   index: number;
   onClick: () => void;
-  onUpdateBank?: (bankId: BankId, updates: Partial<Pick<Bank, "name" | "limitTotal" | "status">>) => void;
+  onUpdateBank?: (bankId: BankId, updates: Partial<Pick<Bank, "name" | "limitTotal" | "status" | "logoDataUrl">>) => void;
 }
 
 const statusLabels = {
@@ -105,7 +106,7 @@ export function BankCard({ bank, index, onClick, onUpdateBank }: BankCardProps) 
             >
               {statusLabels[bank.status]}
             </button>
-            <Wifi className="w-5 h-5 opacity-40 rotate-90" />
+            {bank.logoDataUrl ? <BankLogo bank={bank} size="sm" decorative /> : <Wifi className="w-5 h-5 opacity-40 rotate-90" />}
           </div>
         </div>
 

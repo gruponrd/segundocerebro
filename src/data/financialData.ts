@@ -3,6 +3,7 @@ export type BankId = string;
 export interface Bank {
   id: BankId;
   name: string;
+  logoDataUrl?: string;
   color: string;
   glowClass: string;
   limitTotal: number;

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EXPENSE_CATEGORIES, getCategory, suggestCategory } from "@/data/categories";
 import type { Bank, Installment } from "@/data/financialData";
+import { BankLogo } from "@/components/BankLogo";
 
 const MONTH_MAP: Record<string, number> = {
   "Janeiro": 1, "Fevereiro": 2, "Março": 3, "Abril": 4, "Maio": 5, "Junho": 6,
@@ -98,10 +99,14 @@ export function CardFlowHub() {
         {perCard.map(({ bank, items, total, open }) => (
           <div key={bank.id} className="rounded-lg bg-background/40 border border-border/20 p-2.5">
             <div className="flex items-center gap-2 mb-1.5">
-              <span
-                className="w-2.5 h-2.5 rounded-full shrink-0"
-                style={{ background: bank.color.startsWith("#") ? bank.color : `hsl(${bank.color})` }}
-              />
+              {bank.logoDataUrl ? (
+                <BankLogo bank={bank} size="sm" decorative />
+              ) : (
+                <span
+                  className="w-2.5 h-2.5 rounded-full shrink-0"
+                  style={{ background: bank.color.startsWith("#") ? bank.color : `hsl(${bank.color})` }}
+                />
+              )}
               <span className="text-xs font-semibold text-foreground truncate">{bank.name}</span>
               <span className="ml-auto text-xs text-money text-foreground">R$ {total.toLocaleString("pt-BR")}</span>
               {open > 0 && open !== total && (

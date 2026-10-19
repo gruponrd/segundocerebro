@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { type Bank, type Installment, type BankId } from "@/data/financialData";
 import { CardColorPicker } from "@/components/CardColorPicker";
+import { CardLogoField } from "@/components/CardLogoField";
+import { BankLogo } from "@/components/BankLogo";
 import { getCardColor } from "@/data/cardColors";
 import { cardSpendingForMonth, remainingInstallments } from "@/lib/financeCalculations";
 
@@ -16,7 +18,7 @@ interface BankDetailSheetProps {
   onUpdateInstallment: (bankId: BankId, installmentId: string, updates: Partial<Omit<Installment, "id">>) => void;
   onRemoveInstallment: (bankId: BankId, installmentId: string) => void;
   onAddInstallment: (bankId: BankId, inst: Omit<Installment, "id">) => void;
-  onUpdateBank?: (bankId: BankId, updates: Partial<Pick<Bank, "name" | "limitTotal" | "status" | "color" | "glowClass">>) => void;
+  onUpdateBank?: (bankId: BankId, updates: Partial<Pick<Bank, "name" | "limitTotal" | "status" | "color" | "glowClass" | "logoDataUrl">>) => void;
   onRemoveBank?: (bankId: BankId) => void;
 }
 
@@ -269,7 +271,7 @@ export function BankDetailSheet({ bank, open, onOpenChange, onUpdateInstallment,
               <p className="text-[10px] uppercase tracking-[0.2em] opacity-60">Cartão de crédito</p>
               <h2 className="text-xl font-bold tracking-wide">{bank.name}</h2>
             </div>
-            <Wifi className="w-5 h-5 opacity-40 rotate-90" />
+            {bank.logoDataUrl ? <BankLogo bank={bank} size="lg" decorative /> : <Wifi className="w-5 h-5 opacity-40 rotate-90" />}
           </div>
           <div className="relative">
             <div className="flex justify-between text-[10px] opacity-70 mb-1">
@@ -344,6 +346,13 @@ export function BankDetailSheet({ bank, open, onOpenChange, onUpdateInstallment,
         {onUpdateBank && (
           <div className="mt-5">
             <CardColorPicker value={bank.color} onChange={handleColorChange} />
+            <div className="mt-3">
+              <CardLogoField
+                bankName={bank.name}
+                value={bank.logoDataUrl}
+                onChange={(logoDataUrl) => onUpdateBank(bank.id, { logoDataUrl })}
+              />
+            </div>
           </div>
         )}
 

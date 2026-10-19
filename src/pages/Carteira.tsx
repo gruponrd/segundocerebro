@@ -12,6 +12,8 @@ import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { getCardColor } from "@/data/cardColors";
 import { AddBankCard } from "@/components/AddBankCard";
+import { BankLogo } from "@/components/BankLogo";
+import { CardLogoField } from "@/components/CardLogoField";
 import { AllCardsGrid } from "@/components/AllCardsGrid";
 import { PageHeader } from "@/components/PageHeader";
 import type { Bank } from "@/data/financialData";
@@ -226,12 +228,15 @@ function WalletCard({
                 {bank.installments.filter((i) => i.status !== "pago").length} parcelas ativas
               </p>
             </div>
-            <Badge
-              variant="outline"
-              className={cn("text-[9px] border-white/30", statusStyles[bank.status] || "")}
-            >
-              {statusLabels[bank.status] || bank.status}
-            </Badge>
+            <div className="flex flex-col items-end gap-2">
+              {bank.logoDataUrl && <BankLogo bank={bank} size="sm" decorative />}
+              <Badge
+                variant="outline"
+                className={cn("text-[9px] border-white/30", statusStyles[bank.status] || "")}
+              >
+                {statusLabels[bank.status] || bank.status}
+              </Badge>
+            </div>
           </div>
 
           <div className="relative z-10 flex items-center gap-2">
@@ -293,7 +298,7 @@ function WalletCard({
 }
 
 export default function CarteiraPage() {
-  const { banks, addBank } = useFinanceStore();
+  const { banks, addBank, updateBank } = useFinanceStore();
   const [activeIndex, setActiveIndex] = useState(0);
   const [view, setView] = useState<"carteira" | "todos">("carteira");
   const touchStartRef = useRef<number | null>(null);
@@ -483,7 +488,10 @@ export default function CarteiraPage() {
                 className="rounded-2xl bg-card/60 backdrop-blur border border-border/50 p-5 space-y-4"
                 style={{ animation: "float-in 0.4s ease-out" }}
               >
-                <h2 className="text-xl font-bold text-foreground">{activeBank.name}</h2>
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="min-w-0 truncate text-xl font-bold text-foreground">{activeBank.name}</h2>
+                  {activeBank.logoDataUrl && <BankLogo bank={activeBank} size="md" decorative />}
+                </div>
 
                 <div className="grid grid-cols-3 gap-3 text-center">
                   <div className="rounded-xl bg-background/50 p-3">
@@ -505,6 +513,12 @@ export default function CarteiraPage() {
                     </p>
                   </div>
                 </div>
+
+                <CardLogoField
+                  bankName={activeBank.name}
+                  value={activeBank.logoDataUrl}
+                  onChange={(logoDataUrl) => updateBank(activeBank.id, { logoDataUrl })}
+                />
 
                 {activeBank.installments.length > 0 && (
                   <div className="space-y-2">

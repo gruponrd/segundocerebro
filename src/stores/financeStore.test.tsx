@@ -64,6 +64,33 @@ describe("isolamento financeiro por conta", () => {
     expect(result.current.goals[0].savedAmount).toBe(123);
   });
 
+  it("salva o logo no mesmo cartão e preserva limites, parcelas e identificadores", async () => {
+    const original = {
+      id: "my-card",
+      name: "Meu cartão",
+      color: "bank-other",
+      glowClass: "",
+      limitTotal: 8000,
+      limitUsed: 1200,
+      debtFinal: 900,
+      status: "pendente",
+      installments: [{ id: "parcel-1", description: "Compra existente", totalAmount: 900, installmentAmount: 300, currentInstallment: 1, totalInstallments: 3, dueDate: "2026-10-20", status: "pendente" }],
+    };
+    mock.cloudData = { banks: [original] };
+    const { result } = renderHook(() => useFinanceStore(), { wrapper });
+    await waitFor(() => expect(result.current.cloudReady).toBe(true));
+    const before = result.current.banks[0];
+
+    const logoDataUrl = "data:image/png;base64,optimized-logo";
+    act(() => result.current.updateBank("my-card", { logoDataUrl }));
+    await waitFor(() => {
+      const saved = JSON.parse(localStorage.getItem("fin_user_account-a")!);
+      expect(saved.banks[0]).toEqual({ ...original, logoDataUrl });
+    });
+    expect(result.current.banks[0].limitUsed).toBe(before.limitUsed);
+    expect(result.current.banks[0].installments).toEqual(before.installments);
+  });
+
   it("importa e desfaz somente o lote novo, preservando os lançamentos originais", async () => {
     const original = {month:"Outubro",year:2026,incomes:[],expenses:[{label:"Original",amount:20,paid:true}]};
     mock.cloudData = {cashflowMonths:[original]};

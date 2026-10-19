@@ -10,10 +10,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { CardColorPicker } from "@/components/CardColorPicker";
+import { CardLogoField } from "@/components/CardLogoField";
 import { CARD_COLORS, getCardColor } from "@/data/cardColors";
 
 interface AddBankCardProps {
-  onAdd: (name: string, limitTotal: number, color: string, glowClass: string) => void;
+  onAdd: (name: string, limitTotal: number, color: string, glowClass: string, logoDataUrl?: string) => void;
 }
 
 export function AddBankCard({ onAdd }: AddBankCardProps) {
@@ -22,15 +23,17 @@ export function AddBankCard({ onAdd }: AddBankCardProps) {
   const [name, setName] = useState("");
   const [limit, setLimit] = useState("");
   const [colorId, setColorId] = useState(CARD_COLORS[0].id);
+  const [logoDataUrl, setLogoDataUrl] = useState<string | undefined>();
 
   const handleAdd = () => {
     const limitVal = parseFloat(limit);
     if (!name.trim() || isNaN(limitVal) || limitVal <= 0) return;
     const c = getCardColor(colorId);
-    onAdd(name.trim(), limitVal, c.id, c.glow);
+    onAdd(name.trim(), limitVal, c.id, c.glow, logoDataUrl);
     setName("");
     setLimit("");
     setColorId(CARD_COLORS[0].id);
+    setLogoDataUrl(undefined);
     setOpen(false);
   };
 
@@ -51,6 +54,7 @@ export function AddBankCard({ onAdd }: AddBankCardProps) {
         </DialogHeader>
         <div className="space-y-4 pt-2">
           <CardColorPicker value={colorId} onChange={(id) => setColorId(id)} label="Cor / bandeira do cartão" />
+          <CardLogoField bankName={name.trim() || "novo cartão"} value={logoDataUrl} onChange={setLogoDataUrl} />
           <div>
             <label htmlFor={`${inputId}-name`} className="text-xs text-muted-foreground mb-1 block">Nome do cartão</label>
             <Input

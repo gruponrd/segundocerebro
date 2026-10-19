@@ -98,9 +98,9 @@ export interface FinanceStore {
   addGoal: (title: string, targetAmount: number) => void;
   removeGoal: (id: string) => void;
   updateGoal: (id: string, updates: Partial<Pick<Goal, "title" | "targetAmount" | "image">>) => void;
-  updateBank: (bankId: BankId, updates: Partial<Pick<Bank, "name" | "limitTotal" | "status" | "color" | "glowClass">>) => void;
+  updateBank: (bankId: BankId, updates: Partial<Pick<Bank, "name" | "limitTotal" | "status" | "color" | "glowClass" | "logoDataUrl">>) => void;
   removeBank: (bankId: BankId) => void;
-  addBank: (name: string, limitTotal: number, color: string, glowClass: string) => void;
+  addBank: (name: string, limitTotal: number, color: string, glowClass: string, logoDataUrl?: string) => void;
   moveBank: (bankId: BankId, targetId: BankId) => void;
   addInstallment: (bankId: BankId, inst: Omit<import("@/data/financialData").Installment, "id">) => void;
   removeInstallment: (bankId: BankId, installmentId: string) => void;
@@ -741,7 +741,7 @@ function useFinanceStoreInternal(): FinanceStore {
     );
   }, []);
 
-  const updateBank = useCallback((bankId: BankId, updates: Partial<Pick<Bank, "name" | "limitTotal" | "status" | "color" | "glowClass">>) => {
+  const updateBank = useCallback((bankId: BankId, updates: Partial<Pick<Bank, "name" | "limitTotal" | "status" | "color" | "glowClass" | "logoDataUrl">>) => {
     setBanks((prev) => prev.map((b) => (b.id === bankId ? { ...b, ...updates } : b)));
   }, []);
 
@@ -749,10 +749,10 @@ function useFinanceStoreInternal(): FinanceStore {
     setBanks((prev) => prev.filter((b) => b.id !== bankId));
   }, []);
 
-  const addBank = useCallback((name: string, limitTotal: number, color: string, glowClass: string) => {
+  const addBank = useCallback((name: string, limitTotal: number, color: string, glowClass: string, logoDataUrl?: string) => {
     const id = `bank-${Date.now()}` as BankId;
     setBanks((prev) => [...prev, {
-      id, name, color, glowClass, limitTotal, limitUsed: 0, debtFinal: 0,
+      id, name, logoDataUrl, color, glowClass, limitTotal, limitUsed: 0, debtFinal: 0,
       status: "pendente" as const, installments: [],
     }]);
   }, []);
