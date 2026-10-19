@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/use-theme";
+import { LogoutButton } from "@/components/LogoutButton";
 
 const THEME_LABELS: Record<string, string> = {
   dark: "Escuro",
@@ -112,6 +113,7 @@ export function AppNav() {
           <span>{THEME_LABELS[theme]}</span>
           <Settings2 className="ml-auto h-3.5 w-3.5 opacity-50" />
         </button>
+        <LogoutButton />
       </div>
     </aside>
   );

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { openCommandMenu } from "@/lib/commandMenu";
 import { isDesignPreview } from "@/lib/previewMode";
+import { LogoutButton } from "@/components/LogoutButton";
 const labels = { dark:"Escuro", light:"Claro", monochrome:"P&B" };
 const mainTabs = [{to:"/",icon:LayoutDashboard,label:"Início",end:true},{to:"/fluxo",icon:ArrowLeftRight,label:"Fluxo"},{to:"/carteira",icon:Wallet,label:"Carteira"},{to:"/objetivos",icon:Target,label:"Objetivos"}];
 const moreTabs = [{to:"/renda",icon:DollarSign,label:"Renda"},{to:"/divida",icon:TrendingDown,label:"Dívidas"},{to:"/desejos",icon:Sparkles,label:"Desejos"},{to:"/trade",icon:TrendingUp,label:"Trade"},{to:"/lifegame",icon:Gamepad2,label:"LifeGame"},{to:"/ferramentas",icon:Calculator,label:"Ferramentas"},{to:"/integracoes",icon:Link2,label:"Integrações"}];
@@ -25,6 +26,7 @@ export function MobileNav() {
      <Button variant="outline" className="my-5 w-full justify-start" onClick={()=>{setOpen(false);openCommandMenu();}}><Search aria-hidden className="h-4 w-4" /> Buscar no app</Button>
      <div className="grid grid-cols-3 gap-2">{moreTabs.map(tab=><NavLink key={tab.to} to={tab.to} onClick={()=>setOpen(false)} className={({isActive})=>cn("flex min-h-20 flex-col items-center justify-center gap-2 rounded-xl text-xs",isActive?"bg-secondary text-accent":"text-muted-foreground hover:bg-secondary")}><tab.icon aria-hidden className="h-5 w-5" />{tab.label}</NavLink>)}{isDesignPreview&&<NavLink to="/acesso" onClick={()=>setOpen(false)} className="flex min-h-20 flex-col items-center justify-center gap-2 rounded-xl text-xs text-muted-foreground"><Brain aria-hidden className="h-5 w-5" />Ver login</NavLink>}</div>
      <Button variant="ghost" onClick={toggleTheme} className="mt-4 w-full justify-between border-t border-border pt-4"><span className="flex items-center gap-2"><ThemeIcon aria-hidden className="h-4 w-4" />Tema</span><span>{labels[theme]}</span></Button>
+     <LogoutButton mobile onSignedOut={()=>setOpen(false)} />
     </SheetContent>
    </Sheet>
   </div>
