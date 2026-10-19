@@ -4,6 +4,17 @@ import { buildBalanceProjection, parseSavingsGoal } from "./dashboardPresentatio
 const month = (name: string, income: number, expense = 0, year = 2026): CashflowMonth => ({ month: name, year, incomes: [{ label: "Receita prevista", amount: income }], expenses: [{ label: "Despesa", amount: expense, paid: true }] });
 const card: Bank = { id: "test", name: "Teste", color: "", glowClass: "", limitTotal: 1000, limitUsed: 100, debtFinal: 100, status: "pendente", installments: [{ id: "i", description: "Compra", totalAmount: 100, installmentAmount: 100, currentInstallment: 1, totalInstallments: 1, dueDate: "2026-12-10", status: "pago" }] };
 describe("projeção do dashboard sem alterar lançamentos", () => {
+  it("permite escolher o prazo, preserva centavos e limita horizontes inválidos", () => {
+    const months = [month("Dezembro", 100.10, 10)];
+    expect(buildBalanceProjection(months, [], 0, 0)).toHaveLength(1);
+    const rows = buildBalanceProjection(months, [], 0, 3);
+    expect(rows).toHaveLength(4);
+    expect(rows[3]).toMatchObject({ forecast: 360.4, source: "Média estimada" });
+    expect(rows[3].label).toContain("27");
+    expect(buildBalanceProjection(months, [], 0, -1)).toHaveLength(1);
+    expect(buildBalanceProjection(months, [], 0, 1000)).toHaveLength(37);
+    expect(buildBalanceProjection(months, [], 0, NaN)).toHaveLength(7);
+  });
   it("parte do período selecionado, usa registros futuros e estima apenas lacunas", () => {
     const months = [month("Novembro", 1000, 200), month("Dezembro", 2000, 200), month("Janeiro", 4000, 1000, 2027)];
     const before = JSON.stringify({ months, card });

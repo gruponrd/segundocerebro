@@ -19,6 +19,7 @@ import { FinancialHealthScore } from "@/components/FinancialHealthScore";
 import { IncomeCoverage } from "@/components/IncomeCoverage";
 import { AnnualSubscriptionsCard } from "@/components/AnnualSubscriptionsCard";
 import { BalanceProjectionChart } from "@/components/BalanceProjectionChart";
+import { SurplusForecastCard } from "@/components/SurplusForecastCard";
 import { CashflowSankey } from "@/components/CashflowSankey";
 import { EyeOff, Eye, ArrowRight, GripVertical, LayoutGrid, RotateCcw, Lock } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -360,6 +361,7 @@ const Index = () => {
             cardExpensesForMonth={store.cardExpensesForMonth}
           />
         </section>
+        <SurplusForecastCard />
         <DashboardDisclosure title="Vencimentos e objetivos" description={pendingDescription} status={overdueCount ? `${overdueCount} em atraso` : undefined}>
           <DashboardOverview section="priorities" />
         </DashboardDisclosure>

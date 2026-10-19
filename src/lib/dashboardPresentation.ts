@@ -20,7 +20,7 @@ export interface ProjectionPoint {
 }
 
 /** Display-only forecast. Starts at zero, never treats planned entries as a bank balance. */
-export function buildBalanceProjection(months: CashflowMonth[], banks: Bank[], selectedIndex: number): ProjectionPoint[] {
+export function buildBalanceProjection(months: CashflowMonth[], banks: Bank[], selectedIndex: number, horizon = 6): ProjectionPoint[] {
   const selected = months[selectedIndex];
   if (!selected || !monthNumber(selected.month)) return [];
   const selectedPeriod = selected.year * 12 + monthNumber(selected.month) - 1;
@@ -46,7 +46,8 @@ export function buildBalanceProjection(months: CashflowMonth[], banks: Bank[], s
   points[points.length - 1].forecast = accumulated / 100;
   const recent = history.slice(-3);
   const average = Math.round(recent.reduce((sum, row) => sum + row.net, 0) / recent.length);
-  for (let offset = 1; offset <= 6; offset++) {
+  const safeHorizon = Number.isFinite(horizon) ? Math.min(36, Math.max(0, Math.floor(horizon))) : 6;
+  for (let offset = 1; offset <= safeHorizon; offset++) {
     const period = selectedPeriod + offset;
     const record = registered.find(row => row.period === period);
     const scheduledCards = Math.round(cardSpendingForMonth(banks, period % 12 + 1, Math.floor(period / 12)) * 100);
