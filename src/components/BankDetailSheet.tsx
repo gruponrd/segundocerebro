@@ -1,3 +1,4 @@
+import { CardPurchaseButton } from "@/components/CardPurchaseForm";
 import { useMemo, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
@@ -126,6 +127,7 @@ function EditableInstallment({ inst, bankId, onUpdate, onRemove, onDuplicate }: 
         </div>
       </div>
 
+      {inst.totalInstallments > inst.currentInstallment && <div className="mt-3"><CardPurchaseButton bankId={bankId} source={inst} /></div>}
       <div className="mt-3 flex items-end justify-between gap-3">
         <div className="flex-1">
           <div className="h-1.5 bg-secondary rounded-full overflow-hidden">
@@ -140,50 +142,6 @@ function EditableInstallment({ inst, bankId, onUpdate, onRemove, onDuplicate }: 
           <p className="text-base text-money font-bold text-foreground leading-tight">R$ {brl(inst.installmentAmount)}</p>
           <p className="text-[10px] text-muted-foreground">total R$ {brl(inst.totalAmount)}</p>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function AddInstallmentRow({ bankId, onAdd }: { bankId: BankId; onAdd: BankDetailSheetProps["onAddInstallment"] }) {
-  const [adding, setAdding] = useState(false);
-  const [desc, setDesc] = useState("");
-  const [amount, setAmount] = useState("");
-  const [totalAmt, setTotalAmt] = useState("");
-  const [totalInst, setTotalInst] = useState("12");
-  const [due, setDue] = useState("");
-
-  const handleAdd = () => {
-    const a = parseFloat(amount);
-    const t = parseFloat(totalAmt);
-    const ti = parseInt(totalInst);
-    if (desc.trim() && !isNaN(a) && !isNaN(t) && !isNaN(ti) && due) {
-      onAdd(bankId, { description: desc.trim(), installmentAmount: a, totalAmount: t, currentInstallment: 1, totalInstallments: ti, dueDate: due, status: "pendente" });
-      setDesc(""); setAmount(""); setTotalAmt(""); setTotalInst("12"); setDue("");
-      setAdding(false);
-    }
-  };
-
-  if (!adding) return (
-    <button onClick={() => setAdding(true)} className="w-full flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors mt-3 py-2.5 rounded-xl border border-dashed border-border/60 hover:border-primary/40">
-      <Plus className="w-3.5 h-3.5" /> Adicionar parcela
-    </button>
-  );
-
-  return (
-    <div className="p-3 rounded-xl bg-secondary/30 space-y-2 mt-3">
-      <Input aria-label="Descrição da parcela" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Descrição" className="h-7 text-xs rounded-lg" autoFocus />
-      <div className="grid grid-cols-2 gap-2">
-        <Input type="number" aria-label="Valor da parcela em reais" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Valor parcela" className="h-7 text-xs rounded-lg" />
-        <Input type="number" aria-label="Valor total em reais" value={totalAmt} onChange={(e) => setTotalAmt(e.target.value)} placeholder="Valor total" className="h-7 text-xs rounded-lg" />
-      </div>
-      <div className="grid grid-cols-2 gap-2">
-        <Input type="number" aria-label="Quantidade de parcelas" value={totalInst} onChange={(e) => setTotalInst(e.target.value)} placeholder="Nº parcelas" className="h-7 text-xs rounded-lg" />
-        <Input type="date" aria-label="Vencimento da parcela" value={due} onChange={(e) => setDue(e.target.value)} className="h-7 text-xs rounded-lg" />
-      </div>
-      <div className="flex gap-1 justify-end">
-        <button onClick={handleAdd} aria-label="Salvar parcela" className="icon-action hover:bg-income/20 text-income"><Check className="w-3.5 h-3.5" /></button>
-        <button onClick={() => setAdding(false)} aria-label="Cancelar edição de parcela" className="icon-action hover:bg-expense/20 text-expense"><X className="w-3.5 h-3.5" /></button>
       </div>
     </div>
   );
@@ -388,7 +346,7 @@ export function BankDetailSheet({ bank, open, onOpenChange, onUpdateInstallment,
           ))}
         </div>
 
-        <AddInstallmentRow bankId={bank.id} onAdd={onAddInstallment} />
+        <CardPurchaseButton bankId={bank.id} />
 
         {onRemoveBank && (
           <div className="mt-8 pt-4 border-t border-border/30">

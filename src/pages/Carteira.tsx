@@ -1,3 +1,4 @@
+import { CardPurchaseButton } from "@/components/CardPurchaseForm";
 import { money } from "@/lib/planningTools";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useFinanceStore } from "@/stores/financeStore";
@@ -527,7 +528,7 @@ export default function CarteiraPage() {
                       {activeBank.installments.map((inst) => (
                         <div
                           key={inst.id}
-                          className="flex items-center justify-between rounded-lg bg-background/40 px-3 py-2 text-sm"
+                          className="flex flex-wrap gap-2 items-center justify-between rounded-lg bg-background/40 px-3 py-2 text-sm"
                         >
                           <span className="text-foreground truncate flex-1">
                             {inst.description}
@@ -538,6 +539,7 @@ export default function CarteiraPage() {
                           <span className="font-semibold text-foreground tabular-nums">
                             {money(inst.installmentAmount)}
                           </span>
+                          {inst.totalInstallments > inst.currentInstallment && <CardPurchaseButton bankId={activeBank.id} source={inst}>Gerar restantes</CardPurchaseButton>}
                           <Badge
                             variant="outline"
                             className={cn("ml-2 text-[9px]", statusStyles[inst.status] || "")}
@@ -550,6 +552,7 @@ export default function CarteiraPage() {
                   </div>
                 )}
 
+                <CardPurchaseButton bankId={activeBank.id} />
                 <DebitExpenseForm bankName={activeBank.name} />
               </div>
             )}

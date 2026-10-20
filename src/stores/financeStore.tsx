@@ -5,6 +5,7 @@ import { cardSpendingForMonth, remainingBankDebt } from "@/lib/financeCalculatio
 import { cashflowPeriod, extendCashflowMonths, mergeCashflowMonths } from "@/lib/cashflowMonths";
 import { appendStatement, undoStatement, type StatementEntry } from "@/lib/statementImport";
 import { validateGoalPlan } from "@/lib/goalAllocation";
+import { appendInstallmentBatch, type InstallmentDraft } from "@/lib/installmentPlan";
 import type { Json } from "@/integrations/supabase/types";
 import { isAccountPreview, isDesignPreview, isPreviewMode } from "@/lib/previewMode";
 import { createDesignPreviewData } from "@/lib/designPreviewData";
@@ -103,6 +104,7 @@ export interface FinanceStore {
   addBank: (name: string, limitTotal: number, color: string, glowClass: string, logoDataUrl?: string) => void;
   moveBank: (bankId: BankId, targetId: BankId) => void;
   addInstallment: (bankId: BankId, inst: Omit<import("@/data/financialData").Installment, "id">) => void;
+  addInstallmentBatch: (bankId: BankId, installments: InstallmentDraft[], source?: Installment) => void;
   removeInstallment: (bankId: BankId, installmentId: string) => void;
   updateInstallment: (bankId: BankId, installmentId: string, updates: Partial<Omit<import("@/data/financialData").Installment, "id">>) => void;
   setSavingsGoalMonth: (v: number) => void;
@@ -777,7 +779,7 @@ function useFinanceStoreInternal(): FinanceStore {
   const addInstallment = useCallback((bankId: BankId, inst: Omit<import("@/data/financialData").Installment, "id">) => {
     setBanks((prev) => prev.map((b) => {
       if (b.id !== bankId) return b;
-      const newInst = { ...inst, id: `${bankId}-${Date.now()}` };
+      const newInst = { ...inst, id: crypto.randomUUID() };
       return { ...b, installments: [...b.installments, newInst] };
     }));
   }, []);
@@ -787,6 +789,11 @@ function useFinanceStoreInternal(): FinanceStore {
       if (b.id !== bankId) return b;
       return { ...b, installments: b.installments.filter((i) => i.id !== installmentId) };
     }));
+  }, []);
+
+  const addInstallmentBatch = useCallback((bankId: BankId, installments: InstallmentDraft[], source?: Installment) => {
+    const prepared = installments.map(item => ({ ...item, id: crypto.randomUUID() }));
+    setBanks(previous => appendInstallmentBatch(previous, bankId, prepared, source));
   }, []);
 
   const updateInstallment = useCallback((bankId: BankId, installmentId: string, updates: Partial<Omit<import("@/data/financialData").Installment, "id">>) => {
@@ -850,7 +857,7 @@ function useFinanceStoreInternal(): FinanceStore {
     addCashflowItem, removeCashflowItem, updateCashflowItem, setCashflowItemFixed, replicateFixedItem,
     addCreditor, removeCreditor, updateCreditor,
     addGoal, removeGoal, updateGoal,
-    updateBank, removeBank, addBank, moveBank, addInstallment, removeInstallment, updateInstallment,
+    updateBank, removeBank, addBank, moveBank, addInstallment, addInstallmentBatch, removeInstallment, updateInstallment,
     setSavingsGoalMonth, addIncomeSource, removeIncomeSource, updateIncomeSource,
     salary, monthlyHours, hourlyRate, safetyMargin, dailySavings,
     phantomBalance, survivalDays,

@@ -1,0 +1,23 @@
+import { fireEvent, render, screen, cleanup } from "@testing-library/react";
+import { afterEach, expect, it, vi } from "vitest";
+const mocks = vi.hoisted(() => ({ add: vi.fn(), banks: [{ id: "card", name: "Meu cartão", status: "pendente", installments: [] }] }));
+vi.mock("@/stores/financeStore", () => ({ useFinanceStore: () => ({ banks: mocks.banks, addInstallmentBatch: mocks.add }) }));
+import { CardPurchaseForm } from "./CardPurchaseForm";
+afterEach(() => { cleanup(); mocks.add.mockClear(); });
+it("só grava depois da prévia e permite cancelar sem lançar parcelas", () => {
+  const done = vi.fn(); const cancel = vi.fn();
+  render(<CardPurchaseForm initialDate="2026-01-31" onDone={done} onCancel={cancel} />);
+  fireEvent.change(screen.getByLabelText("Descrição da compra"), { target: { value: "Notebook" } });
+  fireEvent.change(screen.getByLabelText("Valor por parcela (R$)"), { target: { value: "500" } });
+  fireEvent.change(screen.getByLabelText("Quantidade de parcelas"), { target: { value: "5" } });
+  fireEvent.click(screen.getByRole("button", { name: "Conferir parcelas" }));
+  expect(mocks.add).not.toHaveBeenCalled();
+  expect(screen.getByText("28/02/2026")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+  expect(cancel).toHaveBeenCalledOnce();
+  expect(mocks.add).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Criar 5 parcelas" }));
+  expect(mocks.add).toHaveBeenCalledOnce();
+  expect(mocks.add.mock.calls[0][1]).toHaveLength(5);
+  expect(done).toHaveBeenCalledOnce();
+});

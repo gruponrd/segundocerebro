@@ -14,6 +14,7 @@ export interface Bank {
 }
 
 export interface Installment {
+  purchaseId?: string;
   id: string;
   description: string;
   totalAmount: number;

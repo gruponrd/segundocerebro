@@ -37,10 +37,29 @@ vi.mock("@/integrations/supabase/client", () => ({
 
 import { FinanceProvider, useFinanceStore } from "./financeStore";
 import { parseStatementCsv, previewStatement, suggestMapping } from "@/lib/statementImport";
+import { buildPurchasePlan } from "@/lib/installmentPlan";
 
 const wrapper = ({ children }: { children: ReactNode }) => <FinanceProvider>{children}</FinanceProvider>;
 
 describe("isolamento financeiro por conta", () => {
+  it("salva um lote com identificadores únicos e impede que um segundo clique duplique a compra", async () => {
+    const original = { id: "old", description: "Original", installmentAmount: 80, totalAmount: 80, currentInstallment: 1, totalInstallments: 1, dueDate: "2026-10-10", status: "pago" };
+    mock.cloudData = { banks: [{ id: "card", name: "Meu cartão", status: "pendente", installments: [original] }], cashflowMonths: [] };
+    const { result } = renderHook(() => useFinanceStore(), { wrapper });
+    await waitFor(() => expect(result.current.cloudReady).toBe(true));
+    const plan = buildPurchasePlan({ description: "Nova compra", amount: 500, count: 5, amountMode: "installment", firstDueDate: "2026-10-31", category: "outros", purchaseId: "new-purchase" });
+    act(() => {
+      result.current.addInstallmentBatch("card", plan);
+      result.current.addInstallmentBatch("card", plan);
+    });
+    expect(result.current.banks[0].installments).toHaveLength(6);
+    expect(new Set(result.current.banks[0].installments.map(item => item.id)).size).toBe(6);
+    expect(result.current.banks[0].installments[0]).toEqual(original);
+    const first = result.current.banks[0].installments[1];
+    act(() => result.current.updateInstallment("card", first.id, { status: "pago" }));
+    expect(result.current.banks[0].installments.filter(item => item.status === "pago")).toHaveLength(2);
+    await waitFor(() => expect(JSON.parse(localStorage.getItem("fin_user_account-a")!).banks[0].installments).toHaveLength(6));
+  });
   beforeEach(() => {
     mock.userId = "account-a";
     mock.updates.mockClear();

@@ -1,3 +1,4 @@
+import { CardPurchaseButton } from "@/components/CardPurchaseForm";
 import { useState } from "react";
 import { Calendar, Pencil, Trash2, Check, X, Plus } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -137,63 +138,6 @@ function EditableInstallment({ item, onUpdate, onRemove }: {
   );
 }
 
-function AddInstallmentRow({ banks, onAdd }: { banks: { id: BankId; name: string }[]; onAdd: (bankId: BankId, inst: Omit<Installment, "id">) => void }) {
-  const [open, setOpen] = useState(false);
-  const [desc, setDesc] = useState("");
-  const [amount, setAmount] = useState("");
-  const [date, setDate] = useState("");
-  const [total, setTotal] = useState("12");
-  const [bankId, setBankId] = useState<BankId>(banks[0]?.id || "nubank");
-  const [category, setCategory] = useState("outros");
-
-  const save = () => {
-    const amt = parseFloat(amount);
-    const tot = parseInt(total);
-    if (!desc || isNaN(amt) || !date || isNaN(tot)) return;
-    onAdd(bankId, {
-      description: desc,
-      totalAmount: amt * tot,
-      installmentAmount: amt,
-      currentInstallment: 1,
-      totalInstallments: tot,
-      dueDate: date,
-      status: "pendente" as const,
-      category,
-    });
-    setDesc(""); setAmount(""); setDate(""); setTotal("12"); setCategory("outros");
-    setOpen(false);
-  };
-
-  if (!open) {
-    return (
-      <button onClick={() => setOpen(true)} className="w-full flex items-center justify-center gap-1.5 text-xs text-primary/70 hover:text-primary py-2 rounded-lg hover:bg-primary/5 transition-colors mt-2">
-        <Plus className="w-3.5 h-3.5" /> Adicionar parcela
-      </button>
-    );
-  }
-
-  return (
-    <div className="installment-editor p-3 rounded-xl bg-secondary/40 space-y-2 mt-2">
-      <div className="flex gap-2">
-        <Input aria-label="Descrição da parcela" value={desc} onChange={(e) => setDesc(e.target.value)} className="h-9 text-base min-w-0 flex-1" placeholder="Descrição" autoFocus />
-        <Input aria-label="Valor da parcela em reais" type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="h-7 text-xs w-20" placeholder="Valor" />
-      </div>
-      <div className="flex flex-wrap items-center gap-2">
-        <select aria-label="Cartão da parcela" value={bankId} onChange={(e) => setBankId(e.target.value as BankId)} className="h-7 text-xs rounded-lg bg-secondary border border-border/50 px-2 text-foreground">
-          {banks.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-        </select>
-        <Input aria-label="Vencimento da parcela" type="date" value={date} onChange={(e) => setDate(e.target.value)} className="h-7 text-xs w-32" />
-        <Input aria-label="Quantidade de parcelas" type="number" value={total} onChange={(e) => setTotal(e.target.value)} className="h-7 text-xs w-14" placeholder="Parcelas" />
-        <select aria-label="Categoria da parcela" value={category} onChange={(e) => setCategory(e.target.value)} className="h-7 text-xs rounded-lg bg-secondary border border-border/50 px-2 text-foreground">
-          {EXPENSE_CATEGORIES.map((c) => <option key={c.id} value={c.id}>{c.emoji} {c.label}</option>)}
-        </select>
-        <button onClick={save} aria-label="Salvar parcela" className="icon-action hover:bg-income/20 text-income"><Check className="w-3.5 h-3.5" /></button>
-        <button onClick={() => setOpen(false)} aria-label="Cancelar edição de parcela" className="icon-action hover:bg-expense/20 text-expense"><X className="w-3.5 h-3.5" /></button>
-      </div>
-    </div>
-  );
-}
-
 export function InstallmentTimeline({ installments, onUpdate, onRemove, onAdd, banks }: InstallmentTimelineProps) {
   const currentMonthItems = filterCurrentMonth(installments);
   const grouped = groupByMonth(currentMonthItems);
@@ -219,7 +163,7 @@ export function InstallmentTimeline({ installments, onUpdate, onRemove, onAdd, b
       </div>
 
       {onAdd && banks && banks.length > 0 && (
-        <AddInstallmentRow banks={banks} onAdd={onAdd} />
+        <CardPurchaseButton />
       )}
     </div>
   );

@@ -1,3 +1,4 @@
+import { CardPurchaseForm } from "@/components/CardPurchaseForm";
 import { Plus, Check, X, CreditCard, ArrowUp, ArrowDown } from "lucide-react";
 import { useState, useEffect } from "react";
 import {
@@ -9,7 +10,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useFinanceStore } from "@/stores/financeStore";
 import { toast } from "@/hooks/use-toast";
 import { EXPENSE_CATEGORIES, suggestCategory, getCategory } from "@/data/categories";
@@ -52,12 +52,7 @@ export function ExpenseFAB() {
   const [label, setLabel] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState<string>("outros");
-  // card-specific
-  const [bankId, setBankId] = useState<string>("");
-  const [parcels, setParcels] = useState("1");
-  const [firstDate, setFirstDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
-
-  const { selectedMonth, setSelectedMonth, cashflowMonths, addCashflowItem, banks, addInstallment } = useFinanceStore();
+  const { selectedMonth, setSelectedMonth, cashflowMonths, addCashflowItem } = useFinanceStore();
 
   useEffect(() => {
     const show = () => setOpen(true);
@@ -75,8 +70,6 @@ export function ExpenseFAB() {
 
   const reset = () => {
     setType(null); setLabel(""); setAmount(""); setCategory("outros");
-    setBankId(""); setParcels("1");
-    setFirstDate(new Date().toISOString().slice(0, 10));
   };
 
   const handleAddSimple = () => {
@@ -94,32 +87,6 @@ export function ExpenseFAB() {
     toast({
       title: "Adicionado",
       description: `${type === "expense" ? cat.emoji + " " : ""}${label} • R$ ${val.toLocaleString("pt-BR")}`,
-    });
-  };
-
-  const handleAddCard = () => {
-    const total = parseFloat(amount);
-    const n = Math.max(1, parseInt(parcels) || 1);
-    if (!label.trim() || isNaN(total) || total <= 0 || !bankId || !firstDate) return;
-    const per = +(total / n).toFixed(2);
-    const base = new Date(firstDate + "T00:00:00");
-    for (let i = 0; i < n; i++) {
-      const d = new Date(base.getFullYear(), base.getMonth() + i, base.getDate());
-      addInstallment(bankId, {
-        description: label.trim(),
-        totalAmount: total,
-        installmentAmount: per,
-        currentInstallment: i + 1,
-        totalInstallments: n,
-        dueDate: d.toISOString().slice(0, 10),
-        status: "pendente",
-        category,
-      });
-    }
-    reset(); setOpen(false);
-    toast({
-      title: "Gasto no cartão registrado",
-      description: `${n}x de R$ ${per.toLocaleString("pt-BR")} • já descontado do saldo final do mês`,
     });
   };
 
@@ -153,47 +120,14 @@ export function ExpenseFAB() {
               <Button
                 variant="outline"
                 className="h-24 flex-col gap-2 rounded-xl border-primary/30 hover:bg-primary/10 hover:border-primary/50 text-primary"
-                onClick={() => { setType("card"); if (banks[0]) setBankId(banks[0].id); }}
+                onClick={() => setType("card")}
               >
                 <CreditCard className="w-5 h-5" />
                 <span className="text-xs">Cartão</span>
               </Button>
             </div>
           ) : type === "card" ? (
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">Compra no cartão — vira parcelas e desconta do saldo final do mês</p>
-              <Input aria-label="Descrição da compra" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Descrição (ex: Tênis Nike)" className="rounded-xl" autoFocus />
-              <div className="grid grid-cols-2 gap-2">
-                <Input aria-label="Valor total da compra" type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Valor total (R$)" className="rounded-xl" min={0} />
-                <Input aria-label="Quantidade de parcelas" type="number" value={parcels} onChange={(e) => setParcels(e.target.value)} placeholder="Parcelas (1 = à vista)" className="rounded-xl" min={1} max={48} />
-              </div>
-              <Select value={bankId} onValueChange={setBankId}>
-                <SelectTrigger aria-label="Cartão da compra" className="rounded-xl"><SelectValue placeholder="Cartão" /></SelectTrigger>
-                <SelectContent>
-                  {banks.map((b) => (
-                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">1ª parcela vence em</p>
-                <Input aria-label="Vencimento da primeira parcela" type="date" value={firstDate} onChange={(e) => setFirstDate(e.target.value)} className="rounded-xl" />
-              </div>
-              <CategoryPicker value={category} onChange={setCategory} />
-              {amount && parcels && (
-                <div className="text-xs text-muted-foreground bg-secondary/30 rounded-lg p-2">
-                  {parcels}x de <strong className="text-foreground">R$ {(parseFloat(amount || "0") / Math.max(1, parseInt(parcels) || 1)).toLocaleString("pt-BR", { maximumFractionDigits: 2 })}</strong> — descontado automaticamente do saldo final
-                </div>
-              )}
-              <div className="flex gap-2">
-                <Button className="flex-1 rounded-xl gap-2" onClick={handleAddCard}>
-                  <Check className="w-4 h-4" /> Adicionar
-                </Button>
-                <Button aria-label="Voltar à escolha de lançamento" variant="outline" className="rounded-xl" onClick={reset}>
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
+            <CardPurchaseForm onDone={() => { reset(); setOpen(false); }} onCancel={reset} />
           ) : (
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
