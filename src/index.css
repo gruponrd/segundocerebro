@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -181,12 +181,12 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Manrope', system-ui, sans-serif;
+    font-family: 'Roboto', system-ui, sans-serif;
     font-feature-settings: "ss01", "cv01";
   }
 
   h1, h2, h3, h4 {
-    font-family: 'Manrope', system-ui, sans-serif;
+    font-family: 'Roboto', system-ui, sans-serif;
     letter-spacing: -0.02em;
   }
 
@@ -258,7 +258,7 @@
 
   /* Small uppercase mono label for editorial section heads */
   .label-mono {
-    font-family: 'Manrope', system-ui, sans-serif;
+    font-family: 'Roboto', system-ui, sans-serif;
     @apply text-[10px] uppercase tracking-[0.22em] text-muted-foreground;
   }
 
@@ -325,14 +325,14 @@
   }
 
   .widget-value {
-    font-family: 'Manrope', system-ui, sans-serif;
+    font-family: 'Roboto', system-ui, sans-serif;
     letter-spacing: -0.04em;
     color: hsl(var(--widget-accent));
     text-shadow: 0 0 24px hsl(var(--widget-accent) / 0.35);
   }
 
   .widget-label {
-    font-family: 'Manrope', system-ui, sans-serif;
+    font-family: 'Roboto', system-ui, sans-serif;
     @apply text-[10px] uppercase tracking-[0.2em];
     color: hsl(var(--widget-line) / 0.55);
   }
@@ -363,7 +363,7 @@
   }
   .text-money {
     @apply font-medium tabular-nums tracking-tight;
-    font-family: 'Manrope', system-ui, sans-serif;
+    font-family: 'Roboto', system-ui, sans-serif;
   }
 
   .text-income {
@@ -766,7 +766,7 @@
 }
 
 .app-shell .font-display {
-  font-family: 'Manrope', system-ui, sans-serif;
+  font-family: 'Roboto', system-ui, sans-serif;
 }
 
 .app-shell .widget-sub {

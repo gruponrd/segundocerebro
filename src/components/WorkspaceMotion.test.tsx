@@ -49,3 +49,16 @@ it("skips motion when reduced motion is enabled and cancels it when the preferen
   page.unmount();
   expect(listeners.size).toBe(0);
 });
+
+it("reveals opened details without replacing their content and respects reduced motion", () => {
+  const page = render(<WorkspaceMotion><details><summary>Detalhes</summary><div><input aria-label="Detalhe preservado" defaultValue="Rascunho" /></div></details></WorkspaceMotion>);
+  const details = page.container.querySelector("details")!;
+  details.open = true;
+  fireEvent(details, new Event("toggle"));
+  expect(animate).toHaveBeenCalledOnce();
+  expect(screen.getByLabelText("Detalhe preservado")).toHaveValue("Rascunho");
+  reduced = true;
+  animate.mockClear();
+  fireEvent(details, new Event("toggle"));
+  expect(animate).not.toHaveBeenCalled();
+});

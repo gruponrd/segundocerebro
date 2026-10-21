@@ -15,14 +15,22 @@ export function WorkspaceMotion({ children }: { children: ReactNode }) {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
     const animations: Animation[] = [];
     const stop = () => animations.forEach(animation => animation.cancel());
+    const animate = (target: Element, keyframes: Keyframe[], duration: number) => {
+      if (reduced.matches || typeof target.animate !== "function") return;
+      animations.push(target.animate(keyframes, { duration, easing: "cubic-bezier(0.16, 1, 0.3, 1)" }));
+    };
+    const onToggle = (event: Event) => {
+      const details = event.target;
+      if (!(details instanceof HTMLDetailsElement) || !details.open) return;
+      const panel = details.querySelector(":scope > div");
+      if (panel) animate(panel, [{ opacity: 0.65, clipPath: "inset(0 0 8px 0)" }, { opacity: 1, clipPath: "inset(0)" }], 220);
+    };
+    const root = host.current;
+    root?.addEventListener("toggle", onToggle, true);
     reduced.addEventListener("change", stop);
     const frame = requestAnimationFrame(() => {
       const el = host.current;
       if (!el || reduced.matches || typeof el.animate !== "function") return;
-      const animate = (target: Element, keyframes: Keyframe[], duration: number) => {
-        const animation = target.animate(keyframes, { duration, easing: "cubic-bezier(0.16, 1, 0.3, 1)" });
-        animations.push(animation);
-      };
       if (old.pathname !== pathname) {
         // A short crossfade explains navigation without displacing text or focus.
         animate(el, [{ opacity: 0.88 }, { opacity: 1 }], 180);
@@ -39,6 +47,7 @@ export function WorkspaceMotion({ children }: { children: ReactNode }) {
     return () => {
       cancelAnimationFrame(frame);
       stop();
+      root?.removeEventListener("toggle", onToggle, true);
       reduced.removeEventListener("change", stop);
     };
   }, [pathname, selectedMonth]);
