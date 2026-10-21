@@ -16,7 +16,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ["Roboto", "system-ui", "sans-serif"],
-        display: ["Roboto Condensed", "Arial Narrow", "sans-serif"],
+        display: ["Roboto", "system-ui", "sans-serif"],
         mono: ["JetBrains Mono", "monospace"],
       },
       colors: {
