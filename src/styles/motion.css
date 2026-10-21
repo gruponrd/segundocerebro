@@ -1,67 +1,52 @@
-/* Operate motion: acknowledge the action, preserve the financial reading. */
+/* Shared motion: fast feedback, natural arrivals, shorter exits. */
 :root {
-  --motion-feedback: 120ms;
-  --motion-state: 220ms;
-  --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-feedback:140ms;
+  --motion-state:260ms;
+  --motion-exit:160ms;
+  --motion-ease:cubic-bezier(.22,1,.36,1);
 }
-.app-shell .motion-control,
-.app-shell .icon-action,
-.app-shell .workspace-search {
-  transition: color var(--motion-feedback) ease, background-color var(--motion-feedback) ease,
-    border-color var(--motion-feedback) ease, transform var(--motion-feedback) var(--motion-ease);
+.app-shell .app-sidebar nav a,.app-shell nav[aria-label] a {
+  transition:color 140ms ease,background-color 200ms ease,border-color 200ms ease;
 }
-.app-shell :is(.motion-control,.icon-action,.workspace-search):not(:disabled):active {
-  transform: scale(.98);
-}
-.app-shell .app-sidebar nav a,
-.app-shell nav[aria-label] a {
-  transition: color var(--motion-feedback) ease, background-color var(--motion-state) ease,
-    border-color var(--motion-state) ease;
-}
-.app-shell .dashboard-disclosure > summary > svg {
-  transition: transform var(--motion-state) var(--motion-ease);
-}
-.app-shell .dashboard-disclosure[open] > .disclosure-content {
-  animation: disclosure-unfold var(--motion-state) var(--motion-ease);
-}
-.app-shell [role="checkbox"][data-state="checked"] svg {
-  animation: selection-confirm 150ms var(--motion-ease);
-}
-.app-shell [role="progressbar"] > div {
-  transition: transform 300ms var(--motion-ease);
-}
-@keyframes disclosure-unfold {
-  from { clip-path: inset(0 0 12px 0); opacity:.8; }
-  to { clip-path: inset(0); opacity:1; }
-}
-@keyframes selection-confirm {
-  from { transform:scale(.75); }
-  to { transform:scale(1); }
-}
-@media (prefers-reduced-motion:reduce) {
-  .app-shell :is(.motion-control,.icon-action,.workspace-search):not(:disabled):active { transform:none; }
-  .app-shell .dashboard-disclosure[open] > .disclosure-content,
-  .app-shell [role="checkbox"][data-state="checked"] svg { animation:none; }
-  .app-shell .dashboard-disclosure > summary > svg,
-  .app-shell [role="progressbar"] > div { transition:none; }
-}
-
-/* Feedback stays local to the action; financial amounts always update immediately. */
+.app-shell .dashboard-disclosure > summary > svg { transition:transform var(--motion-state) var(--motion-ease); }
+.app-shell [role="progressbar"] > div { transition:transform 300ms var(--motion-ease); }
 @media (prefers-reduced-motion:no-preference) {
-  button:not(:disabled),a[role=button] {
-    transition:background-color 140ms ease,color 140ms ease,border-color 140ms ease,transform 120ms var(--motion-ease);
+  button:not(:disabled),a[role=button],.icon-action,.workspace-search {
+    transition:background-color 160ms ease,color 160ms ease,border-color 160ms ease,transform 160ms var(--motion-ease);
   }
-  button:not(:disabled):active,a[role=button]:active { transform:scale(.98); }
-  input,select,textarea { transition:border-color 160ms ease,box-shadow 160ms ease; }
-  .purchase-preview { animation:purchase-review-in 240ms var(--motion-ease); }
-  .app-shell .dashboard-disclosure[open] > .disclosure-content { animation:none; }
+  button:not(:disabled):active,a[role=button]:active { transform:scale(.985); transition-duration:90ms; }
+  input,select,textarea { transition:border-color 180ms ease,box-shadow 180ms ease; }
+  .motion-overlay[data-state="open"] { animation:overlay-arrive 220ms ease-out both; }
+  .motion-overlay[data-state="closed"] { animation:overlay-leave var(--motion-exit) ease-in both; }
+  .motion-dialog[data-state="open"] { animation:dialog-arrive var(--motion-state) var(--motion-ease) both; }
+  .motion-dialog[data-state="closed"] { animation:dialog-leave var(--motion-exit) ease-in both; }
+  .motion-sheet[data-state="open"] { animation-duration:320ms; animation-timing-function:var(--motion-ease); }
+  .motion-sheet[data-state="closed"] { animation-duration:200ms; animation-timing-function:ease-in; }
+  .motion-tab-panel[data-state="active"],.wallet-detail-panel,.purchase-preview { animation:panel-arrive 220ms var(--motion-ease) both; }
+  .app-shell [role="checkbox"][data-state="checked"] svg { animation:selection-confirm 160ms var(--motion-ease); }
+  /* Progressive enhancement: native semantics and immediate fallback in older engines. */
+  @supports (interpolate-size:allow-keywords) and (transition-behavior:allow-discrete) {
+    .dashboard-disclosure { interpolate-size:allow-keywords; }
+    .dashboard-disclosure::details-content {
+      block-size:0; overflow:clip;
+      transition:block-size var(--motion-state) var(--motion-ease),content-visibility var(--motion-state) allow-discrete;
+    }
+    .dashboard-disclosure[open]::details-content { block-size:auto; }
+  }
 }
-@keyframes purchase-review-in {
-  from { opacity:.6; clip-path:inset(0 0 12px 0); }
-  to { opacity:1; clip-path:inset(0); }
+@keyframes overlay-arrive { from {opacity:0} to {opacity:1} }
+@keyframes overlay-leave { from {opacity:1} to {opacity:0} }
+@keyframes dialog-arrive {
+  from { opacity:0; transform:translate(-50%,calc(-50% + 6px)) scale(.985); }
+  to { opacity:1; transform:translate(-50%,-50%) scale(1); }
 }
+@keyframes dialog-leave {
+  from { opacity:1; transform:translate(-50%,-50%) scale(1); }
+  to { opacity:0; transform:translate(-50%,calc(-50% + 3px)) scale(.99); }
+}
+@keyframes panel-arrive { from {opacity:.7;transform:translateY(3px)} to {opacity:1;transform:translateY(0)} }
+@keyframes selection-confirm { from {transform:scale(.8)} to {transform:scale(1)} }
 @media (prefers-reduced-motion:reduce) {
   button:not(:disabled):active,a[role=button]:active { transform:none; }
-  .purchase-preview { animation:none; }
-  *,*::before,*::after { animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; scroll-behavior:auto!important; }
+  *,*::before,*::after { animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important; }
 }

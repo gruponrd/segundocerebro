@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 const state = vi.hoisted(() => ({ pathname: "/", selectedMonth: 9 }));
 vi.mock("react-router-dom", () => ({ useLocation: () => ({ pathname: state.pathname }) }));
@@ -27,7 +27,7 @@ it("animates the two new-period plots together and cancels interrupted motion wi
   state.selectedMonth++;
   page.rerender(<WorkspaceMotion>{content}</WorkspaceMotion>);
   expect(animate).toHaveBeenCalledTimes(3);
-  expect(animate.mock.calls[0][1]).toMatchObject({ duration: 320 });
+  expect(animate.mock.calls[0][1]).toMatchObject({ duration: 260 });
   state.pathname = "/fluxo";
   page.rerender(<WorkspaceMotion>{content}</WorkspaceMotion>);
   expect(cancel).toHaveBeenCalledTimes(3);
@@ -61,4 +61,32 @@ it("reveals opened details without replacing their content and respects reduced 
   animate.mockClear();
   fireEvent(details, new Event("toggle"));
   expect(animate).not.toHaveBeenCalled();
+});
+
+it("waits for lazy route content and abandons interrupted navigation", async () => {
+  const page = render(<WorkspaceMotion>{content}</WorkspaceMotion>);
+  state.pathname = "/carteira";
+  page.rerender(<WorkspaceMotion><div className="workspace-route-loading">Carregando</div></WorkspaceMotion>);
+  expect(animate).not.toHaveBeenCalled();
+  page.rerender(<WorkspaceMotion><div>Página pronta</div></WorkspaceMotion>);
+  await waitFor(() => expect(animate).toHaveBeenCalledOnce());
+  animate.mockClear();
+  state.pathname = "/fluxo";
+  page.rerender(<WorkspaceMotion><div className="workspace-route-loading">Carregando</div></WorkspaceMotion>);
+  page.unmount();
+  await Promise.resolve();
+  expect(animate).not.toHaveBeenCalled();
+  expect(listeners.size).toBe(0);
+});
+
+it("cancels the previous disclosure motion on close and on repeated opening", () => {
+  const page = render(<WorkspaceMotion><details><summary>Abrir</summary><div>Conteúdo</div></details></WorkspaceMotion>);
+  const details = page.container.querySelector("details")!;
+  details.open = true;
+  fireEvent(details, new Event("toggle"));
+  fireEvent(details, new Event("toggle"));
+  expect(cancel).toHaveBeenCalledOnce();
+  details.open = false;
+  fireEvent(details, new Event("toggle"));
+  expect(cancel).toHaveBeenCalledTimes(2);
 });

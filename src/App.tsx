@@ -124,7 +124,7 @@ function AppRoutes() {
         <div id="workspace-content" tabIndex={-1}>
         <WorkspaceMotion>
         <RouteRecovery>
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Carregando página...</div>}>
+        <Suspense fallback={<div className="workspace-route-loading min-h-screen flex items-center justify-center">Carregando página...</div>}>
           <Routes>
             {isDesignPreview && <Route path="/acesso" element={<AuthPage />} />}
             <Route path="/" element={<Index />} />

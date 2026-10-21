@@ -196,7 +196,7 @@ function WalletCard({
         transform: `translateX(-50%) translateY(${peekOffset}px) scale(${scaleVal})`,
         zIndex,
         filter: `blur(${blurVal}px)`,
-        transition: "transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), filter 0.5s ease",
+        transition: "transform 380ms cubic-bezier(0.22, 1, 0.36, 1), filter 240ms ease-out",
         width: "min(340px, calc(100% - 24px))",
         height: 210,
       }}
@@ -486,8 +486,7 @@ export default function CarteiraPage() {
             {activeBank && (
               <div
                 key={activeBank.id}
-                className="rounded-2xl bg-card/60 backdrop-blur border border-border/50 p-5 space-y-4"
-                style={{ animation: "float-in 0.4s ease-out" }}
+                className="wallet-detail-panel rounded-2xl bg-card/60 backdrop-blur border border-border/50 p-5 space-y-4"
               >
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="min-w-0 truncate text-xl font-bold text-foreground">{activeBank.name}</h2>
