@@ -2,56 +2,14 @@ import { money } from "@/lib/planningTools";
 import { useMemo } from "react";
 import { useFinanceStore } from "@/stores/financeStore";
 import {
-  DollarSign, Plus, Trash2, TrendingUp, Target,
+  DollarSign, Plus, TrendingUp, Target,
   AlertTriangle, CheckCircle2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { IncomeSourceEditor } from "@/components/IncomeSourceEditor";
+import { incomeTotals } from "@/lib/incomeSources";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/PageHeader";
-
-/* ─── Income Source Row ─── */
-function IncomeSourceRow({
-  source,
-  onRemove,
-  onUpdate,
-}: {
-  source: { id: string; label: string; amount: number };
-  onRemove: () => void;
-  onUpdate: (label: string, amount: number) => void;
-}) {
-  return (
-    <div className="flex items-center gap-3 group">
-      <div className="min-w-0 flex-1 flex flex-col gap-2 sm:flex-row">
-        <Input
-          aria-label="Nome da fonte de renda"
-          value={source.label}
-          onChange={(e) => onUpdate(e.target.value, source.amount)}
-          className="rounded-xl h-10 text-sm"
-          placeholder="Ex: Salário CLT"
-        />
-        <Input
-          aria-label={`Valor mensal de ${source.label || "fonte de renda"}`}
-          type="number"
-          step="0.01"
-          value={source.amount || ""}
-          onChange={(e) => onUpdate(source.label, Math.max(0, parseFloat(e.target.value) || 0))}
-          className="rounded-xl h-10 text-sm w-full sm:w-36"
-          placeholder="R$ 0"
-          min={0}
-        />
-      </div>
-      <button
-        type="button"
-        aria-label={`Excluir fonte de renda ${source.label || "sem nome"}`}
-        onClick={onRemove}
-        className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive focus-visible:outline focus-visible:outline-2 focus-visible:outline-primary transition-all"
-      >
-        <Trash2 className="w-4 h-4" />
-      </button>
-    </div>
-  );
-}
 
 /* ─── Goal Summary Row ─── */
 function GoalRow({ goal }: { goal: { title: string; targetAmount: number; savedAmount: number; image: string; color: string } }) {
@@ -93,7 +51,8 @@ function GoalRow({ goal }: { goal: { title: string; targetAmount: number; savedA
 export default function RendaPage() {
   const store = useFinanceStore();
 
-  const totalIncome = store.incomeSources.reduce((s, i) => s + i.amount, 0);
+  const totals = incomeTotals(store.incomeSources);
+  const totalIncome = totals.net;
   const totalGoalsRemaining = store.goals.reduce((s, g) => s + Math.max(g.targetAmount - g.savedAmount, 0), 0);
   const totalGoalsTarget = store.goals.reduce((s, g) => s + g.targetAmount, 0);
   const monthlyAvailable = totalIncome - store.totalExpense;
@@ -115,10 +74,11 @@ export default function RendaPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="glass-card">
           <CardContent className="p-4">
-            <p className="text-xs text-muted-foreground mb-1">Renda Total</p>
+            <p className="text-xs text-muted-foreground mb-1">Renda líquida mensal</p>
             <p className="text-lg sm:text-2xl text-money font-bold text-income">
               {money(totalIncome)}
             </p>
+            <p className="mt-1 text-xs text-muted-foreground">Base da Renda Ideal Sugerida</p>
           </CardContent>
         </Card>
         <Card className="glass-card">
@@ -171,25 +131,25 @@ export default function RendaPage() {
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
+            <p className="text-xs leading-relaxed text-muted-foreground">Informe o bruto e os descontos de cada fonte para obter o líquido. Valores antigos continuam líquidos até você detalhá-los.</p>
             {store.incomeSources.length === 0 && (
               <p className="text-center text-muted-foreground text-sm py-8">
                 Adicione suas fontes de renda para começar
               </p>
             )}
             {store.incomeSources.map((src) => (
-              <IncomeSourceRow
+              <IncomeSourceEditor
                 key={src.id}
                 source={src}
                 onRemove={() => store.removeIncomeSource(src.id)}
-                onUpdate={(label, amount) => store.updateIncomeSource(src.id, { label, amount })}
+                onUpdate={(updates) => store.updateIncomeSource(src.id, updates)}
               />
             ))}
             {store.incomeSources.length > 0 && (
-              <div className="pt-3 border-t border-border/50 flex justify-between items-center">
-                <span className="text-sm font-medium text-muted-foreground">Total mensal</span>
-                <span className="text-lg text-money font-bold text-income">
-                  {money(totalIncome)}
-                </span>
+              <div className="pt-3 border-t border-border/50 space-y-2 text-sm">
+                <div className="flex flex-wrap justify-between gap-2 text-muted-foreground"><span>Bruto / base informada</span><span className="tabular-nums">{money(totals.gross)}</span></div>
+                <div className="flex flex-wrap justify-between gap-2 text-muted-foreground"><span>Descontos informados</span><span className="tabular-nums">− {money(totals.deductions)}</span></div>
+                <div className="flex flex-wrap justify-between gap-2"><span className="font-medium">Total líquido mensal</span><span className="text-lg text-money font-bold text-income">{money(totalIncome)}</span></div>
               </div>
             )}
           </CardContent>

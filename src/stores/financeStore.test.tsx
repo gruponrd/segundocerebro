@@ -42,6 +42,21 @@ import { buildPurchasePlan } from "@/lib/installmentPlan";
 const wrapper = ({ children }: { children: ReactNode }) => <FinanceProvider>{children}</FinanceProvider>;
 
 describe("isolamento financeiro por conta", () => {
+  it("persiste bruto e descontos na mesma fonte e mantém lançamentos existentes", async () => {
+    const incomes = [{ id: "original", label: "Recebido", amount: 5000 }];
+    mock.cloudData = { incomeSources: [{ id: "salary", label: "Salário", amount: 5000 }], cashflowMonths: [{ month: "Outubro", year: 2026, incomes, expenses: [] }] };
+    const { result, unmount } = renderHook(() => useFinanceStore(), { wrapper });
+    await waitFor(() => expect(result.current.cloudReady).toBe(true));
+    act(() => result.current.updateIncomeSource("salary", { grossAmount: 6000, deductions: [{ id: "inss", label: "INSS", amount: 500 }] }));
+    await waitFor(() => expect(JSON.parse(localStorage.getItem("fin_user_account-a")!).incomeSources[0]).toMatchObject({ id: "salary", amount: 5500, grossAmount: 6000, deductions: [{ id: "inss", label: "INSS", amount: 500 }] }));
+    expect(result.current.cashflowMonths.find(month => month.month === "Outubro")!.incomes).toEqual(incomes);
+    const saved = JSON.parse(localStorage.getItem("fin_user_account-a")!);
+    unmount();
+    mock.cloudData = saved;
+    const reloaded = renderHook(() => useFinanceStore(), { wrapper });
+    await waitFor(() => expect(reloaded.result.current.cloudReady).toBe(true));
+    expect(reloaded.result.current.incomeSources[0]).toEqual(saved.incomeSources[0]);
+  });
   it("salva um lote com identificadores únicos e impede que um segundo clique duplique a compra", async () => {
     const original = { id: "old", description: "Original", installmentAmount: 80, totalAmount: 80, currentInstallment: 1, totalInstallments: 1, dueDate: "2026-10-10", status: "pago" };
     mock.cloudData = { banks: [{ id: "card", name: "Meu cartão", status: "pendente", installments: [original] }], cashflowMonths: [] };

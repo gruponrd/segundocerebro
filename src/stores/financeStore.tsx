@@ -6,6 +6,8 @@ import { cashflowPeriod, extendCashflowMonths, mergeCashflowMonths } from "@/lib
 import { appendStatement, undoStatement, type StatementEntry } from "@/lib/statementImport";
 import { validateGoalPlan } from "@/lib/goalAllocation";
 import { appendInstallmentBatch, type InstallmentDraft } from "@/lib/installmentPlan";
+import { updateIncomeSourceValues, type IncomeSource } from "@/lib/incomeSources";
+export type { IncomeSource } from "@/lib/incomeSources";
 import type { Json } from "@/integrations/supabase/types";
 import { isAccountPreview, isDesignPreview, isPreviewMode } from "@/lib/previewMode";
 import { createDesignPreviewData } from "@/lib/designPreviewData";
@@ -19,12 +21,6 @@ import {
   type MonthlySnapshot,
   type Installment,
 } from "@/data/financialData";
-
-export interface IncomeSource {
-  id: string;
-  label: string;
-  amount: number;
-}
 
 export type TripDirection = "ida" | "volta";
 
@@ -110,7 +106,7 @@ export interface FinanceStore {
   setSavingsGoalMonth: (v: number) => void;
   addIncomeSource: (label: string, amount: number) => void;
   removeIncomeSource: (id: string) => void;
-  updateIncomeSource: (id: string, updates: Partial<Pick<IncomeSource, "label" | "amount">>) => void;
+  updateIncomeSource: (id: string, updates: Partial<Pick<IncomeSource, "label" | "amount" | "grossAmount" | "deductions">>) => void;
   salary: number;
   monthlyHours: number;
   hourlyRate: number;
@@ -804,15 +800,15 @@ function useFinanceStoreInternal(): FinanceStore {
   }, []);
 
   const addIncomeSource = useCallback((label: string, amount: number) => {
-    setIncomeSources((prev) => [...prev, { id: `inc-${Date.now()}`, label, amount }]);
+    setIncomeSources((prev) => [...prev, { id: `inc-${crypto.randomUUID()}`, label, amount }]);
   }, []);
 
   const removeIncomeSource = useCallback((id: string) => {
     setIncomeSources((prev) => prev.filter((s) => s.id !== id));
   }, []);
 
-  const updateIncomeSource = useCallback((id: string, updates: Partial<Pick<IncomeSource, "label" | "amount">>) => {
-    setIncomeSources((prev) => prev.map((s) => (s.id === id ? { ...s, ...updates } : s)));
+  const updateIncomeSource = useCallback((id: string, updates: Partial<Pick<IncomeSource, "label" | "amount" | "grossAmount" | "deductions">>) => {
+    setIncomeSources((prev) => prev.map((s) => (s.id === id ? updateIncomeSourceValues(s, updates) : s)));
   }, []);
 
   const addLifeTask = useCallback((title: string, xpReward: number) => {

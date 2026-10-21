@@ -14,6 +14,8 @@ import {
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { ExportXlsxButton } from "@/components/ExportXlsxButton";
 import { cardSpendingForMonth, remainingBankDebt } from "@/lib/financeCalculations";
+import { incomeTotals } from "@/lib/incomeSources";
+import { Link } from "react-router-dom";
 
 const HOURS_PER_WEEK = 48;
 const HOURS_PER_MONTH = HOURS_PER_WEEK * (52 / 12);
@@ -500,14 +502,14 @@ function IdealIncomeCard({
       <CardContent className="relative space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="p-3 rounded-xl bg-secondary/40">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Renda ideal</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Renda líquida ideal</p>
             <p className="text-2xl font-bold text-primary text-money">{money(Math.round(idealIncome))}</p>
             <p className="text-[11px] text-muted-foreground">com 20% de margem</p>
           </div>
           <div className="p-3 rounded-xl bg-secondary/40">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Renda atual</p>
-            <p className="text-2xl font-bold text-foreground text-money">{money(Math.round(currentIncome))}</p>
-            <p className="text-[11px] text-muted-foreground">mês selecionado</p>
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Renda líquida cadastrada</p>
+            <p className="text-2xl font-bold text-foreground text-money">{money(currentIncome)}</p>
+            <Link to="/renda" className="text-xs text-primary underline underline-offset-2">{currentIncome > 0 ? "Ver bruto e descontos em Renda" : "Cadastrar renda e descontos"}</Link>
           </div>
           <div className="p-3 rounded-xl bg-secondary/40">
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Gap</p>
@@ -667,7 +669,7 @@ export default function DividaPage() {
         banks={store.banks}
         cashflowMonths={store.cashflowMonths}
         totalRemaining={totalRemaining}
-        currentIncome={store.totalIncome}
+        currentIncome={incomeTotals(store.incomeSources).net}
       />
 
       {/* Extra info cards */}

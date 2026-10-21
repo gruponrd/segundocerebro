@@ -4,6 +4,8 @@ import { useFinanceStore } from "@/stores/financeStore";
 import { toast } from "@/hooks/use-toast";
 import { EXPENSE_CATEGORIES } from "@/data/categories";
 import { cardSpendingForMonth, remainingInstallments } from "@/lib/financeCalculations";
+import { money } from "@/lib/planningTools";
+import { incomeBreakdown, incomeTotals } from "@/lib/incomeSources";
 
 const BRL = 'R$ #,##0.00;[Red]-R$ #,##0.00;"-"';
 const INT = "#,##0";
@@ -319,13 +321,19 @@ export function ExportXlsxButton({ compact = false }: { compact?: boolean }) {
       XLSX.utils.book_append_sheet(wb, makeSheet(metaRows, [26, 14, 14, 14, 12, 18]), "Metas");
 
       /* ═══ 11. FONTES DE RENDA ═══ */
-      const rendaRows: CellValue[][] = [["Fonte", "Valor mensal"]];
-      store.incomeSources.forEach((s) => rendaRows.push([s.label, { v: s.amount, t: "n", z: BRL }]));
+      const rendaRows: CellValue[][] = [["Fonte", "Líquido mensal", "Bruto / base informada", "Descontos", "Composição"]];
+      store.incomeSources.forEach((s) => {
+        const values = incomeBreakdown(s);
+        rendaRows.push([s.label, { v: values.net, t: "n", z: BRL }, { v: values.gross, t: "n", z: BRL }, { v: values.deductions, t: "n", z: BRL }, s.grossAmount === undefined ? "Valor legado líquido" : (s.deductions ?? []).map(item => `${item.label}: ${money(item.amount)}`).join("; ") || "Sem descontos"]);
+      });
+      const incomeSummary = incomeTotals(store.incomeSources);
       rendaRows.push([
         { v: "TOTAL", t: "s" },
-        { v: store.incomeSources.reduce((s, i) => s + i.amount, 0), t: "n", z: BRL },
+        { v: incomeSummary.net, t: "n", z: BRL },
+        { v: incomeSummary.gross, t: "n", z: BRL },
+        { v: incomeSummary.deductions, t: "n", z: BRL },
       ]);
-      XLSX.utils.book_append_sheet(wb, makeSheet(rendaRows, [28, 16]), "Fontes de Renda");
+      XLSX.utils.book_append_sheet(wb, makeSheet(rendaRows, [28, 18, 24, 18, 50]), "Fontes de Renda");
 
       /* ═══ 12. PROJEÇÃO 12 MESES ═══ */
       const proj: CellValue[][] = [[
