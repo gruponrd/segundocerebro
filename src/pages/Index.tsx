@@ -13,7 +13,6 @@ import { CreditorWidget } from "@/components/CreditorWidget";
 import { SpendingChart } from "@/components/SpendingChart";
 import { BankDetailSheet } from "@/components/BankDetailSheet";
 import { HeroChart } from "@/components/HeroChart";
-import { MonthlyCashflowChart } from "@/components/MonthlyCashflowChart";
 import { CalendarCard } from "@/components/CalendarCard";
 import { FinancialHealthScore } from "@/components/FinancialHealthScore";
 import { IncomeCoverage } from "@/components/IncomeCoverage";
@@ -60,7 +59,6 @@ function SectionHead({
 }
 
 const SECTION_IDS = [
-  "panorama",
   "cobertura",
   "fluxo",
   "cartoes",
@@ -126,15 +124,6 @@ const Index = () => {
 
   const sections: Record<SectionId, { title: string; node: React.ReactNode }> = useMemo(
     () => ({
-      panorama: {
-        title: "Panorama",
-        node: (
-          <>
-            <SectionHead index="01" title="Detalhamento mensal" subtitle="Recebimentos e pagamentos do período selecionado" />
-            <div className="mt-6"><MonthlyCashflowChart key={`${store.currentCashflow.month}-${store.currentCashflow.year}`} /></div>
-          </>
-        ),
-      },
       cobertura: {
         title: "Cobertura & Saúde",
         node: (
