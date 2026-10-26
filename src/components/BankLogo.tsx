@@ -24,7 +24,7 @@ export function BankLogo({
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center justify-center border border-white/25 bg-white/95 shadow-sm",
+        "inline-flex shrink-0 items-center justify-center bg-transparent",
         sizeClasses[size],
         className,
       )}

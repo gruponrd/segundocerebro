@@ -36,7 +36,7 @@ export function CardLogoField({
   return (
     <div className="rounded-xl border border-border/50 bg-background/40 p-3">
       <div className="flex min-w-0 items-center gap-3">
-        <div className="flex h-12 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border/50 bg-white/95 p-2">
+        <div className="flex h-12 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-transparent p-2">
           {hasLogo ? (
             <img src={value} alt={`Prévia do logo de ${bankName}`} className="h-full w-full object-contain" />
           ) : (
