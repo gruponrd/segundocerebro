@@ -20,14 +20,14 @@ describe("logo do cartão", () => {
     expect(onChange).toHaveBeenCalledExactlyOnceWith(undefined);
   });
 
-  it("rejeita arquivos que não sejam PNG e imagens grandes demais", async () => {
-    await expect(prepareCardLogo(new File(["image"], "logo.jpg", { type: "image/jpeg" })))
-      .rejects.toThrow("Escolha uma imagem no formato PNG");
+  it("rejeita formatos não suportados e imagens grandes demais", async () => {
+    await expect(prepareCardLogo(new File(["image"], "logo.gif", { type: "image/gif" })))
+      .rejects.toThrow("Escolha uma imagem PNG ou JPEG");
     await expect(prepareCardLogo({ type: "image/png", size: MAX_CARD_LOGO_SOURCE_BYTES + 1 } as File))
       .rejects.toThrow("até 5 MB");
   });
 
-  it("redimensiona o PNG antes de guardá-lo junto ao cartão", async () => {
+  it.each(["image/png", "image/jpeg"])("redimensiona %s e guarda no formato compatível com os cartões existentes", async (type) => {
     class MockImage {
       naturalWidth = 1024;
       naturalHeight = 512;
@@ -44,9 +44,10 @@ describe("logo do cartão", () => {
     vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({ drawImage } as unknown as CanvasRenderingContext2D);
     vi.spyOn(HTMLCanvasElement.prototype, "toDataURL").mockReturnValue("data:image/png;base64,optimized");
 
-    await expect(prepareCardLogo(new File(["image"], "logo.png", { type: "image/png" })))
+    await expect(prepareCardLogo(new File(["image"], type === "image/png" ? "logo.png" : "logo.jpg", { type })))
       .resolves.toBe("data:image/png;base64,optimized");
     expect(drawImage).toHaveBeenCalledWith(expect.any(MockImage), 0, 0, 512, 256);
+    expect(HTMLCanvasElement.prototype.toDataURL).toHaveBeenCalledWith("image/png");
   });
 
   it("aplica o logo enviado em cartões renderizados", () => {

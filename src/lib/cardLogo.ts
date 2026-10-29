@@ -9,11 +9,11 @@ export function isCardLogoDataUrl(value?: string): value is string {
 }
 
 export async function prepareCardLogo(file: File): Promise<string> {
-  if (file.type !== "image/png") {
-    throw new Error("Escolha uma imagem no formato PNG.");
+  if (file.type !== "image/png" && file.type !== "image/jpeg") {
+    throw new Error("Escolha uma imagem PNG ou JPEG (JPG).");
   }
   if (file.size > MAX_CARD_LOGO_SOURCE_BYTES) {
-    throw new Error("O PNG deve ter até 5 MB. Reduza o arquivo e tente novamente.");
+    throw new Error("A imagem deve ter até 5 MB. Reduza o arquivo e tente novamente.");
   }
 
   const source = await new Promise<string>((resolve, reject) => {
@@ -28,15 +28,15 @@ export async function prepareCardLogo(file: File): Promise<string> {
 
   const image = new Image();
   await new Promise<void>((resolve, reject) => {
-    image.onerror = () => reject(new Error("Esse PNG não pôde ser aberto."));
+    image.onerror = () => reject(new Error("Essa imagem não pôde ser aberta."));
     image.onload = () => resolve();
     image.src = source;
   });
 
   const width = image.naturalWidth;
   const height = image.naturalHeight;
-  if (!width || !height) throw new Error("Esse PNG não contém uma imagem válida.");
-  if (width * height > 40_000_000) throw new Error("As dimensões do PNG são muito grandes. Use uma imagem menor.");
+  if (!width || !height) throw new Error("Esse arquivo não contém uma imagem válida.");
+  if (width * height > 40_000_000) throw new Error("As dimensões da imagem são muito grandes. Use uma imagem menor.");
 
   const scale = Math.min(1, MAX_CARD_LOGO_DIMENSION / Math.max(width, height));
   const canvas = document.createElement("canvas");
@@ -47,9 +47,10 @@ export async function prepareCardLogo(file: File): Promise<string> {
   if (!context) throw new Error("Não foi possível preparar a imagem neste navegador.");
   context.drawImage(image, 0, 0, canvas.width, canvas.height);
 
+  // Normalize both inputs to the stored PNG format; existing logos and alpha stay compatible.
   const optimized = canvas.toDataURL("image/png");
   if (!isCardLogoDataUrl(optimized)) {
-    throw new Error("O logo ainda ficou grande após a otimização. Use um PNG mais simples ou menor.");
+    throw new Error("O logo ainda ficou grande após a otimização. Use uma imagem mais simples ou menor.");
   }
   return optimized;
 }

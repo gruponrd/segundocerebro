@@ -26,7 +26,7 @@ export function CardLogoField({
     try {
       onChange(await prepareCardLogo(file));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Não foi possível preparar esse PNG.");
+      setError(cause instanceof Error ? cause.message : "Não foi possível preparar essa imagem.");
     } finally {
       setProcessing(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -46,7 +46,7 @@ export function CardLogoField({
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium text-foreground">Logo do cartão</p>
           <p id={helperId} className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
-            PNG até 5 MB. O logo otimizado acompanha este cartão na sua conta.
+            PNG ou JPEG (JPG) até 5 MB. O logo otimizado acompanha este cartão na sua conta.
           </p>
         </div>
       </div>
@@ -54,8 +54,8 @@ export function CardLogoField({
         ref={inputRef}
         id={inputId}
         type="file"
-        accept="image/png,.png"
-        aria-label={`Selecionar PNG do logo de ${bankName}`}
+        accept="image/png,image/jpeg,.png,.jpg,.jpeg"
+        aria-label={`Selecionar imagem do logo de ${bankName}`}
         aria-describedby={helperId}
         className="sr-only"
         onChange={(event) => void handleFile(event.currentTarget.files?.[0])}
@@ -71,7 +71,7 @@ export function CardLogoField({
           onClick={() => inputRef.current?.click()}
         >
           {processing ? <LoaderCircle aria-hidden className="mr-2 h-4 w-4 animate-spin" /> : <ImagePlus aria-hidden className="mr-2 h-4 w-4" />}
-          {processing ? "Preparando PNG…" : hasLogo ? "Trocar logo" : "Enviar logo"}
+          {processing ? "Preparando imagem…" : hasLogo ? "Trocar logo" : "Enviar logo"}
         </Button>
         {hasLogo && (
           <Button
