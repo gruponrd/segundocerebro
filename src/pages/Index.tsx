@@ -71,7 +71,11 @@ type SectionId = (typeof SECTION_IDS)[number];
 
 const ORDER_KEY = "dash-section-order-v1";
 
-const Index = () => {
+function DetailsContainer({ expanded, children }: { expanded: boolean; children: React.ReactNode }) {
+  return expanded ? <section aria-label="Relatórios e detalhes">{children}</section> : <DashboardDisclosure title="Relatórios e detalhes" description="Cobertura, fluxo, cartões, parcelas e análises completas">{children}</DashboardDisclosure>;
+}
+
+const Index = ({ detailsOnly = false }: { detailsOnly?: boolean }) => {
   const store = useFinanceStore();
   const payments = pendingPayments(store.currentCashflow, store.banks);
   const pendingTotal = payments.reduce((sum, item) => sum + Math.round(item.amount * 100), 0) / 100;
@@ -322,6 +326,7 @@ const Index = () => {
       />
 
       <div className="page-container dashboard-page">
+        {!detailsOnly && <>
         <DashboardHeader
           totalDebt={store.totalDebt}
           expectedBalance={store.expectedBalance}
@@ -354,10 +359,12 @@ const Index = () => {
         <DashboardDisclosure title="Vencimentos e objetivos" description={pendingDescription} status={overdueCount ? `${overdueCount} em atraso` : undefined}>
           <DashboardOverview section="priorities" />
         </DashboardDisclosure>
+        </>}
+        {detailsOnly && <DashboardOverview section="priorities" />}
         <GettingStarted />
         <QuickTools />
 
-        <DashboardDisclosure title="Relatórios e detalhes" description="Cobertura, fluxo, cartões, parcelas e análises completas">
+        <DetailsContainer expanded={detailsOnly}>
         {/* Layout controls */}
         <div className="flex flex-wrap items-center justify-end gap-2 mb-6">
           {editLayout && (
@@ -426,7 +433,7 @@ const Index = () => {
             );
           })}
         </div>
-        </DashboardDisclosure>
+        </DetailsContainer>
       </div>
 
       <BankDetailSheet

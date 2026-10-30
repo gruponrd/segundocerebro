@@ -8,3 +8,8 @@ import "./styles/layout-refinement.css";
 import "./styles/typography.css";
 
 createRoot(document.getElementById("root")!).render(<App />);
+
+import "./overview-proposal/overview.css";
+import "./overview-proposal/quiet.css";
+import "./overview-proposal/orange.css";
+import "./overview-proposal/sections.css";

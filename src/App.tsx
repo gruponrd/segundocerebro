@@ -8,14 +8,13 @@ import { FinanceProvider, useFinanceStore } from "@/stores/financeStore";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 
 import { ThemeProvider } from "@/hooks/use-theme";
-import { AppNav } from "@/components/AppNav";
-import { MobileNav } from "@/components/MobileNav";
+import { ClarityWorkspace } from "@/components/ClarityWorkspace";
+import { OverviewProposal } from "@/overview-proposal/OverviewProposal";
 import { CommandCenter } from "@/components/CommandCenter";
 import { ExpenseFAB } from "@/components/ExpenseFAB";
 import { MigratedModulesGate } from "@/components/MigratedModulesGate";
 import { RouteRecovery } from "@/components/RouteRecovery";
-import { WorkspaceHeader } from "@/components/WorkspaceHeader";
-import { isAccountPreview, isDesignPreview, isPreviewMode, setDesignAccountPreview } from "@/lib/previewMode";
+import { isDesignPreview } from "@/lib/previewMode";
 import { AccountWorkspace } from "@/components/AccountWorkspace";
 import { WorkspaceMotion } from "@/components/WorkspaceMotion";
 const FerramentasPage = lazy(() => import("./pages/Ferramentas"));
@@ -100,34 +99,15 @@ function AppRoutes() {
 
   return (
     <BrowserRouter>
-      <div className={isDesignPreview ? "app-shell design-preview" : "app-shell"}>
-      <a className="workspace-skip" href="#workspace-content">Pular para o conteúdo</a>
-      {isDesignPreview && <div className="design-preview-notice" role="status"><strong>Prévia local</strong><span>{isAccountPreview ? "Cópia da sua conta · testes só neste navegador" : "Dados de exemplo · só neste navegador"}</span><button type="button" className="underline underline-offset-2" onClick={() => setDesignAccountPreview(!isAccountPreview)}>{isAccountPreview ? "Usar exemplos" : "Carregar meus dados"}</button></div>}
-      <AppNav />
-      <MobileNav />
+      <ClarityWorkspace>
       <CommandCenter />
       <ExpenseFAB />
-      <div className="workspace-body min-h-screen">
-        <WorkspaceHeader />
-        <div role="status" aria-live="polite" className={isPreviewMode ? "sr-only" : "mx-auto max-w-[1440px] px-4 pt-3 text-xs text-muted-foreground sm:px-6 lg:px-8"}>
-          {finance.syncStatus === "saving" && (isPreviewMode ? "Salvando nesta prévia..." : "Salvando dados...")}
-          {finance.syncStatus === "saved" && (isPreviewMode ? "Prévia salva neste navegador" : "Dados sincronizados")}
-          {(finance.syncStatus === "error" || finance.syncStatus === "conflict") && (
-            <span className="text-destructive">
-              {finance.syncError}{" "}
-              <button className="underline" onClick={finance.syncStatus === "conflict" ? finance.retryCloudLoad : finance.retryCloudSave}>
-                {finance.syncStatus === "conflict" ? "Recarregar dados da nuvem" : "Tentar salvar novamente"}
-              </button>
-            </span>
-          )}
-        </div>
-        <div id="workspace-content" tabIndex={-1}>
         <WorkspaceMotion>
         <RouteRecovery>
         <Suspense fallback={<div className="workspace-route-loading min-h-screen flex items-center justify-center">Carregando página...</div>}>
           <Routes>
             {isDesignPreview && <Route path="/acesso" element={<AuthPage />} />}
-            <Route path="/" element={<Index />} />
+            <Route path="/" element={<><OverviewProposal embedded /><Index detailsOnly /></>} />
             <Route path="/objetivos" element={<GoalsPage />} />
             <Route path="/renda" element={<RendaPage />} />
             <Route path="/trade" element={<TradePage />} />
@@ -144,11 +124,9 @@ function AppRoutes() {
         </Suspense>
         </RouteRecovery>
         </WorkspaceMotion>
-        </div>
-      </div>
       <Toaster />
       <Sonner />
-      </div>
+      </ClarityWorkspace>
     </BrowserRouter>
   );
 }
