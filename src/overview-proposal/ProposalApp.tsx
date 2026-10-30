@@ -16,7 +16,6 @@ const routes = [
   { path: "/carteira", label: "Carteira", icon: CreditCard, Page: lazy(() => import("@/pages/Carteira")) },
   { path: "/divida", label: "Dívidas", icon: TrendingUp, Page: lazy(() => import("@/pages/Divida")) },
   { path: "/objetivos", label: "Objetivos", icon: Target, Page: lazy(() => import("@/pages/Goals")) },
-  { path: "/trade", label: "Trade", icon: TrendingUp, Page: lazy(() => import("@/pages/Trade")) },
   { path: "/lifegame", label: "LifeGame", icon: Gamepad2, Page: lazy(() => import("@/pages/LifeGame")) },
   { path: "/desejos", label: "Desejos", icon: Sparkles, Page: lazy(() => import("@/pages/Desejos")) },
   { path: "/ferramentas", label: "Ferramentas", icon: Wrench, Page: lazy(() => import("@/pages/Ferramentas")) },

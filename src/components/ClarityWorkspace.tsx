@@ -1,6 +1,6 @@
 import { type ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { ArrowDownLeft, ArrowLeftRight, Brain, CreditCard, Gamepad2, LayoutDashboard, Link2, Plus, Search, Sparkles, Target, TrendingUp, Wallet, Wrench } from "lucide-react";
+import { ArrowDownLeft, ArrowLeftRight, Brain, CreditCard, Gamepad2, LayoutDashboard, Link2, Plus, Search, Sparkles, Target, Wallet, Wrench } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useFinanceStore } from "@/stores/financeStore";
 import { openCommandMenu } from "@/lib/commandMenu";
@@ -16,7 +16,6 @@ const navigation = [
   { path: "/carteira", label: "Carteira", icon: CreditCard },
   { path: "/divida", label: "Dívidas", icon: ArrowDownLeft },
   { path: "/objetivos", label: "Objetivos", icon: Target },
-  { path: "/trade", label: "Trade", icon: TrendingUp },
   { path: "/lifegame", label: "LifeGame", icon: Gamepad2 },
   { path: "/desejos", label: "Desejos", icon: Sparkles },
   { path: "/ferramentas", label: "Ferramentas", icon: Wrench },

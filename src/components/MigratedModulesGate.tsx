@@ -35,7 +35,7 @@ export function MigratedModulesGate({ children }: { children: ReactNode }) {
   if (!enabled || !user || loading || readyUser === user.id) return children;
   return <main className="flex min-h-screen items-center justify-center bg-background p-6">
     <div className="max-w-md space-y-4 rounded-2xl border border-border bg-card p-6 text-center">
-      <p>{error ? "Não foi possível recuperar os dados migrados de Trade, Desejos e rotina neste dispositivo." : "Recuperando seus dados migrados…"}</p>
+      <p>{error ? "Não foi possível recuperar os dados migrados dos módulos pessoais neste dispositivo." : "Recuperando seus dados migrados…"}</p>
       {error && <button className="rounded-xl bg-primary px-4 py-2 text-primary-foreground" onClick={() => setRetry(value => value + 1)}>Tentar novamente</button>}
     </div>
   </main>;

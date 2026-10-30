@@ -62,7 +62,7 @@ export function AccountBackup() {
         <div className="max-w-2xl">
           <h2 id="backup-title" className="flex items-center gap-2 text-lg font-semibold"><ShieldCheck className="h-5 w-5 text-primary" /> Cópia dos seus dados</h2>
           <p className="mt-2 text-sm leading-relaxed text-muted-foreground">Baixe os registros financeiros salvos na nuvem, incluindo cartões, parcelas, receitas, despesas e objetivos. A cópia preserva os identificadores e valores originais.</p>
-          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">Inclui também os dados de Trade, Desejos e rotina desta conta disponíveis neste navegador. Senhas e sessões não são incluídas. As imagens permanecem como links.</p>
+          <p className="mt-2 text-xs leading-relaxed text-muted-foreground">Inclui também os dados atuais e históricos dos módulos pessoais desta conta disponíveis neste navegador. Senhas e sessões não são incluídas. As imagens permanecem como links.</p>
         </div>
         <div className="flex shrink-0 flex-wrap gap-2">
         <Button onClick={() => void download()} disabled={!ready || busy} className="gap-2 rounded-xl">

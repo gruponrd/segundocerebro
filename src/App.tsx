@@ -23,7 +23,6 @@ const IntegracoesPage = lazy(() => import("./pages/Integracoes"));
 const Index = lazy(() => import("./pages/Index"));
 const GoalsPage = lazy(() => import("./pages/Goals"));
 const RendaPage = lazy(() => import("./pages/Renda"));
-const TradePage = lazy(() => import("./pages/Trade"));
 const DividaPage = lazy(() => import("./pages/Divida"));
 const CarteiraPage = lazy(() => import("./pages/Carteira"));
 const FluxoPage = lazy(() => import("./pages/Fluxo"));
@@ -108,7 +107,6 @@ function AppRoutes() {
             <Route path="/" element={<><OverviewProposal embedded /><Index detailsOnly /></>} />
             <Route path="/objetivos" element={<GoalsPage />} />
             <Route path="/renda" element={<RendaPage />} />
-            <Route path="/trade" element={<TradePage />} />
             <Route path="/divida" element={<DividaPage />} />
             <Route path="/carteira" element={<CarteiraPage />} />
             <Route path="/fluxo" element={<FluxoPage />} />

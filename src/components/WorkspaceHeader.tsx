@@ -6,7 +6,7 @@ import { openTransactionMenu } from "@/lib/transactionMenu";
 import { openCommandMenu } from "@/lib/commandMenu";
 import { isDesignPreview, isPreviewMode } from "@/lib/previewMode";
 
-const titles: Record<string,string> = { "/":"Visão geral", "/fluxo":"Fluxo de caixa", "/renda":"Renda", "/objetivos":"Objetivos", "/divida":"Dívidas", "/carteira":"Carteira", "/ferramentas":"Ferramentas", "/trade":"Trade", "/lifegame":"LifeGame", "/desejos":"Desejos", "/integracoes":"Integrações", "/acesso":"Acesso" };
+const titles: Record<string,string> = { "/":"Visão geral", "/fluxo":"Fluxo de caixa", "/renda":"Renda", "/objetivos":"Objetivos", "/divida":"Dívidas", "/carteira":"Carteira", "/ferramentas":"Ferramentas", "/lifegame":"LifeGame", "/desejos":"Desejos", "/integracoes":"Integrações", "/acesso":"Acesso" };
 export function WorkspaceHeader() {
   const { pathname } = useLocation();
   const { displayName } = useAuth();

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowDownLeft, ArrowUpRight, ArrowRight, Brain, ChevronLeft, ChevronRight, CreditCard, LayoutDashboard, ArrowLeftRight, CircleHelp, Target, Wallet, Link2, Check, Gamepad2, Sparkles, Wrench, TrendingUp, LogOut } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, ArrowRight, Brain, ChevronLeft, ChevronRight, CreditCard, LayoutDashboard, ArrowLeftRight, CircleHelp, Target, Wallet, Link2, Check, Gamepad2, Sparkles, Wrench, LogOut } from "lucide-react";
 import { useFinanceStore } from "@/stores/financeStore";
 import { useAuth } from "@/hooks/useAuth";
 import { money, monthNumber, pendingPayments } from "@/lib/planningTools";
@@ -18,7 +18,6 @@ const navigation = [
   { label: "Carteira", href: "/carteira", icon: CreditCard },
   { label: "Dívidas", href: "/divida", icon: ArrowDownLeft },
   { label: "Objetivos", href: "/objetivos", icon: Target },
-  { label: "Trade", href: "/trade", icon: TrendingUp },
   { label: "LifeGame", href: "/lifegame", icon: Gamepad2 },
   { label: "Desejos", href: "/desejos", icon: Sparkles },
   { label: "Ferramentas", href: "/ferramentas", icon: Wrench },

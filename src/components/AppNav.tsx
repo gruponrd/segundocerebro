@@ -14,7 +14,6 @@ import {
   Sun,
   Target,
   TrendingDown,
-  TrendingUp,
   Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -48,7 +47,6 @@ const groups = [
   {
     label: "Explorar",
     items: [
-      { to: "/trade", icon: TrendingUp, label: "Trade" },
       { to: "/lifegame", icon: Gamepad2, label: "LifeGame" },
       { to: "/desejos", icon: Sparkles, label: "Desejos" },
       { to: "/integracoes", icon: Link2, label: "Integrações" },

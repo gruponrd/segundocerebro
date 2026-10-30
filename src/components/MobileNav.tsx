@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from "react-router-dom";
-import { ArrowLeftRight, Brain, Calculator, Contrast, DollarSign, Gamepad2, LayoutDashboard, Link2, Moon, MoreHorizontal, Search, Sparkles, Sun, Target, TrendingDown, TrendingUp, Wallet } from "lucide-react";
+import { ArrowLeftRight, Brain, Calculator, Contrast, DollarSign, Gamepad2, LayoutDashboard, Link2, Moon, MoreHorizontal, Search, Sparkles, Sun, Target, TrendingDown, Wallet } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/use-theme";
@@ -10,7 +10,7 @@ import { isDesignPreview } from "@/lib/previewMode";
 import { LogoutButton } from "@/components/LogoutButton";
 const labels = { dark:"Escuro", light:"Claro", monochrome:"P&B" };
 const mainTabs = [{to:"/",icon:LayoutDashboard,label:"Início",end:true},{to:"/fluxo",icon:ArrowLeftRight,label:"Fluxo"},{to:"/carteira",icon:Wallet,label:"Carteira"},{to:"/objetivos",icon:Target,label:"Objetivos"}];
-const moreTabs = [{to:"/renda",icon:DollarSign,label:"Renda"},{to:"/divida",icon:TrendingDown,label:"Dívidas"},{to:"/desejos",icon:Sparkles,label:"Desejos"},{to:"/trade",icon:TrendingUp,label:"Trade"},{to:"/lifegame",icon:Gamepad2,label:"LifeGame"},{to:"/ferramentas",icon:Calculator,label:"Ferramentas"},{to:"/integracoes",icon:Link2,label:"Integrações"}];
+const moreTabs = [{to:"/renda",icon:DollarSign,label:"Renda"},{to:"/divida",icon:TrendingDown,label:"Dívidas"},{to:"/desejos",icon:Sparkles,label:"Desejos"},{to:"/lifegame",icon:Gamepad2,label:"LifeGame"},{to:"/ferramentas",icon:Calculator,label:"Ferramentas"},{to:"/integracoes",icon:Link2,label:"Integrações"}];
 export function MobileNav() {
  const [open,setOpen]=useState(false);
  const {pathname}=useLocation();
