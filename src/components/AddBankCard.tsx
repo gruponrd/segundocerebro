@@ -1,3 +1,5 @@
+import type { BankCategory } from "@/data/financialData";
+import { BankCategoryField } from "@/components/BankCategoryField";
 import { useState, useId } from "react";
 import { Plus, CreditCard } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -14,11 +16,12 @@ import { CardLogoField } from "@/components/CardLogoField";
 import { CARD_COLORS, getCardColor } from "@/data/cardColors";
 
 interface AddBankCardProps {
-  onAdd: (name: string, limitTotal: number, color: string, glowClass: string, logoDataUrl?: string) => void;
+  onAdd: (name: string, limitTotal: number, color: string, glowClass: string, logoDataUrl?: string, category?: BankCategory) => void;
 }
 
 export function AddBankCard({ onAdd }: AddBankCardProps) {
   const inputId = useId();
+  const [category, setCategory] = useState<BankCategory>("cartao");
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [limit, setLimit] = useState("");
@@ -29,11 +32,12 @@ export function AddBankCard({ onAdd }: AddBankCardProps) {
     const limitVal = parseFloat(limit);
     if (!name.trim() || isNaN(limitVal) || limitVal <= 0) return;
     const c = getCardColor(colorId);
-    onAdd(name.trim(), limitVal, c.id, c.glow, logoDataUrl);
+    onAdd(name.trim(), limitVal, c.id, c.glow, logoDataUrl, category);
     setName("");
     setLimit("");
     setColorId(CARD_COLORS[0].id);
     setLogoDataUrl(undefined);
+    setCategory("cartao");
     setOpen(false);
   };
 
@@ -53,6 +57,7 @@ export function AddBankCard({ onAdd }: AddBankCardProps) {
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-4 pt-2">
+          <BankCategoryField value={category} onChange={setCategory} />
           <CardColorPicker value={colorId} onChange={(id) => setColorId(id)} label="Cor / bandeira do cartão" />
           <CardLogoField bankName={name.trim() || "novo cartão"} value={logoDataUrl} onChange={setLogoDataUrl} />
           <div>

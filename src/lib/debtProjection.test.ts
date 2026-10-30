@@ -7,6 +7,14 @@ const bill = (dueDate: string, amount = 500, status: Installment["status"] = "pe
 const bank = (installments: Installment[]): Bank => ({ id: "card", name: "Cartão", color: "", glowClass: "", limitTotal: 10000, limitUsed: 9999, debtFinal: 9999, status: "pendente", installments });
 
 describe("projeção da dívida no mês selecionado", () => {
+  it("separa cartões e empréstimos sem duplicar o total, inclusive após mudar a categoria", () => {
+    const card = bank([bill("2026-10-10", 100), bill("2026-11-10", 200)]);
+    const loan = { ...bank([bill("2026-10-20", 400), bill("2026-12-20", 500)]), id: "loan", category: "emprestimo_credito" as const };
+    const result = debtProjection([card, loan], [], { month: "Novembro", year: 2026 }, now);
+    expect(result).toMatchObject({ currentDebt: 1200, cardsCurrent: 300, loansCurrent: 900, cardsRemaining: 0, loansRemaining: 500, remaining: 500 });
+    const reclassified = debtProjection([{ ...card, category: "emprestimo_credito" }, loan], [], { month: "Novembro", year: 2026 }, now);
+    expect(reclassified).toMatchObject({ currentDebt: 1200, cardsCurrent: 0, loansCurrent: 1200, cardsRemaining: 0, loansRemaining: 500, remaining: 500 });
+  });
   it("reduz somente as parcelas registradas até cada mês, inclusive na virada do ano", () => {
     const banks = [bank([bill("2026-10-10"), bill("2026-11-10"), bill("2026-12-10"), bill("2027-01-10"), bill("2027-02-10")])];
     const snapshot = JSON.stringify(banks);

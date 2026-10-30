@@ -1,3 +1,5 @@
+import { BankCategoryField } from "@/components/BankCategoryField";
+import { bankCategoryLabel } from "@/lib/bankCategory";
 import { CardPurchaseButton } from "@/components/CardPurchaseForm";
 import { useMemo, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -19,7 +21,7 @@ interface BankDetailSheetProps {
   onUpdateInstallment: (bankId: BankId, installmentId: string, updates: Partial<Omit<Installment, "id">>) => void;
   onRemoveInstallment: (bankId: BankId, installmentId: string) => void;
   onAddInstallment: (bankId: BankId, inst: Omit<Installment, "id">) => void;
-  onUpdateBank?: (bankId: BankId, updates: Partial<Pick<Bank, "name" | "limitTotal" | "status" | "color" | "glowClass" | "logoDataUrl">>) => void;
+  onUpdateBank?: (bankId: BankId, updates: Partial<Pick<Bank, "name" | "limitTotal" | "status" | "color" | "glowClass" | "logoDataUrl" | "category">>) => void;
   onRemoveBank?: (bankId: BankId) => void;
 }
 
@@ -303,6 +305,8 @@ export function BankDetailSheet({ bank, open, onOpenChange, onUpdateInstallment,
         {/* Cor do cartão */}
         {onUpdateBank && (
           <div className="mt-5">
+            <BankCategoryField value={bank.category} onChange={category => onUpdateBank(bank.id, { category })} />
+            <p className="mt-2 mb-3 text-xs text-muted-foreground">{bankCategoryLabel(bank.category)}</p>
             <CardColorPicker value={bank.color} onChange={handleColorChange} />
             <div className="mt-3">
               <CardLogoField

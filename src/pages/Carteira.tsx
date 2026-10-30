@@ -1,3 +1,5 @@
+import { BankCategoryField } from "@/components/BankCategoryField";
+import { bankCategoryLabel } from "@/lib/bankCategory";
 import { CardPurchaseButton } from "@/components/CardPurchaseForm";
 import { money } from "@/lib/planningTools";
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -225,6 +227,7 @@ function WalletCard({
           <div className="relative z-10 flex items-start justify-between">
             <div>
               <h3 className="font-bold text-lg tracking-wide">{bank.name}</h3>
+              <p className="text-[10px] opacity-80">{bankCategoryLabel(bank.category)}</p>
               <p className="text-[10px] opacity-60 mt-0.5">
                 {bank.installments.filter((i) => i.status !== "pago").length} parcelas ativas
               </p>
@@ -493,6 +496,7 @@ export default function CarteiraPage() {
                   {activeBank.logoDataUrl && <BankLogo bank={activeBank} size="md" decorative />}
                 </div>
 
+                <p className="text-xs text-muted-foreground">{bankCategoryLabel(activeBank.category)}</p>
                 <div className="grid grid-cols-3 gap-3 text-center">
                   <div className="rounded-xl bg-background/50 p-3">
                     <p className="text-[10px] text-muted-foreground">Limite</p>
@@ -513,6 +517,8 @@ export default function CarteiraPage() {
                     </p>
                   </div>
                 </div>
+
+                <BankCategoryField value={activeBank.category} onChange={category => updateBank(activeBank.id, { category })} />
 
                 <CardLogoField
                   bankName={activeBank.name}

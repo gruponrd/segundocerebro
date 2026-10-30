@@ -7,6 +7,19 @@ vi.mock("./AnimatedAmount", () => ({ AnimatedAmount: ({ value }: { value: number
 import { OverviewDebtCard } from "./OverviewDebtCard";
 
 afterEach(() => { cleanup(); vi.useRealTimers(); });
+it("mostra o valor de empréstimos separado dos cartões no mês atual e na projeção", () => {
+  vi.useFakeTimers(); vi.setSystemTime(new Date("2026-10-30T12:00:00Z"));
+  const banks: Bank[] = [{ id: "loan", name: "Crédito", category: "emprestimo_credito", color: "", glowClass: "", limitTotal: 1000, limitUsed: 1000, debtFinal: 1000, status: "pendente", installments: ["2026-10-10", "2026-12-10"].map(dueDate => ({ id: dueDate, description: "Parcela", totalAmount: 1000, installmentAmount: 500, currentInstallment: 1, totalInstallments: 2, dueDate, status: "pendente" })) }];
+  const ui = (month: string) => <MemoryRouter><OverviewDebtCard banks={banks} creditors={[]} month={{ month, year: 2026, incomes: [], expenses: [] }} /></MemoryRouter>;
+  const view = render(ui("Outubro"));
+  let card = screen.getByRole("region", { name: "Dívida total em aberto" });
+  expect(within(card).getByText("Empréstimo/Crédito hoje").nextElementSibling).toHaveTextContent(/^1000$/);
+  expect(within(card).getByText("Em cartões hoje").nextElementSibling).toHaveTextContent(/^0$/);
+  view.rerender(ui("Novembro"));
+  card = screen.getByRole("region", { name: "Dívida restante prevista" });
+  expect(within(card).getByText("Empréstimo/Crédito").nextElementSibling).toHaveTextContent(/^500$/);
+  expect(within(card).getByText("Em cartões").nextElementSibling).toHaveTextContent(/^0$/);
+});
 it("atualiza o saldo e os subtotais ao trocar o mês e ao confirmar um pagamento", () => {
   vi.useFakeTimers(); vi.setSystemTime(new Date("2026-10-30T12:00:00Z"));
   const banks: Bank[] = [{ id: "b", name: "Cartão", color: "", glowClass: "", limitTotal: 10000, limitUsed: 1500, debtFinal: 1500, status: "pendente", installments: ["2026-10-10", "2026-11-10", "2026-12-10"].map(dueDate => ({ id: dueDate, description: "Compra", totalAmount: 1500, installmentAmount: 500, currentInstallment: 1, totalInstallments: 3, dueDate, status: "pendente" })) }];
@@ -17,10 +30,12 @@ it("atualiza o saldo e os subtotais ao trocar o mês e ao confirmar um pagamento
   expect(within(card).getByRole("group", { name: "Dívida total hoje" })).toHaveTextContent("1500");
   expect(within(card).getByRole("group", { name: "Dívida prevista ao final do mês" })).toHaveTextContent("1000");
   expect(within(card).getByText("Em cartões hoje").nextElementSibling).toHaveTextContent(/^1500$/);
+  expect(within(card).getByText("Empréstimo/Crédito hoje").nextElementSibling).toHaveTextContent(/^0$/);
   view.rerender(ui("Novembro"));
   expect(screen.getByRole("region", { name: "Dívida restante prevista" })).toBe(card);
   expect(within(card).queryByRole("group", { name: "Dívida total hoje" })).not.toBeInTheDocument();
   expect(card.querySelector(":scope > span")).toHaveTextContent(/^500$/);
+  expect(within(card).getByText("Empréstimo/Crédito").nextElementSibling).toHaveTextContent(/^0$/);
   expect(within(card).getByText(/Novembro\/2026, incluindo este mês/)).toBeInTheDocument();
   banks[0].installments[0].status = "pago";
   view.rerender(ui("Novembro"));

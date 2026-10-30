@@ -42,6 +42,25 @@ import { buildPurchasePlan } from "@/lib/installmentPlan";
 const wrapper = ({ children }: { children: ReactNode }) => <FinanceProvider>{children}</FinanceProvider>;
 
 describe("isolamento financeiro por conta", () => {
+  it("persiste a categoria sem alterar a dívida, parcelas ou outras contas e restaura ao reabrir", async () => {
+    const original = { id: "card", name: "Meu crédito", status: "pendente", limitTotal: 5000, installments: [{ id: "bill", description: "Parcela", installmentAmount: 500, totalAmount: 500, currentInstallment: 1, totalInstallments: 1, dueDate: "2026-11-10", status: "pendente" }] };
+    const other = { ...original, id: "other", name: "Outro" };
+    mock.cloudData = { banks: [original, other] };
+    const { result, unmount } = renderHook(() => useFinanceStore(), { wrapper });
+    await waitFor(() => expect(result.current.cloudReady).toBe(true));
+    const total = result.current.totalDebt;
+    act(() => result.current.updateBank("card", { category: "emprestimo_credito" }));
+    await waitFor(() => expect(JSON.parse(localStorage.getItem("fin_user_account-a")!).banks[0]).toEqual({ ...original, category: "emprestimo_credito" }));
+    expect(result.current.totalDebt).toBe(total);
+    expect(result.current.banks[0].installments).toEqual(original.installments);
+    const saved = JSON.parse(localStorage.getItem("fin_user_account-a")!);
+    expect(saved.banks[1]).toEqual(other);
+    unmount(); mock.cloudData = saved;
+    const reopened = renderHook(() => useFinanceStore(), { wrapper });
+    await waitFor(() => expect(reopened.result.current.cloudReady).toBe(true));
+    expect(reopened.result.current.banks[0].category).toBe("emprestimo_credito");
+    expect(reopened.result.current.totalDebt).toBe(total);
+  });
   it("persiste bruto e descontos na mesma fonte e mantém lançamentos existentes", async () => {
     const incomes = [{ id: "original", label: "Recebido", amount: 5000 }];
     mock.cloudData = { incomeSources: [{ id: "salary", label: "Salário", amount: 5000 }], cashflowMonths: [{ month: "Outubro", year: 2026, incomes, expenses: [] }] };

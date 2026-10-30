@@ -95,9 +95,9 @@ export interface FinanceStore {
   addGoal: (title: string, targetAmount: number) => void;
   removeGoal: (id: string) => void;
   updateGoal: (id: string, updates: Partial<Pick<Goal, "title" | "targetAmount" | "image">>) => void;
-  updateBank: (bankId: BankId, updates: Partial<Pick<Bank, "name" | "limitTotal" | "status" | "color" | "glowClass" | "logoDataUrl">>) => void;
+  updateBank: (bankId: BankId, updates: Partial<Pick<Bank, "name" | "limitTotal" | "status" | "color" | "glowClass" | "logoDataUrl" | "category">>) => void;
   removeBank: (bankId: BankId) => void;
-  addBank: (name: string, limitTotal: number, color: string, glowClass: string, logoDataUrl?: string) => void;
+  addBank: (name: string, limitTotal: number, color: string, glowClass: string, logoDataUrl?: string, category?: Bank["category"]) => void;
   moveBank: (bankId: BankId, targetId: BankId) => void;
   addInstallment: (bankId: BankId, inst: Omit<import("@/data/financialData").Installment, "id">) => void;
   addInstallmentBatch: (bankId: BankId, installments: InstallmentDraft[], source?: Installment) => void;
@@ -744,7 +744,7 @@ function useFinanceStoreInternal(): FinanceStore {
     );
   }, []);
 
-  const updateBank = useCallback((bankId: BankId, updates: Partial<Pick<Bank, "name" | "limitTotal" | "status" | "color" | "glowClass" | "logoDataUrl">>) => {
+  const updateBank = useCallback((bankId: BankId, updates: Partial<Pick<Bank, "name" | "limitTotal" | "status" | "color" | "glowClass" | "logoDataUrl" | "category">>) => {
     setBanks((prev) => prev.map((b) => (b.id === bankId ? { ...b, ...updates } : b)));
   }, []);
 
@@ -752,10 +752,10 @@ function useFinanceStoreInternal(): FinanceStore {
     setBanks((prev) => prev.filter((b) => b.id !== bankId));
   }, []);
 
-  const addBank = useCallback((name: string, limitTotal: number, color: string, glowClass: string, logoDataUrl?: string) => {
+  const addBank = useCallback((name: string, limitTotal: number, color: string, glowClass: string, logoDataUrl?: string, category?: Bank["category"]) => {
     const id = `bank-${Date.now()}` as BankId;
     setBanks((prev) => [...prev, {
-      id, name, logoDataUrl, color, glowClass, limitTotal, limitUsed: 0, debtFinal: 0,
+      id, name, logoDataUrl, category, color, glowClass, limitTotal, limitUsed: 0, debtFinal: 0,
       status: "pendente" as const, installments: [],
     }]);
   }, []);

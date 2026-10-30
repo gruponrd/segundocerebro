@@ -1,3 +1,4 @@
+import { bankCategoryLabel } from "@/lib/bankCategory";
 import { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -45,7 +46,7 @@ function CardColumn({ bank }: { bank: Bank }) {
         />
         <div className="relative flex items-start justify-between">
           <div className="min-w-0">
-            <p className="text-[9px] uppercase tracking-[0.2em] opacity-60">Cartão</p>
+            <p className="text-[9px] uppercase tracking-[0.2em] opacity-60">{bankCategoryLabel(bank.category)}</p>
             <h3 className="text-lg font-bold tracking-wide truncate">{bank.name}</h3>
           </div>
           {bank.logoDataUrl ? <BankLogo bank={bank} size="md" decorative /> : <Wifi className="w-4 h-4 opacity-40 rotate-90 shrink-0" />}

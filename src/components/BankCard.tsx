@@ -1,3 +1,4 @@
+import { bankCategoryLabel } from "@/lib/bankCategory";
 import { useState } from "react";
 import { type Bank, type BankId } from "@/data/financialData";
 import { AlertTriangle, Pencil, Check, X, Wifi } from "lucide-react";
@@ -10,7 +11,7 @@ interface BankCardProps {
   bank: Bank;
   index: number;
   onClick: () => void;
-  onUpdateBank?: (bankId: BankId, updates: Partial<Pick<Bank, "name" | "limitTotal" | "status" | "logoDataUrl">>) => void;
+  onUpdateBank?: (bankId: BankId, updates: Partial<Pick<Bank, "name" | "limitTotal" | "status" | "logoDataUrl" | "category">>) => void;
 }
 
 const statusLabels = {
@@ -97,6 +98,7 @@ export function BankCard({ bank, index, onClick, onUpdateBank }: BankCardProps) 
                 {onUpdateBank && <Pencil aria-hidden className="w-3 h-3 opacity-60" />}
               </button>
             )}
+            <p className="text-[10px] opacity-80">{bankCategoryLabel(bank.category)}</p>
             <p className="text-[10px] opacity-60 mt-0.5">{bank.installments.filter(i => i.status !== "pago").length} parcelas ativas</p>
           </div>
           <div className="flex shrink-0 items-center gap-2">

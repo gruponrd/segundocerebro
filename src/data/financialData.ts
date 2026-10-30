@@ -1,8 +1,10 @@
 export type BankId = string;
+export type BankCategory = "cartao" | "emprestimo_credito";
 
 export interface Bank {
   id: BankId;
   name: string;
+  category?: BankCategory;
   logoDataUrl?: string;
   color: string;
   glowClass: string;
