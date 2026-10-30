@@ -1,4 +1,12 @@
 /* Shared visual language; account isolation and persistence remain unchanged. */
+.cl-summary-grid{align-items:start}.cl-summary-main{display:grid;gap:12px;min-width:0;align-content:start}
+.cl-summary-grid>.cl-primary-debt{grid-row:auto}
+.cl-summary-main .cl-result{padding:18px 22px}.cl-summary-main .cl-result-intro{margin-bottom:12px}
+.cl-summary-main .cl-pending-pair{align-items:start;grid-column:auto}.cl-summary-main .cl-pending-mini{padding:11px 16px}
+.cl-summary-main .cl-pending-mini p{margin-top:4px}
+.cl-primary-debt dl{margin-top:12px;padding-top:12px}
+.cl-primary-debt .cl-debt-health{grid-template-columns:100px minmax(0,1fr);margin-top:12px}
+@media(max-width:1000px){.cl-summary-main{display:contents}.cl-summary-main>.cl-result{order:0}.cl-summary-grid>.cl-primary-debt{order:1}.cl-summary-main>.cl-pending-pair{order:2;align-items:start}.cl-summary-grid .cl-pending-mini{padding:11px 14px}}
 :root,:root.light,:root.monochrome,:root:not(.light):not(.monochrome){--cl-control-surface:#271d19;--background:0 0% 0%;--foreground:35 20% 96%;--card:24 8% 7%;--card-foreground:35 20% 96%;--popover:24 8% 10%;--popover-foreground:35 20% 96%;--primary:13 100% 58%;--primary-text:16 100% 74%;--primary-foreground:18 45% 9%;--accent:16 100% 74%;--accent-foreground:18 45% 9%;--secondary:24 7% 14%;--secondary-foreground:35 20% 94%;--muted:24 7% 13%;--muted-foreground:30 9% 70%;--border:24 6% 23%;--input:24 7% 28%;--ring:16 100% 74%;--income:151 61% 63%;--expense:352 95% 78%;--destructive:352 95% 78%;--destructive-foreground:350 45% 10%;--chart-1:16 100% 64%;--chart-2:151 61% 63%;--chart-3:352 95% 78%;--chart-4:42 95% 66%;--chart-5:215 80% 73%;--radius:3px;--glass-bg:24 8% 7%;--glass-border:24 6% 23%;--glow-primary:13 100% 58%}
 /* Integrate the score into the orange debt card without a nested surface. */
 .cl-debt-current-values{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(140px,100%),1fr));gap:12px 16px;margin-top:18px;align-items:end}
