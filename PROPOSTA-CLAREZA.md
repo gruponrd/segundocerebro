@@ -52,3 +52,6 @@ A direção laranja/branco/preto passa a ser utilizada pelo aplicativo principal
 Cabeçalho mais fino e três atalhos ilustrados menores, com movimento preservado e navegação real para Fluxo, Carteira e Objetivos. Score em grafite. Todas as dez seções usam o vocabulário visual compartilhado e seus formulários originais. Busca, novo lançamento, exportação XLSX e logout com estado de erro permanecem acessíveis. Relatórios e ferramentas anteriores da visão geral continuam abaixo do novo resumo, abertos e sem botão de expandir.
 
 Conferência visual da navegação das dez seções, visão geral e Fluxo em desktop e celular. Verificação completa: 178 testes unitários/componentes e 29 verificações de banco local, tipos, lint sem erros e build de produção. Nenhum teste grava no banco de produção. Avisos existentes: react-refresh, Browserslist e tamanho de chunks.
+
+## Regra de contraste dos controles
+Botões e seletores sobre superfícies laranjas usam grafite com texto claro, incluindo hover, foco e desabilitado. O cabeçalho principal ilustrado é a única exceção para atalhos brancos sobre laranja. Textos brancos e ícones estáticos permanecem permitidos.
