@@ -8,7 +8,8 @@ import { ArrowUpRight, Brain, Zap, Shield, Flame, Sparkles, RotateCcw, Calendar,
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
 import { useAuth } from "@/hooks/useAuth";
-import { readAccountJson, writeAccountJson } from "@/lib/accountStorage";
+import { useLifeGameState } from "@/hooks/useLifeGameState";
+import { journeyToday, journeyDays, journeyDateLabel, validJourneyDate } from "@/lib/lifeGameDates";
 
 // ============ DATA ============
 
@@ -114,35 +115,7 @@ const MILESTONE_TONES: Record<Milestone["tone"], string> = {
   violet: "border-violet-400/25 bg-violet-400/10 text-violet-300",
 };
 
-// ============ STORAGE ============
-
-const STORAGE_KEY = "neuro-recovery-v1";
-
-type NeuroState = {
-  startDate: string | null; // ISO
-  defeatedBosses: string[];
-  bestStreakDays: number;
-  claimedCoins?: number[]; // legacy key: list of milestone days already celebrated
-};
-
-function loadState(userId: string): NeuroState {
-  const state = readAccountJson<NeuroState>(userId, STORAGE_KEY, {
-    startDate: null, defeatedBosses: [], bestStreakDays: 0, claimedCoins: [],
-  });
-  return { ...state, claimedCoins: state.claimedCoins ?? [] };
-}
-
-function saveState(userId: string, state: NeuroState) {
-  writeAccountJson(userId, STORAGE_KEY, state);
-}
-
 // ============ HELPERS ============
-
-function daysBetween(iso: string): number {
-  const start = new Date(iso).getTime();
-  const now = Date.now();
-  return Math.max(0, Math.floor((now - start) / (1000 * 60 * 60 * 24)));
-}
 
 function computeLevel(days: number) {
   let current = LEVELS[0];
@@ -167,10 +140,10 @@ function computeStat(key: StatKey, days: number): number {
 export default function NeuroRecoveryPage() {
   const { user } = useAuth();
   const userId = user?.id ?? "";
-  const [state, setState] = useState<NeuroState>(() => loadState(userId));
+  const [state, setState] = useLifeGameState(userId);
   const [dayTick, setDayTick] = useState(0);
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [pickerDate, setPickerDate] = useState<string>(() => new Date().toISOString().slice(0, 10));
+  const [pickerDate, setPickerDate] = useState<string>(() => journeyToday());
   const [resetOpen, setResetOpen] = useState(false);
   const [celebrateMilestone, setCelebrateMilestone] = useState<Milestone | null>(null);
 
@@ -180,9 +153,8 @@ export default function NeuroRecoveryPage() {
     return () => clearInterval(t);
   }, []);
 
-  useEffect(() => { if (userId) saveState(userId, state); }, [state, userId]);
 
-  const days = state.startDate ? daysBetween(state.startDate) : 0;
+  const days = state.startDate ? journeyDays(state.startDate) : 0;
   const totalXP = days * 100;
   const { current: currentLevel, next: nextLevel } = computeLevel(days);
   const progressPct = nextLevel
@@ -191,7 +163,7 @@ export default function NeuroRecoveryPage() {
 
   useEffect(() => {
     if (days > state.bestStreakDays) {
-      setState((s) => ({ ...s, bestStreakDays: days }));
+      setState((s) => s.startDate === state.startDate ? { ...s, bestStreakDays: Math.max(s.bestStreakDays, days) } : s);
     }
   }, [days]); // eslint-disable-line
 
@@ -202,7 +174,7 @@ export default function NeuroRecoveryPage() {
     const newly = MILESTONES.find((milestone) => days >= milestone.day && !claimed.includes(milestone.day));
     if (newly) {
       setCelebrateMilestone(newly);
-      setState((s) => ({ ...s, claimedCoins: [...(s.claimedCoins ?? []), newly.day] }));
+      setState((s) => s.startDate === state.startDate && !(s.claimedCoins ?? []).includes(newly.day) ? { ...s, claimedCoins: [...(s.claimedCoins ?? []), newly.day] } : s);
     }
   }, [days, state.startDate]); // eslint-disable-line
 
@@ -223,13 +195,13 @@ export default function NeuroRecoveryPage() {
   const CelebrateIcon = celebrateMilestone?.icon;
 
   const startJourney = () => {
-    const iso = new Date(pickerDate + "T00:00:00").toISOString();
-    setState({ startDate: iso, defeatedBosses: [], bestStreakDays: 0, claimedCoins: [] });
+    if (!validJourneyDate(pickerDate) || pickerDate > journeyToday()) return;
+    setState({ startDate: pickerDate, defeatedBosses: [], bestStreakDays: 0, claimedCoins: [] });
     setPickerOpen(false);
   };
 
   const resetJourney = () => {
-    setState({ startDate: null, defeatedBosses: [], bestStreakDays: state.bestStreakDays, claimedCoins: [] });
+    setState(s => ({ startDate: null, defeatedBosses: [], bestStreakDays: s.bestStreakDays, claimedCoins: [] }));
     setResetOpen(false);
   };
 
@@ -255,18 +227,19 @@ export default function NeuroRecoveryPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              <label htmlFor="journey-start-date" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Data em que você parou
               </label>
               <Input
+                id="journey-start-date"
                 type="date"
                 value={pickerDate}
                 onChange={(e) => setPickerDate(e.target.value)}
-                max={new Date().toISOString().slice(0, 10)}
+                max={journeyToday()}
                 className="mt-2"
               />
             </div>
-            <Button onClick={startJourney} className="w-full gap-2" size="lg">
+            <Button onClick={startJourney} disabled={!validJourneyDate(pickerDate) || pickerDate > journeyToday()} className="w-full gap-2" size="lg">
               <Sparkles className="w-4 h-4" /> Iniciar Reconstrução
             </Button>
           </CardContent>
@@ -280,7 +253,7 @@ export default function NeuroRecoveryPage() {
     <div className="min-h-screen bg-background">
       <main className="page-container space-y-8">
         {/* Header */}
-        <PageHeader title="LifeGame" description="Sua jornada de reconstrução em capítulos, com marcos aproximados de recuperação." icon={Brain} actions={
+        <PageHeader title="LifeGame" description={`Início em ${journeyDateLabel(state.startDate)} · Dias de calendário no horário de Brasília. Sua jornada de reconstrução em capítulos.`} icon={Brain} actions={
             <Dialog open={resetOpen} onOpenChange={setResetOpen}>
               <Button variant="outline" className="gap-2" onClick={() => setResetOpen(true)}>
                 <RotateCcw className="w-4 h-4" /> Reiniciar
