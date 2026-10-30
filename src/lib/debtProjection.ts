@@ -29,6 +29,7 @@ export function debtProjection(banks: Bank[], creditors: Creditor[], month: Pick
   const creditorCents = creditors.reduce((total, creditor) => total + Math.max(0, Math.round(creditor.totalDebt * 100) - Math.round(creditor.amountPaid * 100)), 0);
   return {
     isProjection,
+    isCurrentMonth: selected === current,
     currentDebt: (cards + creditorCents) / 100,
     projectedPayments: scheduled / 100,
     cardsRemaining: (cards - scheduled) / 100,
