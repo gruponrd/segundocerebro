@@ -6,7 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { money, monthNumber, pendingPayments } from "@/lib/planningTools";
 import { buildBalanceProjection, surplusProjectionHorizon } from "@/lib/dashboardPresentation";
 import { WelcomeCards } from "./WelcomeCards";
-import { ProposalHealthScore } from "./ProposalHealthScore";
+import { OverviewDebtCard } from "./OverviewDebtCard";
 import { AnimatedAmount } from "./AnimatedAmount";
 import { SurplusSparkline } from "./SurplusSparkline";
 import { isAccountPreview } from "@/lib/previewMode";
@@ -58,7 +58,6 @@ export function OverviewProposal({ embedded = false }: { embedded?: boolean }) {
   const coordinates = values.map((value, index) => ({ x: 32 + index / Math.max(1, values.length - 1) * 656, y: 149 - (value - low) / (high - low) * 120 }));
   const path = coordinates.map((point, index) => `${index ? "L" : "M"} ${point.x} ${point.y}`).join(" ");
   const currentPoint = hovered === null ? null : visiblePoints[hovered];
-  const banks = store.banks.filter(bank => bank.status !== "cancelado");
 
   const content = (      <main tabIndex={-1} id="resumo" className="cl-main">
         <WelcomeCards name={auth.displayName} />
@@ -77,7 +76,7 @@ export function OverviewProposal({ embedded = false }: { embedded?: boolean }) {
             <div className="cl-spending-bar" aria-hidden><span style={{ width: `${spentPercent}%` }} /><span style={{ width: `${income > 0 ? 100 - spentPercent : 0}%` }} /></div>
             <div className="cl-bar-labels"><span><i className="cl-swatch-expense" />{income > 0 ? `${Math.round(cost / income * 100)}% comprometido` : "Sem entradas no período"}</span><span><i className="cl-swatch-income" />{balance >= 0 ? "Sobra prevista" : "Mês no negativo"}</span></div>
           </section>
-<section className="cl-panel cl-primary-debt" aria-labelledby="cl-primary-debt-title"><div className="cl-panel-heading"><h2 id="cl-primary-debt-title">Dívida total em aberto</h2><CreditCard size={17} /></div><Amount value={store.totalDebt} /><p>Cartões e credores.<br /> Saldo em aberto de todos os meses.</p><dl><div><dt>Em cartões</dt><dd><Amount value={banks.reduce((total, bank) => total + bank.limitUsed, 0)} /></dd></div><div><dt>Com credores</dt><dd><Amount value={Math.max(0, store.totalCreditorsDebt - store.totalCreditorsPaid)} /></dd></div></dl><p className="cl-primary-debt-note">As parcelas do mês já estão nas saídas. A dívida não é descontada novamente da sobra.</p><ProposalHealthScore /><Link to="/divida">Ver detalhes da dívida <ArrowUpRight size={14} /></Link></section>
+<OverviewDebtCard banks={store.banks} creditors={store.creditors} month={month} />
           <div className="cl-pending-pair">
             <section className="cl-panel cl-pending-mini cl-receive" aria-labelledby="cl-receive-title"><div><h2 id="cl-receive-title">A receber</h2><Amount value={toReceive} /></div><p>Já recebido <strong><Amount value={received} /></strong></p></section>
             <section className="cl-panel cl-pending-mini cl-pay" aria-labelledby="cl-pay-title"><div><h2 id="cl-pay-title">A pagar</h2><Amount value={pending} /></div><p>{payments.length} pendências · Já pago <strong><Amount value={paid} /></strong></p></section>
