@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useFinanceStore } from "@/stores/financeStore";
 import { openCommandMenu } from "@/lib/commandMenu";
 import { openTransactionMenu } from "@/lib/transactionMenu";
-import { isDesignPreview } from "@/lib/previewMode";
+import { isPreviewMode, isDesignPreview } from "@/lib/previewMode";
 import { LogoutButton } from "@/components/LogoutButton";
 import { ExportXlsxButton } from "@/components/ExportXlsxButton";
 
@@ -40,8 +40,8 @@ export function ClarityWorkspace({ children }: { children: ReactNode }) {
       {isDesignPreview && <div className="cl-preview">Prévia local · alterações somente neste navegador</div>}
       <header className="cl-topbar"><span className="cl-current-section">Meu espaço <span className="cl-slash">/</span> {label}</span><div className="cl-header-actions">{pathname === "/" && <span className="cl-export"><ExportXlsxButton compact/></span>}<button onClick={openCommandMenu} aria-label="Buscar no aplicativo"><Search size={17}/></button><button className="cl-new-entry" onClick={openTransactionMenu} aria-label="Novo lançamento"><Plus size={17}/><span>Novo lançamento</span></button><span className="cl-avatar" title={displayName}>{(displayName || "SC").slice(0,1)}</span><LogoutButton iconOnly className="cl-header-logout"/></div></header>
       <div className="cl-sync-status" role="status" aria-live="polite">
-        {finance.syncStatus === "saving" && "Salvando alterações…"}
-        {finance.syncStatus === "saved" && "Dados sincronizados"}
+        {finance.syncStatus === "saving" && (isPreviewMode ? "Salvando nesta prévia…" : "Salvando alterações…")}
+        {finance.syncStatus === "saved" && (isPreviewMode ? "Prévia salva somente neste navegador" : "Dados sincronizados")}
         {(finance.syncStatus === "error" || finance.syncStatus === "conflict") && <span role="alert">{finance.syncError} <button onClick={finance.syncStatus === "conflict" ? finance.retryCloudLoad : finance.retryCloudSave}>{finance.syncStatus === "conflict" ? "Recarregar dados da nuvem" : "Tentar novamente"}</button></span>}
       </div>
       <div id="workspace-content" tabIndex={-1} className="cl-section-page" data-section={pathname.slice(1) || "overview"}>{children}</div>

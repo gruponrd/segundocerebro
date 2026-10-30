@@ -16,3 +16,5 @@ import "./sections.css";
 createRoot(document.getElementById("clarity-root")!).render(isDesignPreview
   ? <AuthProvider><AccountWorkspace><MigratedModulesGate><FinanceProvider><ProposalApp /></FinanceProvider></MigratedModulesGate></AccountWorkspace></AuthProvider>
   : <main>Esta proposta está disponível somente na prévia local de design.</main>);
+
+import "@/styles/clarity-polish.css";

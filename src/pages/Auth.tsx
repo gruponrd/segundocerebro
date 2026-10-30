@@ -11,7 +11,9 @@ import {
   LockKeyhole,
   Mail,
   ShieldCheck,
-  Sparkles,
+  Brain,
+  CreditCard,
+  Target,
   UserPlus,
   Wallet,
 } from "lucide-react";
@@ -100,76 +102,23 @@ export default function AuthPage() {
   const isForgot = view === "forgot";
 
   return (
-    <main className="auth-shell relative min-h-screen overflow-hidden bg-background px-4 py-5 text-foreground sm:px-6 sm:py-8">
-      <div className="auth-grid pointer-events-none absolute inset-0 opacity-50" />
-      <div className="auth-orb auth-orb-one pointer-events-none absolute -left-28 -top-32 h-[28rem] w-[28rem] rounded-full" />
-      <div className="auth-orb auth-orb-two pointer-events-none absolute -bottom-48 -right-40 h-[34rem] w-[34rem] rounded-full" />
-
-      <div className="relative mx-auto grid min-h-[calc(100vh-2.5rem)] w-full max-w-6xl items-center gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
-        <section className="hidden px-4 lg:block lg:px-8">
-          <div className="mb-20 flex items-center gap-3 text-sm font-medium tracking-[0.18em] text-foreground/70">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] text-primary shadow-[0_0_30px_hsl(var(--primary)/0.12)]">
-              <Wallet className="h-4 w-4" />
-            </span>
-            SEGUNDO CÉREBRO
-          </div>
-
-          <div className="max-w-xl">
-            <p className="label-mono mb-5 flex items-center gap-2 text-primary/80">
-              <Sparkles className="h-3.5 w-3.5" /> VISÃO CLARA · VIDA LEVE
-            </p>
-            <h1 className="max-w-2xl text-5xl font-medium leading-[1.08] tracking-[-0.05em] text-gradient xl:text-6xl">
-              O seu dinheiro em uma nova perspectiva.
-            </h1>
-            <p className="mt-6 max-w-md text-base leading-7 text-muted-foreground">
-              Um painel calmo para organizar seus planos, entender seus movimentos e seguir em frente com intenção.
-            </p>
-          </div>
-
-          <div className="relative mt-16 h-44 max-w-md">
-            <div className="auth-float absolute left-2 top-0 w-60 rounded-2xl border border-white/10 bg-white/[0.055] p-4 shadow-2xl shadow-black/20 backdrop-blur-xl">
-              <div className="mb-8 flex items-center justify-between">
-                <span className="label-mono">Saldo projetado</span>
-                <span className="rounded-full bg-emerald-400/10 px-2 py-1 text-[10px] font-medium text-emerald-300">+12,8%</span>
-              </div>
-              <p className="font-mono text-2xl tracking-[-0.06em] text-foreground/90">R$ 8.420,00</p>
-              <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/10">
-                <div className="auth-progress h-full w-[72%] rounded-full bg-gradient-to-r from-primary/40 via-primary to-primary/40" />
-              </div>
-            </div>
-            <div className="auth-float-delayed absolute bottom-0 right-0 flex items-center gap-3 rounded-2xl border border-white/10 bg-card/80 px-4 py-3 shadow-2xl shadow-black/30 backdrop-blur-xl">
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary"><ShieldCheck className="h-4 w-4" /></span>
-              <div>
-                <p className="text-xs font-medium text-foreground/80">Tudo em um só lugar</p>
-                <p className="mt-0.5 text-[10px] text-muted-foreground">Seguro e sincronizado</p>
-              </div>
-            </div>
-            <div className="auth-ring pointer-events-none absolute -right-8 -top-10 h-36 w-36 rounded-full border border-primary/10" />
-          </div>
+    <main className="auth-shell clarity-auth">
+      <div className="auth-layout">
+        <section className="auth-showcase" aria-label="Segundo Cérebro">
+          <div className="auth-brand"><Brain size={25} strokeWidth={1.5}/><span>Segundo Cérebro</span></div>
+          <div className="auth-showcase-copy"><p className="auth-display">Seu dinheiro.<br/>Seus próximos<br/>passos.</p><p>Um espaço para organizar seus movimentos, entender o mês e cuidar dos seus planos.</p></div>
+          <div className="auth-illustration" aria-hidden="true"><Wallet strokeWidth={.7}/><span><CreditCard strokeWidth={1}/></span></div>
+          <div className="auth-showcase-links"><span><Wallet size={17}/>Finanças</span><span><CreditCard size={17}/>Cartões</span><span><Target size={17}/>Objetivos</span></div>
         </section>
-
-        <section className="auth-card mx-auto w-full max-w-md rounded-[2rem] border border-white/10 bg-card/75 p-6 shadow-[0_30px_100px_-35px_rgba(0,0,0,0.9)] backdrop-blur-2xl sm:p-8">
-          <div className="mb-8 flex items-center gap-3 lg:hidden">
-            <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/[0.06] text-primary">
-              <Wallet className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="text-sm font-semibold tracking-[0.12em] text-foreground/90">SEGUNDO CÉREBRO</p>
-              <p className="text-xs text-muted-foreground">Seu painel pessoal</p>
-            </div>
-          </div>
-
-          <div className="mb-8">
-            <p className="label-mono mb-3 text-primary/75">{copy[view].eyebrow}</p>
-            <h2 className="text-3xl font-medium leading-tight tracking-[-0.04em] text-foreground">{copy[view].title}</h2>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">{copy[view].subtitle}</p>
-          </div>
+        <section className="auth-card" aria-labelledby="auth-title">
+          <div className="auth-mobile-brand auth-brand"><Brain size={24} strokeWidth={1.5}/><span>Segundo Cérebro</span></div>
+          <div className="auth-form-heading"><h1 id="auth-title">{copy[view].title}</h1><p>{copy[view].subtitle}</p></div>
 
           {isAccountPreview && <p role="status" className="mb-5 text-sm text-muted-foreground">Entre com sua conta para visualizar uma cópia dos seus dados. Alterações nesta prévia não são enviadas ao aplicativo publicado. <button type="button" className="underline" onClick={() => setDesignAccountPreview(false)}>Voltar aos exemplos</button></p>}
           <form onSubmit={handleSubmit} className="space-y-4">
             {isSignup && (
               <label className="auth-field group block">
-                <span className="sr-only">Seu nome</span>
+                <span className="auth-field-label">Seu nome</span>
                 <UserPlus className="auth-field-icon" aria-hidden="true" />
                 <Input
                   autoComplete="name"
@@ -183,7 +132,7 @@ export default function AuthPage() {
               </label>
             )}
             <label className="auth-field group block">
-              <span className="sr-only">Email</span>
+              <span className="auth-field-label">Email</span>
               <Mail className="auth-field-icon" aria-hidden="true" />
               <Input
                 autoComplete="email"
@@ -197,7 +146,7 @@ export default function AuthPage() {
             </label>
             {!isForgot && (
               <label className="auth-field group block">
-                <span className="sr-only">Senha</span>
+                <span className="auth-field-label">Senha</span>
                 <LockKeyhole className="auth-field-icon" aria-hidden="true" />
                 <Input
                   autoComplete={isSignup ? "new-password" : "current-password"}

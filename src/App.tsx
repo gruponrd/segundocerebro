@@ -8,6 +8,7 @@ import { FinanceProvider, useFinanceStore } from "@/stores/financeStore";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 
 import { ThemeProvider } from "@/hooks/use-theme";
+import { WorkspaceLoading } from "@/components/WorkspaceLoading";
 import { ClarityWorkspace } from "@/components/ClarityWorkspace";
 import { OverviewProposal } from "@/overview-proposal/OverviewProposal";
 import { CommandCenter } from "@/components/CommandCenter";
@@ -40,9 +41,7 @@ function AppRoutes() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
+      <WorkspaceLoading/>
     );
   }
 
@@ -50,7 +49,7 @@ function AppRoutes() {
     return (
       <BrowserRouter>
         <RouteRecovery>
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Carregando página...</div>}>
+        <Suspense fallback={<WorkspaceLoading message="Abrindo a página…"/>}>
         <Routes>
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="*" element={<AuthPage />} />
@@ -89,8 +88,7 @@ function AppRoutes() {
           </>
         ) : (
           <>
-            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-muted-foreground">Carregando seus dados financeiros...</p>
+            <WorkspaceLoading compact message="Carregando seus dados financeiros…"/>
           </>
         )}
       </main>
@@ -104,7 +102,7 @@ function AppRoutes() {
       <ExpenseFAB />
         <WorkspaceMotion>
         <RouteRecovery>
-        <Suspense fallback={<div className="workspace-route-loading min-h-screen flex items-center justify-center">Carregando página...</div>}>
+        <Suspense fallback={<div className="workspace-route-loading"><WorkspaceLoading compact message="Abrindo a seção…"/></div>}>
           <Routes>
             {isDesignPreview && <Route path="/acesso" element={<AuthPage />} />}
             <Route path="/" element={<><OverviewProposal embedded /><Index detailsOnly /></>} />
