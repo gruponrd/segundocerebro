@@ -1,3 +1,4 @@
+import { BankDetailSheet } from "@/components/BankDetailSheet";
 import { BankCategoryField } from "@/components/BankCategoryField";
 import { bankCategoryLabel } from "@/lib/bankCategory";
 import { CardPurchaseButton } from "@/components/CardPurchaseForm";
@@ -191,7 +192,7 @@ function WalletCard({
       className={cn("absolute left-1/2 cursor-pointer rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 motion-reduce:!transition-none", textColor)}
       role="button"
       tabIndex={0}
-      aria-label={`Selecionar cartão ${bank.name}`}
+      aria-label={`Abrir detalhes de ${bank.name}`}
       aria-pressed={isActive}
       style={{
         top: 96,
@@ -302,7 +303,7 @@ function WalletCard({
 }
 
 export default function CarteiraPage() {
-  const { banks, addBank, updateBank } = useFinanceStore();
+  const { banks, addBank, updateBank, selectedBank, setSelectedBank, updateInstallment, removeInstallment, addInstallment, removeBank } = useFinanceStore();
   const [activeIndex, setActiveIndex] = useState(0);
   const [view, setView] = useState<"carteira" | "todos">("carteira");
   const touchStartRef = useRef<number | null>(null);
@@ -380,7 +381,7 @@ export default function CarteiraPage() {
           </div>
         </div>
 
-        {view === "todos" && <AllCardsGrid banks={banks} />}
+        {view === "todos" && <AllCardsGrid banks={banks} onOpenBank={setSelectedBank} />}
 
         {/* Main layout */}
         <div className={cn("flex flex-col lg:flex-row items-center lg:items-start gap-10 justify-center", view !== "carteira" && "hidden")}>
@@ -442,7 +443,7 @@ export default function CarteiraPage() {
                     bank={bank}
                     stackIndex={stackPos}
                     isActive={stackPos === 0}
-                    onClick={() => setActiveIndex(originalIndex)}
+                    onClick={() => { setActiveIndex(originalIndex); setSelectedBank(bank); }}
                   />
                 ))}
             </div>
@@ -586,6 +587,7 @@ export default function CarteiraPage() {
           </div>
         </div>
       </div>
+      <BankDetailSheet bank={selectedBank} open={!!selectedBank} onOpenChange={open => { if (!open) setSelectedBank(null); }} onUpdateInstallment={updateInstallment} onRemoveInstallment={removeInstallment} onAddInstallment={addInstallment} onUpdateBank={updateBank} onRemoveBank={removeBank} />
     </div>
   );
 }

@@ -17,7 +17,7 @@ const instStatusStyles: Record<string, string> = {
   atrasado: "bg-amber-500/15 text-amber-500 border-amber-500/30",
 };
 
-function CardColumn({ bank }: { bank: Bank }) {
+function CardColumn({ bank, onOpen }: { bank: Bank; onOpen?: () => void }) {
   const color = getCardColor(bank.color);
   const usagePercent = bank.limitTotal > 0 ? Math.min((bank.limitUsed / bank.limitTotal) * 100, 100) : 0;
   const isOverLimit = bank.limitUsed > bank.limitTotal;
@@ -47,7 +47,7 @@ function CardColumn({ bank }: { bank: Bank }) {
         <div className="relative flex items-start justify-between">
           <div className="min-w-0">
             <p className="text-[9px] uppercase tracking-[0.2em] opacity-60">{bankCategoryLabel(bank.category)}</p>
-            <h3 className="text-lg font-bold tracking-wide truncate">{bank.name}</h3>
+            <h3 className="text-lg font-bold tracking-wide truncate">{onOpen ? <button type="button" onClick={onOpen} aria-label={`Abrir detalhes de ${bank.name}`} className="min-h-10 max-w-full truncate text-left underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-current">{bank.name}</button> : bank.name}</h3>
           </div>
           {bank.logoDataUrl ? <BankLogo bank={bank} size="md" decorative /> : <Wifi className="w-4 h-4 opacity-40 rotate-90 shrink-0" />}
         </div>
@@ -144,7 +144,7 @@ function CardColumn({ bank }: { bank: Bank }) {
   );
 }
 
-export function AllCardsGrid({ banks }: { banks: Bank[] }) {
+export function AllCardsGrid({ banks, onOpenBank }: { banks: Bank[]; onOpenBank?: (bank: Bank) => void }) {
   const activeBanks = useMemo(() => banks.filter((b) => b.status !== "cancelado"), [banks]);
 
   const totals = useMemo(() => {
@@ -188,7 +188,7 @@ export function AllCardsGrid({ banks }: { banks: Bank[] }) {
       <div className="flex gap-4 overflow-x-auto pb-3 snap-x custom-scrollbar">
         {activeBanks.map((bank) => (
           <div key={bank.id} className="snap-start shrink-0 w-[320px]">
-            <CardColumn bank={bank} />
+            <CardColumn bank={bank} onOpen={onOpenBank ? () => onOpenBank(bank) : undefined} />
           </div>
         ))}
       </div>

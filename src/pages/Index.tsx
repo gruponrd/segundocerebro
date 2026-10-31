@@ -10,7 +10,6 @@ import { BankCard } from "@/components/BankCard";
 import { AddBankCard } from "@/components/AddBankCard";
 import { InstallmentTimeline } from "@/components/InstallmentTimeline";
 import { CreditorWidget } from "@/components/CreditorWidget";
-import { SpendingChart } from "@/components/SpendingChart";
 import { BankDetailSheet } from "@/components/BankDetailSheet";
 import { HeroChart } from "@/components/HeroChart";
 import { CalendarCard } from "@/components/CalendarCard";
@@ -139,9 +138,6 @@ const Index = ({ detailsOnly = false }: { detailsOnly?: boolean }) => {
               </div>
               <div className="lg:col-span-2">
                 <FinancialHealthScore />
-              </div>
-              <div className="lg:col-span-6">
-                <SpendingChart banks={store.banks} />
               </div>
             </div>
           </>

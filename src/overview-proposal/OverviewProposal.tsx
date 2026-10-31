@@ -66,7 +66,7 @@ export function OverviewProposal({ embedded = false }: { embedded?: boolean }) {
         <div className="cl-summary-grid">
           <div className="cl-summary-main">
           <section className={`cl-panel cl-result ${balance < 0 ? "cl-result-negative" : "cl-result-positive"}`} aria-labelledby="cl-result-title">
-            <div className="cl-panel-heading"><h2 id="cl-result-title">{balance >= 0 ? "O que deve sobrar neste mês" : "O que falta para fechar este mês"}</h2><span className="cl-tag">Previsto</span></div>
+            <div className="cl-panel-heading"><h2 id="cl-result-title"><Link className="cl-month-flow-button" to="/fluxo" aria-label={`${balance >= 0 ? "O que deve sobrar neste mês" : "O que falta para fechar este mês"} · Abrir fluxo de ${month.month} ${month.year}`}>{balance >= 0 ? "O que deve sobrar neste mês" : "O que falta para fechar este mês"}<ArrowUpRight size={16} aria-hidden /></Link></h2><span className="cl-tag">Previsto</span></div>
             <div className="cl-result-intro"><div><div className="cl-result-number"><Amount value={Math.abs(balance)} className={balance < 0 ? "cl-red" : ""} />{income > 0 && <span className={balance < 0 ? "cl-red" : "cl-green"}>{Math.abs(savingsPercent).toFixed(0)}% {balance < 0 ? "faltando" : "das entradas"}</span>}</div>
             <p className="cl-sr">{balance >= 0 ? "Depois de todas as despesas e parcelas previstas." : "As despesas previstas superam as entradas deste mês."} Não é o saldo da conta bancária.</p></div><SurplusSparkline key={`${month.month}-${month.year}`} month={month} months={store.cashflowMonths} banks={store.banks} /></div>
             <div className="cl-equation">

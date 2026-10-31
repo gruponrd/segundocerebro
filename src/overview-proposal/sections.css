@@ -1,4 +1,11 @@
 /* Shared visual language; account isolation and persistence remain unchanged. */
+.cl-month-flow-button{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:6px 9px;border:1px solid #d6cec2;border-radius:3px;transition:background-color 180ms ease}
+.cl-month-flow-button:hover{background:#eae5dd}.cl-month-flow-button:focus-visible{outline-color:#a24524}
+.cl-forecast-body,.cl-forecast-chart,.cl-chart-values,.cl-calculation-visible,.cl-table-scroll{min-width:0;max-width:100%}
+.cl-forecast-chart>svg{display:block;width:100%;max-width:100%}
+.cl-chart-toolbar{flex-wrap:wrap}.cl-segments{max-width:100%;flex-wrap:wrap}
+.cl-forecast-select{min-width:0}.cl-forecast-select select{min-width:0;flex:1}
+@media(max-width:480px){.cl-chart-toolbar{align-items:stretch;gap:8px}.cl-chart-toolbar>span{flex-basis:100%}.cl-chart-toolbar .cl-segments{width:100%}.cl-segments button{flex:1;min-height:40px}.cl-result>.cl-panel-heading{align-items:start;gap:8px}.cl-result>.cl-panel-heading h2{min-width:0}.cl-month-flow-button{font-size:12px;padding:6px;gap:5px}.cl-forecast-select select{max-width:100%}}
 .cl-summary-grid{align-items:start}.cl-summary-main{display:grid;gap:12px;min-width:0;align-content:start}
 .cl-summary-grid>.cl-primary-debt{grid-row:auto}
 .cl-summary-main .cl-result{padding:18px 22px}.cl-summary-main .cl-result-intro{margin-bottom:12px}
