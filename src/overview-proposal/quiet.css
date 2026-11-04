@@ -10,6 +10,7 @@
 @media(max-width:1200px){.cl-result-intro{grid-template-columns:1fr}.cl-surplus-spark{margin-top:0;max-width:320px;width:100%}.cl-surplus-spark>svg{height:54px}}
 @media(max-width:760px){.cl-result-intro{gap:13px}.cl-surplus-spark{max-width:none}.cl-spark-months button{min-height:32px}}
 .cl-spark-legend{display:flex;gap:12px}.cl-spark-legend>span{display:flex;gap:4px;align-items:center}.cl-spark-legend>span::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}.cl-spark-values{display:flex;gap:8px;justify-content:space-between;font-size:10px;line-height:1.5;color:var(--cl-muted);margin-top:3px;min-height:16px;font-variant-numeric:tabular-nums}.cl-spark-values strong{font-weight:400;white-space:nowrap}
+.cl-result .cl-spark-income{color:#177346}.cl-result .cl-spark-cost{color:#b3333a}.cl-result .cl-spark-balance{color:#925700}.cl-spark-caption{gap:4px}.cl-spark-legend{gap:7px;flex-wrap:wrap}.cl-spark-values{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:2px 6px}.cl-spark-values>span:first-child{grid-column:1/-1}.cl-spark-values strong{font-size:10px;overflow-wrap:anywhere;white-space:normal}.cl-spark-values .cl-amount{white-space:normal}
 .cl-counter-digits{display:inline-block;font-variant-numeric:tabular-nums}
 /* Keep typography inherited when a counter is nested in the compact cards. */
 .cl-pending-mini p .cl-amount{font-size:inherit;font-weight:inherit;color:inherit}.cl-spark-values .cl-amount{font-size:inherit}
