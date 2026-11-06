@@ -1,0 +1,48 @@
+/* Preserve the established palette while making financial comparisons easier to scan. */
+.cl-result-intro { grid-template-columns: minmax(0, 1fr) minmax(250px, .9fr); gap: 24px; }
+.cl-surplus-spark { margin-top: 12px; }
+.cl-surplus-spark > svg { height: 92px; }
+.cl-spark-caption, .cl-spark-values { font-size: 12px; }
+.cl-spark-legend { gap: 11px; }
+.cl-spark-legend > span::before { width: 7px; height: 7px; }
+.cl-spark-months button { font-size: 12px; min-height: 34px; }
+.cl-spark-values { gap: 4px 8px; }
+.cl-spark-values strong { font-size: 12px; font-weight: 600; }
+.cl-spark-values > span:first-child { text-transform: capitalize; }
+
+.cl-primary-debt .cl-debt-current-values { gap: 18px; margin-top: 22px; }
+.cl-primary-debt .cl-debt-current-values > div > span:first-child { font-size: 13px; }
+.cl-primary-debt .cl-debt-current-values .cl-amount { font-size: clamp(24px, 2.25vw, 34px); font-weight: 700; }
+.cl-primary-debt dl { margin-top: 20px; padding-top: 17px; gap: 12px 24px; }
+.cl-primary-debt dt { font-size: 12px; line-height: 1.4; }
+.cl-primary-debt dd { margin-top: 6px; font-size: 18px; font-weight: 600; }
+.cl-primary-debt .cl-debt-health { margin-top: 18px; padding-top: 18px; }
+
+.cl-section-page[data-section=fluxo] .glass-card .cashflow-summary-grid,
+.cl-section-page[data-section=fluxo] .glass-card .cashflow-live-grid { gap: 8px; }
+.cl-section-page[data-section=fluxo] .glass-card > .group\/balance .cashflow-summary-grid > div,
+.cl-section-page[data-section=fluxo] .glass-card > .group\/balance .cashflow-live-grid > div { background: #211712; border: 0; border-radius: 10px; }
+.cl-section-page[data-section=fluxo] .glass-card .cashflow-live-summary { margin-top: 20px; padding-top: 18px; }
+
+.wallet-layout { gap: 24px; }
+.wallet-detail-panel { border-color: #47352d; background: #16110f; }
+.wallet-detail-panel h2 { font-size: 1.375rem; }
+.wallet-metrics > div { min-width: 0; padding: 11px 7px; background: #211916; }
+.wallet-metrics > div:nth-child(2) { background: #2e2119; }
+.wallet-metrics > div:nth-child(2) p:last-child { color: #a5e5bf; }
+.wallet-metrics p:last-child { font-size: clamp(12px, 1.1vw, 16px); overflow-wrap: anywhere; }
+
+@media(max-width: 1200px) {
+  .cl-result-intro { grid-template-columns: 1fr; }
+  .cl-surplus-spark { max-width: 440px; }
+  .cl-surplus-spark > svg { height: 82px; }
+}
+@media(max-width: 760px) {
+  .cl-result-intro { gap: 15px; }
+  .cl-surplus-spark { max-width: none; }
+  .cl-surplus-spark > svg { height: 80px; }
+  .cl-spark-caption, .cl-spark-values, .cl-spark-values strong { font-size: 11px; }
+  .cl-spark-months button { min-height: 38px; }
+  .wallet-layout { gap: 18px; }
+  .wallet-detail-panel h2 { font-size: 1.25rem; }
+}

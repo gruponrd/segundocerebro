@@ -128,17 +128,17 @@ const Index = ({ detailsOnly = false }: { detailsOnly?: boolean }) => {
   const sections: Record<SectionId, { title: string; node: React.ReactNode }> = useMemo(
     () => ({
       cobertura: {
-        title: "Cobertura & Saúde",
+        title: detailsOnly ? "Cobertura de renda" : "Cobertura & Saúde",
         node: (
           <>
-            <SectionHead index="02" title="Cobertura & Saúde" subtitle="A renda cobre os próximos meses?" />
+            <SectionHead index="02" title={detailsOnly ? "Cobertura de renda" : "Cobertura & Saúde"} subtitle="A renda cobre os próximos meses?" />
             <div className="grid grid-cols-1 lg:grid-cols-6 gap-4 auto-rows-min">
-              <div className="lg:col-span-4">
+              <div className={detailsOnly ? "lg:col-span-6" : "lg:col-span-4"}>
                 <IncomeCoverage />
               </div>
-              <div className="lg:col-span-2">
+              {!detailsOnly && <div className="lg:col-span-2">
                 <FinancialHealthScore />
-              </div>
+              </div>}
             </div>
           </>
         ),
@@ -307,7 +307,7 @@ const Index = ({ detailsOnly = false }: { detailsOnly?: boolean }) => {
         ),
       },
     }),
-    [store, showCancelled, dragBankId, dragOverId, activeBanks, cancelledBanks]
+    [store, showCancelled, dragBankId, dragOverId, activeBanks, cancelledBanks, detailsOnly]
   );
 
   return (

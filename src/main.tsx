@@ -16,5 +16,6 @@ import "./overview-proposal/sections.css";
 
 import "@/styles/clarity-polish.css";
 import "@/styles/card-surfaces.css";
+import "@/styles/dashboard-refinement.css";
 
 createRoot(document.getElementById("root")!).render(<App />);

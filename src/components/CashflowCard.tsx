@@ -391,7 +391,7 @@ export function CashflowCard({
         <p className={`text-3xl text-money text-center ${expectedBalance >= 0 ? "text-income" : "text-expense"}`}>
           R$ {expectedBalance.toLocaleString("pt-BR")}
         </p>
-        <div className="grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-border/30">
+        <div className="cashflow-summary-grid grid grid-cols-3 gap-3 mt-4 pt-4 border-t border-border/30">
           <div className="text-center rounded-lg bg-income/5 py-2.5 px-2">
             <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Receitas</p>
             <p className="text-lg sm:text-xl text-income text-money font-semibold">+ {totalIncome.toLocaleString("pt-BR")}</p>
@@ -409,7 +409,7 @@ export function CashflowCard({
         </div>
 
         {/* LIVE — caixa real do mês */}
-        <div className="mt-4 pt-4 border-t border-border/30">
+        <div className="cashflow-live-summary mt-4 pt-4 border-t border-border/30">
           <div className="flex items-center justify-center gap-2 mb-1">
             <span className="relative flex items-center">
               <span className="absolute w-2 h-2 rounded-full bg-expense/60 animate-ping" />
@@ -427,7 +427,7 @@ export function CashflowCard({
           <p className="text-[10px] text-muted-foreground text-center mt-1">
             O mês começa negativo em R$ {live.obligations.toLocaleString("pt-BR")} e sobe a cada entrada recebida.
           </p>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
+          <div className="cashflow-live-grid grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
             <div className="text-center rounded-lg bg-income/5 py-2 px-1">
               <p className="text-[9px] text-muted-foreground uppercase tracking-wider">Recebido</p>
               <p className="text-sm text-income text-money">+ {live.received.toLocaleString("pt-BR")}</p>

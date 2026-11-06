@@ -384,7 +384,7 @@ export default function CarteiraPage() {
         {view === "todos" && <AllCardsGrid banks={banks} onOpenBank={setSelectedBank} />}
 
         {/* Main layout */}
-        <div className={cn("flex flex-col lg:flex-row items-center lg:items-start gap-10 justify-center", view !== "carteira" && "hidden")}>
+        <div className={cn("wallet-layout flex flex-col lg:flex-row items-center lg:items-start gap-6 justify-center", view !== "carteira" && "hidden")}>
 
           {/* Wallet pocket */}
           <div className="w-full max-w-[380px] min-w-0 flex-shrink-0 flex flex-col items-center gap-4">
@@ -498,12 +498,16 @@ export default function CarteiraPage() {
                 </div>
 
                 <p className="text-xs text-muted-foreground">{bankCategoryLabel(activeBank.category)}</p>
-                <div className="grid grid-cols-3 gap-3 text-center">
+                <div className="wallet-metrics grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
                   <div className="rounded-xl bg-background/50 p-3">
                     <p className="text-[10px] text-muted-foreground">Limite</p>
                     <p className="text-base font-bold text-foreground tabular-nums">
                       {money(activeBank.limitTotal)}
                     </p>
+                  </div>
+                  <div className="rounded-xl bg-background/50 p-3">
+                    <p className="text-[10px] text-muted-foreground">Disponível</p>
+                    <p className="text-base font-bold text-foreground tabular-nums">{money(activeBank.limitTotal - activeBank.limitUsed)}</p>
                   </div>
                   <div className="rounded-xl bg-background/50 p-3">
                     <p className="text-[10px] text-muted-foreground">Usado</p>
