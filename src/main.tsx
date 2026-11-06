@@ -15,5 +15,6 @@ import "./overview-proposal/orange.css";
 import "./overview-proposal/sections.css";
 
 import "@/styles/clarity-polish.css";
+import "@/styles/card-surfaces.css";
 
 createRoot(document.getElementById("root")!).render(<App />);

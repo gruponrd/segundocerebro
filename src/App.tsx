@@ -18,6 +18,7 @@ import { RouteRecovery } from "@/components/RouteRecovery";
 import { isDesignPreview } from "@/lib/previewMode";
 import { AccountWorkspace } from "@/components/AccountWorkspace";
 import { WorkspaceMotion } from "@/components/WorkspaceMotion";
+import { PersonalModulesGate } from "@/components/PersonalModulesGate";
 const FerramentasPage = lazy(() => import("./pages/Ferramentas"));
 const IntegracoesPage = lazy(() => import("./pages/Integracoes"));
 const Index = lazy(() => import("./pages/Index"));
@@ -134,9 +135,11 @@ const App = () => (
         <AuthProvider>
           <AccountWorkspace>
           <MigratedModulesGate>
+          <PersonalModulesGate>
           <FinanceProvider>
             <AppRoutes />
           </FinanceProvider>
+          </PersonalModulesGate>
           </MigratedModulesGate>
           </AccountWorkspace>
         </AuthProvider>

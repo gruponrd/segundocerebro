@@ -1,0 +1,41 @@
+/* Keep card corners consistent across the shared UI and page-specific themes. */
+:root {
+  --card-radius: 1rem;
+}
+
+.app-card,
+.glass-card,
+.widget-card,
+.data-surface,
+.panorama-metrics .widget-card,
+.dashboard-disclosure,
+.cl-panel,
+.cl-welcome,
+.cl-welcome-tile,
+.cl-debt-health,
+.auth-card,
+.auth-showcase,
+.clarity-auth .auth-card,
+.cl-section-page .app-card,
+.cl-section-page .glass-card,
+.cl-section-page .bg-card,
+.cl-section-page .widget-card,
+.cl-section-page .data-surface,
+.cl-section-page .page-heading,
+.cl-section-page .page-container > div.grid > .glass-card:first-child,
+.cl-section-page[data-section=fluxo] .page-container > div.grid > div:first-child > .glass-card,
+.cl-section-page[data-section=fluxo] .glass-card > .group\/balance {
+  border-radius: var(--card-radius);
+}
+
+/* Polygon cutouts otherwise hide the rounded corners on highlighted cards. */
+.cl-welcome,
+.cl-welcome-tile,
+.cl-result,
+.cl-primary-debt,
+.cl-pending-mini,
+.auth-showcase,
+.cl-section-page .page-heading,
+.cl-section-page .page-container > div.grid > .glass-card:first-child {
+  clip-path: none;
+}

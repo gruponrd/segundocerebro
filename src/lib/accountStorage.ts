@@ -26,7 +26,11 @@ export function readAccountJson<T>(userId: string, key: string, fallback: T): T 
 
 export function writeAccountJson(userId: string, key: string, value: unknown): void {
   if (!userId) return;
-  localStorage.setItem(accountStorageKey(userId, key), JSON.stringify(value));
+  const storageKey = accountStorageKey(userId, key);
+  const raw = JSON.stringify(value);
+  if (localStorage.getItem(storageKey) === raw) return;
+  localStorage.setItem(storageKey, raw);
+  window.dispatchEvent(new CustomEvent("personal-module-changed", { detail: { userId, key } }));
 }
 
 export function hasLegacyModuleData(): boolean {

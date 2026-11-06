@@ -15,15 +15,10 @@ import {
 import { cardSpendingForMonth } from "@/lib/financeCalculations";
 import { useAuth } from "@/hooks/useAuth";
 import { readAccountJson, writeAccountJson } from "@/lib/accountStorage";
+import { cashflowPeriod } from "@/lib/cashflowMonths";
+import { evaluateWishes, wishMonthIndex, type PlannedWish } from "@/lib/wishPlanning";
 
-interface Wish {
-  id: string;
-  label: string;
-  amount: number;
-  monthIdx: number; // index into cashflowMonths
-  priority: "alta" | "media" | "baixa";
-  createdAt: number;
-}
+type Wish = PlannedWish;
 
 const STORAGE_KEY = "fin_wishes_v1";
 
@@ -99,43 +94,19 @@ export default function DesejosPage() {
     });
   }, [store.cashflowMonths, store.banks]);
 
-  // Compute verdict for each wish given other wishes competing in same month
-  const wishesEvaluated = useMemo(() => {
-    // sort within same month by priority to allocate budget
-    const byMonth: Record<number, Wish[]> = {};
-    wishes.forEach(w => {
-      (byMonth[w.monthIdx] ??= []).push(w);
-    });
-    const PRIO_ORDER: Record<Wish["priority"], number> = { alta: 0, media: 1, baixa: 2 };
-    const results: Record<string, { verdict: Verdict; leftover: number; needed: number }> = {};
-
-    Object.entries(byMonth).forEach(([mIdxStr, list]) => {
-      const mIdx = Number(mIdxStr);
-      const proj = monthlyProjection[mIdx];
-      if (!proj) return;
-      const sorted = [...list].sort((a, b) => PRIO_ORDER[a.priority] - PRIO_ORDER[b.priority] || b.amount - a.amount);
-      let available = proj.endBalance; // projected balance at end of that month
-      sorted.forEach(w => {
-        const after = available - w.amount;
-        let verdict: Verdict;
-        if (after >= store.safetyMargin) verdict = "ok";
-        else if (after >= 0) verdict = "risco";
-        else verdict = "inviavel";
-        results[w.id] = { verdict, leftover: after, needed: w.amount };
-        available = after;
-      });
-    });
-    return results;
-  }, [wishes, monthlyProjection, store.safetyMargin]);
+  const wishesEvaluated = useMemo(() => evaluateWishes(wishes, store.cashflowMonths, monthlyProjection.map(item => item.endBalance), store.safetyMargin), [wishes, store.cashflowMonths, monthlyProjection, store.safetyMargin]);
 
   function handleAdd() {
     const amount = Number(form.amount);
-    if (!form.label.trim() || !amount || amount <= 0) return;
+    const monthIdx = Number(form.monthIdx);
+    const selected = store.cashflowMonths[monthIdx];
+    if (!form.label.trim() || !Number.isFinite(amount) || amount <= 0 || !selected) return;
     const w: Wish = {
       id: `wish-${Date.now()}`,
       label: form.label.trim(),
       amount,
-      monthIdx: Number(form.monthIdx),
+      monthIdx,
+      period: cashflowPeriod(selected),
       priority: form.priority,
       createdAt: Date.now(),
     };
@@ -151,11 +122,12 @@ export default function DesejosPage() {
   const wishesByMonth = useMemo(() => {
     const map = new Map<number, Wish[]>();
     wishes.forEach(w => {
-      if (!map.has(w.monthIdx)) map.set(w.monthIdx, []);
-      map.get(w.monthIdx)!.push(w);
+      const index = wishMonthIndex(w, store.cashflowMonths);
+      if (!map.has(index)) map.set(index, []);
+      map.get(index)!.push(w);
     });
     return Array.from(map.entries()).sort(([a], [b]) => a - b);
-  }, [wishes]);
+  }, [wishes, store.cashflowMonths]);
 
   const totalWishes = wishes.reduce((s, w) => s + w.amount, 0);
   const viavelCount = Object.values(wishesEvaluated).filter(e => e.verdict === "ok").length;
@@ -163,6 +135,7 @@ export default function DesejosPage() {
   return (
     <div className="page-container min-h-screen bg-background space-y-8">
       <PageHeader title="Desejos" description="Planeje suas compras e confira como elas cabem nos próximos meses." icon={Sparkles} />
+      {wishes.some(w => w.period === undefined || wishMonthIndex(w, store.cashflowMonths) < 0) && <p role="status" className="rounded-xl border border-border p-4 text-sm">Alguns desejos antigos precisam de confirmação do mês. Confira e selecione o mês correto em cada um; nenhum desejo será apagado.</p>}
 
       {/* Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -261,7 +234,6 @@ export default function DesejosPage() {
         <div className="space-y-5">
           {wishesByMonth.map(([mIdx, list]) => {
             const proj = monthlyProjection[mIdx];
-            if (!proj) return null;
             const totalMonth = list.reduce((s, w) => s + w.amount, 0);
             return (
               <Card key={mIdx} className="glass-card">
@@ -269,9 +241,9 @@ export default function DesejosPage() {
                   <div className="flex items-center justify-between flex-wrap gap-3">
                     <div className="flex items-center gap-2">
                       <CalendarDays className="w-4 h-4 text-primary" />
-                      <CardTitle className="text-base font-bold">{proj.fullLabel}</CardTitle>
+                      <CardTitle className="text-base font-bold">{proj?.fullLabel ?? "Mês a confirmar"}</CardTitle>
                     </div>
-                    <div className="flex items-center gap-4 text-xs">
+                    {proj && <div className="flex items-center gap-4 text-xs">
                       <div>
                         <span className="text-muted-foreground">Saldo projetado no fim do mês: </span>
                         <span className={`text-money font-bold ${proj.endBalance >= 0 ? "text-chart-2" : "text-destructive"}`}>
@@ -282,14 +254,14 @@ export default function DesejosPage() {
                         <span className="text-muted-foreground">Total desejos: </span>
                         <span className="text-money font-bold text-foreground">{money(totalMonth)}</span>
                       </div>
-                    </div>
+                    </div>}
                   </div>
-                  <div className="flex flex-wrap gap-4 text-[11px] text-muted-foreground mt-1">
+                  {proj && <div className="flex flex-wrap gap-4 text-[11px] text-muted-foreground mt-1">
                     <span>Receitas: <span className="text-income font-medium">{money(proj.income)}</span></span>
                     <span>Contas fixas: <span className="text-expense font-medium">{money(proj.manualExp)}</span></span>
                     <span>Cartões: <span className="text-expense font-medium">{money(proj.cardExp)}</span></span>
                     <span>Saldo entrando no mês: <span className="text-foreground font-medium">R$ {proj.startBalance.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}</span></span>
-                  </div>
+                  </div>}
                 </CardHeader>
                 <CardContent className="space-y-2">
                   {list
@@ -304,16 +276,17 @@ export default function DesejosPage() {
                             <Icon className="w-4.5 h-4.5" />
                           </div>
                           <div className="flex-1 min-w-0">
+                            {(w.period === undefined || mIdx < 0) && <label className="block mb-2 text-xs">Confirme o mês deste desejo<select className="ml-2 max-w-full rounded border border-border bg-background p-1 text-foreground" value="" onChange={event => { const index = Number(event.target.value); const period = cashflowPeriod(store.cashflowMonths[index]); if (period !== undefined) setWishes(current => current.map(item => item.id === w.id ? { ...item, monthIdx: index, period } : item)); }}><option value="" disabled>Selecionar mês</option>{store.cashflowMonths.map((item, index) => <option key={`${item.month}-${item.year}`} value={index}>{item.month} {item.year}</option>)}</select></label>}
                             <div className="flex items-center gap-2 flex-wrap">
                               <p className="text-sm font-semibold text-foreground truncate">{w.label}</p>
                               <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-secondary/60 text-muted-foreground uppercase font-medium">
                                 {w.priority}
                               </span>
                               <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold ${cfg.bg} ${cfg.color}`}>
-                                {cfg.label}
+                                {ev ? cfg.label : "Mês a confirmar"}
                               </span>
                             </div>
-                            <p className="text-[11px] text-muted-foreground">{cfg.msg}</p>
+                            <p className="text-[11px] text-muted-foreground">{ev ? cfg.msg : "Confirme o mês para calcular a viabilidade."}</p>
                           </div>
                           <div className="text-right">
                             <p className="text-sm font-bold text-money text-foreground">{money(w.amount)}</p>

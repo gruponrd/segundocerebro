@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { createAccountBackup } from "./accountBackup";
+import { createAccountBackup, inspectAccountBackup } from "./accountBackup";
 import { accountStorageKey } from "./accountStorage";
 
 describe("backup pessoal", () => {
@@ -26,5 +26,13 @@ describe("backup pessoal", () => {
     expect(result.local.financialCache).toBe('{"salary":99}');
     expect(result.financial.data).toEqual({ salary: 100 });
     expect(localStorage.getItem("fin_user_owner")).toBe('{"salary":99}');
+  });
+  it("valida o proprietário e inspeciona módulos sem gravar dados", () => {
+    localStorage.setItem(accountStorageKey("owner", "fin_wishes_v1"), '[{"id":"wish"}]');
+    const backup = createAccountBackup({ user_id: "owner", updated_at: "now", data: { salary: 100 } }, "Gabriel", localStorage);
+    const before = localStorage.getItem(accountStorageKey("owner", "fin_wishes_v1"));
+    expect(inspectAccountBackup(JSON.stringify(backup), "owner").modules.fin_wishes_v1).toBe(before);
+    expect(() => inspectAccountBackup(JSON.stringify(backup), "another-user")).toThrow();
+    expect(localStorage.getItem(accountStorageKey("owner", "fin_wishes_v1"))).toBe(before);
   });
 });

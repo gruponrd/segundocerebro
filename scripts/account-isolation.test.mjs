@@ -19,6 +19,7 @@ before(async () => {
     GRANT USAGE ON SCHEMA auth TO authenticated;`);
   await db.exec(await readFile(new URL('../supabase/migrations/20260310202807_bef132ce-b45d-4746-9670-001679f3cd3e.sql', import.meta.url), 'utf8'));
   await db.exec(await readFile(new URL('../supabase/migrations/20260930020000_account_migration_modules.sql', import.meta.url), 'utf8'));
+  await db.exec(await readFile(new URL('../supabase/migrations/20261106010000_personal_module_sync.sql', import.meta.url), 'utf8'));
   await db.exec('GRANT SELECT, INSERT, UPDATE ON public.profiles, public.user_financial_data TO authenticated');
   await db.query('INSERT INTO auth.users(id,raw_user_meta_data) VALUES ($1,$2),($3,$4)',
     [owner, JSON.stringify({ display_name: 'Existing owner' }), newcomer, JSON.stringify({ display_name: 'Marina Costa' })]);
@@ -47,4 +48,15 @@ test('new user cannot read or update the owner profile or financial records', as
   assert.equal((await db.query('UPDATE public.user_financial_data SET data=\'{}\' WHERE user_id=$1 RETURNING user_id', [owner])).rows.length, 0);
   assert.equal((await db.query('UPDATE public.profiles SET display_name=\'Changed\' WHERE user_id=$1 RETURNING user_id', [owner])).rows.length, 0);
   await assert.rejects(() => db.query('INSERT INTO public.user_financial_data(user_id,data) VALUES ($1,\'{}\')', [owner]), /row-level security/);
+});
+test('personal modules are isolated and cannot be deleted or written for another account', async () => {
+  await db.exec('RESET ROLE');
+  await db.query('INSERT INTO public.personal_module_data(user_id,module_key,data,revision) VALUES ($1,$2,$3,$4)', [owner, 'fin_wishes_v1', JSON.stringify([{id:'private'}]), 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa']);
+  await asNewcomer();
+  assert.equal((await db.query('SELECT * FROM public.personal_module_data WHERE user_id=$1', [owner])).rows.length, 0);
+  assert.equal((await db.query("UPDATE public.personal_module_data SET data='[]' WHERE user_id=$1 RETURNING user_id", [owner])).rows.length, 0);
+  await assert.rejects(() => db.query("INSERT INTO public.personal_module_data(user_id,module_key,data,revision) VALUES ($1,'fin_wishes_v1','[]',$2)", [owner, 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb']), /row-level security/);
+  await assert.rejects(() => db.query('DELETE FROM public.personal_module_data WHERE user_id=$1', [newcomer]), /permission denied/);
+  await db.query("INSERT INTO public.personal_module_data(user_id,module_key,data,revision) VALUES ($1,'fin_wishes_v1','[]',$2)", [newcomer, 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb']);
+  assert.equal((await db.query('SELECT * FROM public.personal_module_data')).rows.length, 1);
 });

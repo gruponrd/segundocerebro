@@ -33,3 +33,27 @@ export function createAccountBackup(row: FinancialBackupRow, displayName: string
     },
   };
 }
+
+/** Inspect an export without changing either cloud or browser state. */
+export function inspectAccountBackup(content: string, userId: string) {
+  if (content.length > 10_000_000) throw new Error("O arquivo excede o limite de 10 MB.");
+  let parsed: unknown;
+  try { parsed = JSON.parse(content); } catch { throw new Error("O arquivo não contém JSON válido."); }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Backup inválido.");
+  const backup = parsed as { format?: unknown; version?: unknown; account?: { userId?: unknown }; financial?: { user_id?: unknown; data?: unknown }; local?: { modules?: unknown }; exportedAt?: unknown };
+  if (backup.format !== "segundo-cerebro-account-backup" || backup.version !== 1 || backup.account?.userId !== userId || backup.financial?.user_id !== userId) throw new Error("Este backup não pertence à conta conectada ou tem formato incompatível.");
+  if (!backup.financial.data || typeof backup.financial.data !== "object" || Array.isArray(backup.financial.data)) throw new Error("Os dados financeiros do backup são inválidos.");
+  const source = backup.local?.modules;
+  if (source !== undefined && (!source || typeof source !== "object" || Array.isArray(source))) throw new Error("Os módulos do backup são inválidos.");
+  const modules: Record<string, string> = {};
+  for (const key of LEGACY_MODULE_KEYS) {
+    const raw = (source as Record<string, unknown> | undefined)?.[key];
+    if (raw === undefined) continue;
+    if (typeof raw !== "string") throw new Error("Um módulo do backup é inválido.");
+    let value: unknown;
+    try { value = JSON.parse(raw); } catch { throw new Error("Um módulo do backup é inválido."); }
+    if (!value || typeof value !== "object") throw new Error("Um módulo do backup é inválido.");
+    modules[key] = raw;
+  }
+  return { exportedAt: typeof backup.exportedAt === "string" ? backup.exportedAt : "", modules, financial: backup.financial.data };
+}
