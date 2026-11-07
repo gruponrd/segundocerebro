@@ -171,7 +171,8 @@ export default function NeuroRecoveryPage() {
   useEffect(() => {
     if (!state.startDate) return;
     const claimed = state.claimedCoins ?? [];
-    const newly = MILESTONES.find((milestone) => days >= milestone.day && !claimed.includes(milestone.day));
+    // Reopening the section must not present an old unclaimed milestone as today.
+    const newly = MILESTONES.find((milestone) => days === milestone.day && !claimed.includes(milestone.day));
     if (newly) {
       setCelebrateMilestone(newly);
       setState((s) => s.startDate === state.startDate && !(s.claimedCoins ?? []).includes(newly.day) ? { ...s, claimedCoins: [...(s.claimedCoins ?? []), newly.day] } : s);

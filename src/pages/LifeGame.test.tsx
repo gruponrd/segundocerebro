@@ -31,3 +31,26 @@ it("reopening an existing journey keeps its legacy date and progress untouched",
   expect(screen.getByText(/Início em 19\/09\/2026/)).toBeInTheDocument();
   expect(localStorage.getItem(key)).toBe(raw);
 });
+it("does not reopen an old day-one celebration when the journey is already six days old", () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date("2026-11-06T15:00:00Z"));
+  const saved = { startDate: "2026-10-31", defeatedBosses: ["b1"], bestStreakDays: 8, claimedCoins: [] };
+  localStorage.setItem(key, JSON.stringify(saved));
+  render(<LifeGame />);
+  expect(screen.getByText("6 dias offline")).toBeInTheDocument();
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(JSON.parse(localStorage.getItem(key)!)).toEqual(saved);
+});
+it("celebrates the current milestone once without resetting the saved journey", () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date("2026-11-07T15:00:00Z"));
+  const saved = { startDate: "2026-10-31", defeatedBosses: ["b1"], bestStreakDays: 8, claimedCoins: [] };
+  localStorage.setItem(key, JSON.stringify(saved));
+  const view = render(<LifeGame />);
+  expect(screen.getByRole("dialog")).toHaveTextContent("Dia 7");
+  expect(JSON.parse(localStorage.getItem(key)!)).toEqual({ ...saved, claimedCoins: [7] });
+  view.unmount();
+  render(<LifeGame />);
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(screen.getByText("7 dias offline")).toBeInTheDocument();
+});
