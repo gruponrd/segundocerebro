@@ -5,6 +5,7 @@ import { accountStorageKey } from "@/lib/accountStorage";
 import { isPreviewMode } from "@/lib/previewMode";
 import { decideModuleSync, moduleDigest, SYNCED_MODULE_KEYS, type ModuleKey } from "@/lib/personalModuleSync";
 import type { Json } from "@/integrations/supabase/types";
+import { LifeGameConflictResolver } from "./LifeGameConflictResolver";
 
 const labels: Record<ModuleKey, string> = { fin_wishes_v1: "Desejos", fin_dreamboard: "Dream Board", "neuro-recovery-v1": "LifeGame", "routine-store-v1": "Rotina", "payment-session-income-map-v1": "Datas de pagamentos" };
 
@@ -99,5 +100,5 @@ export function PersonalModulesGate({ children }: { children: ReactNode }) {
   }, [userId, retry]);
   if (!user || loading || isPreviewMode) return children;
   if (ready !== user.id) return <main className="flex min-h-screen items-center justify-center bg-background p-6">Carregando seus módulos pessoais…</main>;
-  return <>{(offline || conflicts.length > 0) && <div role="status" className="bg-amber-100 px-4 py-3 text-center text-sm text-amber-950">{offline ? "Módulos pessoais ainda não sincronizados. Os dados deste dispositivo continuam aqui. " : `Existem versões diferentes em ${conflicts.map(key => labels[key]).join(", ")}. Nenhuma foi substituída. Faça uma cópia em Ferramentas e revise antes de trocar de dispositivo. `}<button type="button" className="underline" onClick={() => setRetry(value => value + 1)}>Tentar novamente</button></div>}{children}</>;
+  return <>{(offline || conflicts.length > 0) && <div role="status" className="bg-amber-100 px-4 py-3 text-center text-sm text-amber-950">{offline ? "Módulos pessoais ainda não sincronizados. Os dados deste dispositivo continuam aqui. " : `Existem versões diferentes em ${conflicts.map(key => labels[key]).join(", ")}. Nenhuma foi substituída. Faça uma cópia em Ferramentas e revise antes de trocar de dispositivo. `}<button type="button" className="underline" onClick={() => setRetry(value => value + 1)}>Tentar novamente</button>{!offline && conflicts.includes("neuro-recovery-v1") && <LifeGameConflictResolver userId={user.id} onResolved={() => setRetry(value => value + 1)} />}</div>}{children}</>;
 }
