@@ -104,6 +104,22 @@ describe("isolamento financeiro por conta", () => {
   });
   afterEach(() => vi.useRealTimers());
 
+  it("guarda metas anuais por conta e preserva os lançamentos ao reabrir", async () => {
+    const entry = { id: "income-1", label: "Salário", amount: 1250, paid: true };
+    mock.cloudData = { cashflowMonths: [{ month: "Janeiro", year: 2027, incomes: [entry], expenses: [] }] };
+    const first = renderHook(() => useFinanceStore(), { wrapper });
+    await waitFor(() => expect(first.result.current.cloudReady).toBe(true));
+    act(() => first.result.current.setAnnualIncomeGoal(2027, Array(12).fill(2000)));
+    await waitFor(() => expect(JSON.parse(localStorage.getItem("fin_user_account-a")!).annualIncomeGoals["2027"]).toEqual(Array(12).fill(2000)));
+    const saved = JSON.parse(localStorage.getItem("fin_user_account-a")!);
+    expect(saved.cashflowMonths.find((m: { year: number; month: string }) => m.year === 2027 && m.month === "Janeiro").incomes).toEqual([entry]);
+    first.unmount();
+    mock.cloudData = saved;
+    const reopened = renderHook(() => useFinanceStore(), { wrapper });
+    await waitFor(() => expect(reopened.result.current.cloudReady).toBe(true));
+    expect(reopened.result.current.annualIncomeGoals["2027"]).toEqual(Array(12).fill(2000));
+  });
+
   it("salva o plano das metas junto do orçamento, mantendo saldos e identificadores", async () => {
     const original = [{ id:"a",title:"A",targetAmount:1000,savedAmount:123,image:"a",color:"c" },{ id:"b",title:"B",targetAmount:2000,savedAmount:234,image:"b",color:"d" }];
     mock.cloudData = {goals:original,savingsGoalMonth:100};

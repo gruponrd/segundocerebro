@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { IncomeSourceEditor } from "@/components/IncomeSourceEditor";
 import { incomeTotals } from "@/lib/incomeSources";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AnnualIncomeDashboard } from "@/components/AnnualIncomeDashboard";
 import { PageHeader } from "@/components/PageHeader";
 
 /* ─── Goal Summary Row ─── */
@@ -69,6 +70,8 @@ export default function RendaPage() {
     <div className="page-container min-h-screen bg-background space-y-8">
       {/* Header */}
       <PageHeader title="Renda" description="Acompanhe suas fontes de renda e o caminho até seus objetivos." icon={DollarSign} />
+
+      <AnnualIncomeDashboard />
 
       {/* KPI Strip */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
