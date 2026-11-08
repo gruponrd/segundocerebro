@@ -1,0 +1,46 @@
+/* Navigation inspired by the reference: restrained charcoal and a soft active pill. */
+.cl-production-shell .cl-sidebar {
+  background: #141414;
+  border-right: 1px solid #292929;
+  padding: 25px 14px 18px;
+  scrollbar-color: #59504d #141414;
+}
+.cl-production-shell .cl-brand {
+  gap: 9px;
+  margin: 0 8px 29px;
+  color: #ff704d;
+  font-size: 15px;
+  line-height: 1.25;
+  letter-spacing: -.02em;
+}
+.cl-production-shell .cl-brand > svg { width: 21px; height: 21px; flex: none; color: #ff704d; }
+.cl-production-shell .cl-brand small { margin-top: 4px; color: #aaa29e; font-size: 11px; font-weight: 400; }
+.cl-production-shell .cl-sidebar nav { gap: 4px; }
+.cl-production-shell .cl-sidebar nav > a {
+  min-height: 40px;
+  padding: 9px 12px;
+  gap: 12px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: #b9b5b2;
+  font-size: 12px;
+  font-weight: 500;
+}
+.cl-production-shell .cl-sidebar nav > a > svg { width: 16px; height: 16px; flex: none; }
+.cl-production-shell .cl-sidebar nav > a:hover { background: #242222; color: #fff; }
+.cl-production-shell .cl-sidebar nav > a.is-active { background: #302e2e; border-color: transparent; color: #fff; }
+.cl-production-shell .cl-sidebar nav > a.is-active > svg { color: #fff; }
+.cl-production-shell .cl-sidebar nav > a:focus-visible,
+.cl-production-shell .cl-sidebar-bottom button:focus-visible { outline: 2px solid #ff9a7f; outline-offset: 2px; }
+.cl-production-shell .cl-sidebar-bottom { margin-top: auto; padding: 16px 8px 0; border-top: 1px solid #303030; }
+.cl-production-shell .cl-sidebar-bottom .cl-proposal-logout { color: #c4bdb9; }
+.cl-production-shell .cl-sidebar-bottom .cl-proposal-logout:hover { color: #fff; }
+@media (prefers-reduced-motion: no-preference) {
+  .cl-production-shell .cl-sidebar nav > a { transition: background-color 180ms ease, color 180ms ease; }
+}
+@media (max-width: 760px) {
+  .cl-production-shell .cl-sidebar { padding: 14px 16px; border-right: 0; border-bottom: 1px solid #292929; }
+  .cl-production-shell .cl-brand { margin: 0; }
+  .cl-production-shell .cl-sidebar nav { gap: 6px; padding-top: 12px; scrollbar-color: #c8654d #242222; }
+  .cl-production-shell .cl-sidebar nav > a { min-height: 42px; padding: 9px 13px; white-space: nowrap; }
+}
