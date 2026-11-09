@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { money } from "@/lib/planningTools";
 import { annualGoalsForYear, confirmedAnnualIncome, INCOME_MONTHS } from "@/lib/annualIncome";
+import { AnnualIncomeChart } from "@/components/AnnualIncomeChart";
 import { useFinanceStore } from "@/stores/financeStore";
 
 const sum = (values: number[]) => Math.round(values.reduce((total, value) => total + Math.round(value * 100), 0)) / 100;
@@ -65,7 +66,7 @@ export function AnnualIncomeDashboard() {
         <div className="rounded-xl bg-secondary/50 p-4"><p className="text-xs text-muted-foreground">Progresso</p><p className="mt-2 text-lg font-bold tabular-nums sm:text-2xl">{target ? `${percentage}%` : "—"}</p></div>
         <div className="rounded-xl bg-secondary/50 p-4"><p className="text-xs text-muted-foreground">Falta para a meta</p><p className="mt-2 text-lg font-bold tabular-nums sm:text-2xl">{target ? money(Math.max(0, target - total)) : "—"}</p></div>
       </div>
-      {target > 0 && <div aria-label={`Progresso da meta anual: ${percentage}%`} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(percentage, 100)} className="h-2 overflow-hidden rounded-full bg-secondary"><div className="h-full rounded-full bg-primary transition-[width] duration-500 motion-reduce:transition-none" style={{ width: `${Math.min(percentage, 100)}%` }} /></div>}
+      <AnnualIncomeChart received={received} target={target} year={year} />
       <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-semibold">Mês a mês</h3><span className="text-xs text-muted-foreground">Referência: mês do lançamento no fluxo</span></div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
         {INCOME_MONTHS.map((month, index) => <div key={month} className="min-w-0 rounded-xl border border-border/70 p-3">
