@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { DolphinEffect } from "@/components/DolphinEffect";
 import { DreamBoard } from "@/components/DreamBoard";
 import { GoalAllocation } from "@/components/GoalAllocation";
+import { AnnualIncomeDashboard } from "@/components/AnnualIncomeDashboard";
 import { goalMonthlyAmount, toCents } from "@/lib/goalAllocation";
 import {
   Dialog,
@@ -354,6 +355,8 @@ export default function GoalsPage() {
           );
         })}
       </div>
+
+      <div className="my-6"><AnnualIncomeDashboard /></div>
 
       <div className="mb-6"><GoalAllocation />{overBudget && <p role="alert" className="mt-3 text-sm text-destructive">A divisão salva ultrapassa a economia mensal atual. Ajuste o plano para atualizar as projeções.</p>}</div>
 
