@@ -8,6 +8,7 @@ import { validateGoalPlan } from "@/lib/goalAllocation";
 import { appendInstallmentBatch, type InstallmentDraft } from "@/lib/installmentPlan";
 import { DEFAULT_DEBT_PLAN, normalizeDebtPlan, type DebtPlanSettings } from "@/lib/debtActionPlan";
 import { updateIncomeSourceValues, type IncomeSource } from "@/lib/incomeSources";
+import { validCashflowDate, replicateCashflowDate } from "@/lib/cashflowDates";
 export type { IncomeSource } from "@/lib/incomeSources";
 import type { Json } from "@/integrations/supabase/types";
 import { isAccountPreview, isDesignPreview, isPreviewMode } from "@/lib/previewMode";
@@ -91,9 +92,9 @@ export interface FinanceStore {
   updateBankBalance: (bankId: BankId, newUsed: number) => void;
   toggleCashflowPaid: (monthIdx: number, type: "incomes" | "expenses", itemIdx: number) => void;
   depositToGoal: (goalId: string, amount: number) => void;
-  addCashflowItem: (monthIdx: number, type: "incomes" | "expenses", label: string, amount: number, category?: string) => void;
+  addCashflowItem: (monthIdx: number, type: "incomes" | "expenses", label: string, amount: number, category?: string, date?: string) => void;
   removeCashflowItem: (monthIdx: number, type: "incomes" | "expenses", itemIdx: number) => void;
-  updateCashflowItem: (monthIdx: number, type: "incomes" | "expenses", itemIdx: number, label: string, amount: number, category?: string) => void;
+  updateCashflowItem: (monthIdx: number, type: "incomes" | "expenses", itemIdx: number, label: string, amount: number, category?: string, date?: string | null) => void;
   setCashflowItemFixed: (monthIdx: number, type: "incomes" | "expenses", itemIdx: number, fixed: boolean) => void;
   replicateFixedItem: (monthIdx: number, type: "incomes" | "expenses", itemIdx: number) => void;
   addCreditor: (name: string, totalDebt: number) => void;
@@ -667,11 +668,12 @@ function useFinanceStoreInternal(): FinanceStore {
     setGoals(prev => prev.map(g => ({ ...g, monthlyAllocation: Math.round((allocations[g.id] ?? 0) * 100) / 100 })));
   }, [goals]);
 
-  const addCashflowItem = useCallback((monthIdx: number, type: "incomes" | "expenses", label: string, amount: number, category?: string) => {
+  const addCashflowItem = useCallback((monthIdx: number, type: "incomes" | "expenses", label: string, amount: number, category?: string, date?: string) => {
     setCashflowMonths((prev) =>
       prev.map((m, mi) => {
         if (mi !== monthIdx) return m;
-        return { ...m, [type]: [...m[type], { label, amount, paid: false, category }] };
+        if (date && !validCashflowDate(date, m)) return m;
+        return { ...m, [type]: [...m[type], { label, amount, paid: false, category, ...(date ? { date } : {}) }] };
       })
     );
   }, [setCashflowMonths]);
@@ -686,12 +688,13 @@ function useFinanceStoreInternal(): FinanceStore {
     );
   }, [setCashflowMonths]);
 
-  const updateCashflowItem = useCallback((monthIdx: number, type: "incomes" | "expenses", itemIdx: number, label: string, amount: number, category?: string) => {
+  const updateCashflowItem = useCallback((monthIdx: number, type: "incomes" | "expenses", itemIdx: number, label: string, amount: number, category?: string, date?: string | null) => {
     setCashflowMonths((prev) =>
       prev.map((m, mi) => {
         if (mi !== monthIdx) return m;
+        if (date && !validCashflowDate(date, m)) return m;
         const items = [...m[type]];
-        items[itemIdx] = { ...items[itemIdx], label, amount, ...(category !== undefined ? { category } : {}) };
+        items[itemIdx] = { ...items[itemIdx], label, amount, ...(category !== undefined ? { category } : {}), ...(date !== undefined ? { date: date || undefined } : {}) };
         return { ...m, [type]: items };
       })
     );
@@ -730,6 +733,7 @@ function useFinanceStoreInternal(): FinanceStore {
           category: source.category,
           fixed: true,
           paid: false,
+          ...(replicateCashflowDate(source.date, prev[monthIdx], m) ? { date: replicateCashflowDate(source.date, prev[monthIdx], m) } : {}),
         };
         return { ...m, [type]: [...m[type], newItem] };
       });

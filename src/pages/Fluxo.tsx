@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EXPENSE_CATEGORIES, getCategory, suggestCategory } from "@/data/categories";
 import { toast } from "@/hooks/use-toast";
+import { cashflowDateBounds, validCashflowDate } from "@/lib/cashflowDates";
 
 const brl = (n: number) => `R$ ${n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -27,13 +28,14 @@ function SmartEntryPanel() {
   const [kind, setKind] = useState<"expenses" | "incomes">("expenses");
   const [label, setLabel] = useState("");
   const [amount, setAmount] = useState("");
+  const [date, setDate] = useState("");
   const [category, setCategory] = useState("outros");
   const [origin, setOrigin] = useState("Débito");
   const [confirmed, setConfirmed] = useState(true);
 
   const val = parseFloat(amount) || 0;
   const isExpense = kind === "expenses";
-  const valid = label.trim().length > 0 && val > 0;
+  const valid = label.trim().length > 0 && val > 0 && (isExpense || !date || validCashflowDate(date, currentCashflow));
 
   // Real cash position: only what was actually received minus every obligation.
   const live = useMemo(() => {
@@ -48,7 +50,7 @@ function SmartEntryPanel() {
     if (!valid) return;
     const finalLabel = isExpense ? `${origin} — ${label.trim()}` : label.trim();
     const idx = isExpense ? currentCashflow.expenses.length : currentCashflow.incomes.length;
-    addCashflowItem(selectedMonth, kind, finalLabel, val, isExpense ? category : undefined);
+    addCashflowItem(selectedMonth, kind, finalLabel, val, isExpense ? category : undefined, isExpense ? undefined : date || undefined);
     if (confirmed) {
       // New item lands at the end of the list; confirm it immediately.
       setTimeout(() => toggleCashflowPaid(selectedMonth, kind, idx), 0);
@@ -60,7 +62,7 @@ function SmartEntryPanel() {
         : confirmed ? "Entrada recebida" : "Entrada prevista",
       description: `${isExpense ? cat.emoji : "💰"} ${label.trim()} • ${brl(val)} em ${currentCashflow.month}`,
     });
-    setLabel(""); setAmount(""); setCategory("outros");
+    setLabel(""); setAmount(""); setDate(""); setCategory("outros");
   };
 
   return (
@@ -72,6 +74,11 @@ function SmartEntryPanel() {
           {currentCashflow.month} {currentCashflow.year}
         </span>
       </div>
+
+      {!isExpense && <label className="block text-xs text-muted-foreground">Data prevista do recebimento (opcional)
+        <Input type="date" aria-label="Data da entrada no lançamento inteligente" value={date} min={cashflowDateBounds(currentCashflow)?.min} max={cashflowDateBounds(currentCashflow)?.max} onChange={e => setDate(e.target.value)} className="mt-1 h-10" />
+        {date && !validCashflowDate(date, currentCashflow) && <span className="text-destructive">Escolha uma data de {currentCashflow.month} {currentCashflow.year}.</span>}
+      </label>}
 
       {/* Direction */}
       <div className="flex gap-1.5">

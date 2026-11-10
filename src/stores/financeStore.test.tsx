@@ -224,6 +224,19 @@ describe("isolamento financeiro por conta", () => {
     expect(result.current.cashflowMonths.find(m=>m.month==="Outubro")).toEqual(original);
   });
 
+  it("grava a data da entrada sem alterar outros dados e replica o dia em mês mais curto", async () => {
+    const original = { month: "Janeiro", year: 2028, incomes: [{ id: "one", label: "Salário", amount: 100, paid: true, source: "extrato" }], expenses: [{ label: "Conta", amount: 10 }] };
+    mock.cloudData = { cashflowMonths: [original, { month: "Fevereiro", year: 2028, incomes: [], expenses: [] }] };
+    const { result } = renderHook(() => useFinanceStore(), { wrapper });
+    await waitFor(() => expect(result.current.cloudReady).toBe(true));
+    const jan = result.current.cashflowMonths.findIndex(m => m.month === "Janeiro" && m.year === 2028);
+    act(() => result.current.updateCashflowItem(jan, "incomes", 0, "Salário", 100, undefined, "2028-01-31"));
+    expect(result.current.cashflowMonths[jan].incomes[0]).toEqual({ ...original.incomes[0], date: "2028-01-31" });
+    act(() => result.current.replicateFixedItem(jan, "incomes", 0));
+    expect(result.current.cashflowMonths.find(m => m.month === "Fevereiro" && m.year === 2028)?.incomes[0]).toMatchObject({ label: "Salário", date: "2028-02-29", paid: false });
+    expect(result.current.cashflowMonths[jan].expenses).toEqual(original.expenses);
+  });
+
   it("não grava o estado da conta anterior enquanto a próxima conta carrega", async () => {
     const { result, rerender } = renderHook(() => useFinanceStore(), { wrapper });
     await waitFor(() => expect(result.current.cloudReady).toBe(true));

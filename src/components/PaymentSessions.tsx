@@ -5,6 +5,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePaymentSessionMap } from "@/hooks/usePaymentSessionMap";
 import { PAYMENT_SESSIONS as SESSIONS, incomeSessionKey } from "@/lib/monthlyCashflowChart";
+import { validCashflowDate } from "@/lib/cashflowDates";
+import { CashflowPeriods } from "@/components/CashflowPeriods";
 
 const MONTH_MAP: Record<string, number> = {
   "Janeiro": 1, "Fevereiro": 2, "Março": 3, "Abril": 4, "Maio": 5, "Junho": 6,
@@ -38,7 +40,8 @@ export function PaymentSessions() {
     () =>
       currentCashflow.incomes.map((item, idx) => {
         const key = incomeSessionKey(currentCashflow, idx, item.label);
-        return { item, idx, key, session: map[key] ?? guessSession(item.label) };
+        const day = item.date && validCashflowDate(item.date, currentCashflow) ? Number(item.date.slice(8)) : null;
+        return { item, idx, key, day, session: day !== null ? SESSIONS.find(s => day >= s.from && day <= s.to)!.id : map[key] ?? guessSession(item.label) };
       }),
     [currentCashflow, map]
   );
@@ -66,7 +69,7 @@ export function PaymentSessions() {
       const paidTotal = group
         .filter((i) => i.inst.status === "pago")
         .reduce((sum, i) => sum + i.inst.installmentAmount, 0);
-      const incomeGroup = incomes.filter((i) => i.session === s.id);
+      const incomeGroup = incomes.filter((i) => i.session === s.id).sort((a, b) => (a.day ?? 99) - (b.day ?? 99) || a.idx - b.idx);
       const incomeTotal = incomeGroup.reduce((sum, i) => sum + i.item.amount, 0);
       return { ...s, group, total, paidTotal, incomeGroup, incomeTotal, manualExpenses };
     });
@@ -90,7 +93,7 @@ export function PaymentSessions() {
             Entradas <span className="text-money text-income">{brl(grandIncome)}</span>
           </span>
           <span className="text-xs text-muted-foreground">
-            Dívidas <span className="text-money text-expense">{brl(grandTotal)}</span>
+            Parcelas de cartão <span className="text-money text-expense">{brl(grandTotal)}</span>
           </span>
           <span className={`text-sm text-money ${grandIncome - grandTotal < 0 ? "text-expense" : "text-income"}`}>
             {brl(grandIncome - grandTotal)}
@@ -98,10 +101,13 @@ export function PaymentSessions() {
         </div>
       </div>
 
+      <CashflowPeriods month={currentCashflow} banks={banks} />
+      <p className="text-xs leading-relaxed text-muted-foreground">Abaixo, os blocos fixos agrupam parcelas por faixas de vencimento; entradas com data usam a faixa correspondente. Entradas sem data seguem a atribuição anterior. As despesas manuais não entram nesses blocos.</p>
+
       {/* Comparativo por sessão: entradas x dívidas */}
       <div className="rounded-xl border border-border/60 bg-secondary/30 p-4 space-y-3">
         <p className="text-[10px] uppercase tracking-widest text-muted-foreground">
-          Comparativo por proximidade de data — entradas x dívidas
+          Comparativo das faixas fixas — entradas x parcelas de cartão
         </p>
         {sessions.map((s) => {
           const diff = s.incomeTotal - s.total;
@@ -109,10 +115,10 @@ export function PaymentSessions() {
             <div key={`cmp-${s.id}`} className="space-y-1">
               <div className="flex items-center justify-between text-[11px]">
                 <span className="text-muted-foreground">
-                  {s.label} · {s.range}
+                  {s.range}
                 </span>
                 <span className={`text-money ${diff < 0 ? "text-expense" : "text-income"}`}>
-                  {diff < 0 ? `falta ${brl(Math.abs(diff))}` : `sobra ${brl(diff)}`}
+                  {`diferença ${brl(diff)}`}
                 </span>
               </div>
               <div className="space-y-1">
@@ -128,7 +134,7 @@ export function PaymentSessions() {
         })}
         <div className="flex gap-4 pt-1 text-[10px] text-muted-foreground">
           <span className="inline-flex items-center gap-1"><span className="w-2.5 h-1.5 rounded-full bg-income/80" /> entradas</span>
-          <span className="inline-flex items-center gap-1"><span className="w-2.5 h-1.5 rounded-full bg-expense/80" /> dívidas do bloco</span>
+          <span className="inline-flex items-center gap-1"><span className="w-2.5 h-1.5 rounded-full bg-expense/80" /> parcelas de cartão</span>
         </div>
       </div>
 
@@ -147,10 +153,9 @@ export function PaymentSessions() {
               }`}
             >
               <div className="mb-2.5">
-                <p className="text-xs font-semibold text-foreground">{s.label}</p>
+                <p className="text-xs font-semibold text-foreground">{s.range}</p>
                 <p className="text-[10px] text-muted-foreground">
-                  {s.range}
-                  {s.note ? ` · ${s.note}` : ""}
+                  Faixa de dias do mês
                 </p>
               </div>
 
@@ -165,7 +170,7 @@ export function PaymentSessions() {
                 {s.incomeGroup.length === 0 ? (
                   <p className="text-[10px] text-muted-foreground/70">Nenhuma entrada neste bloco</p>
                 ) : (
-                  s.incomeGroup.map(({ item, idx, key }) => (
+                  s.incomeGroup.map(({ item, idx, key, day }) => (
                     <div key={key} className="flex items-center gap-1.5 text-xs">
                       <Checkbox
                         checked={!!item.paid}
@@ -175,10 +180,11 @@ export function PaymentSessions() {
                       <span className={`truncate flex-1 ${item.paid ? "text-muted-foreground line-through" : "text-muted-foreground"}`}>
                         {item.label}
                       </span>
+                      {day !== null && <span className="text-muted-foreground shrink-0">dia {day}</span>}
                       <span className="text-money text-foreground shrink-0">
                         {item.amount.toLocaleString("pt-BR")}
                       </span>
-                      <Select value={s.id} onValueChange={(v) => assign(key, v as SessionId)}>
+                      {day === null && <Select value={s.id} onValueChange={(v) => assign(key, v as SessionId)}>
                         <SelectTrigger className="h-6 w-[52px] rounded-md text-[9px] px-1.5 shrink-0">
                           <SelectValue />
                         </SelectTrigger>
@@ -189,7 +195,7 @@ export function PaymentSessions() {
                             </SelectItem>
                           ))}
                         </SelectContent>
-                      </Select>
+                      </Select>}
                     </div>
                   ))
                 )}
@@ -241,7 +247,7 @@ export function PaymentSessions() {
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-[10px] text-muted-foreground">Entradas − dívidas</span>
+                    <span className="text-[10px] text-muted-foreground">Entradas − parcelas</span>
                     <span className={`text-[11px] text-money ${s.incomeTotal - s.total < 0 ? "text-expense" : "text-income"}`}>
                       {brl(s.incomeTotal - s.total)}
                     </span>
