@@ -224,6 +224,18 @@ describe("isolamento financeiro por conta", () => {
     expect(result.current.cashflowMonths.find(m=>m.month==="Outubro")).toEqual(original);
   });
 
+  it("salva o plano de transição sem modificar o fluxo ou os cartões", async () => {
+    const original = { month: "Outubro", year: 2026, incomes: [{ label: "Trabalho", amount: 4000 }], expenses: [{ label: "Moradia", amount: 1000 }] };
+    mock.cloudData = { cashflowMonths: [original] };
+    const { result } = renderHook(() => useFinanceStore(), { wrapper });
+    await waitFor(() => expect(result.current.cloudReady).toBe(true));
+    const plan = { savings: 9000, currentIncome: 4000, monthlyExpenses: 1000, newIncome: 1200, newIncomeDelay: 1, reserveMonths: 6, insuranceAmount: 0, insuranceInstallments: 0, insuranceDelay: 1 };
+    act(() => result.current.saveCareerPlan(plan));
+    await waitFor(() => expect(JSON.parse(localStorage.getItem("fin_user_account-a")!).careerPlan).toEqual(plan));
+    expect(result.current.cashflowMonths.find(m => m.month === "Outubro" && m.year === 2026)).toEqual(original);
+    expect(result.current.banks).toEqual([]);
+  });
+
   it("grava a data da entrada sem alterar outros dados e replica o dia em mês mais curto", async () => {
     const original = { month: "Janeiro", year: 2028, incomes: [{ id: "one", label: "Salário", amount: 100, paid: true, source: "extrato" }], expenses: [{ label: "Conta", amount: 10 }] };
     mock.cloudData = { cashflowMonths: [original, { month: "Fevereiro", year: 2028, incomes: [], expenses: [] }] };

@@ -5,6 +5,7 @@ export function createDesignPreviewData(): PersistedData {
  const months=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
  const date=(month:number,day:number)=>`${year}-${String(month+1).padStart(2,"0")}-${String(day).padStart(2,"0")}`;
  return {
+ careerPlan:null,
  banks:[
   {id:"demo-blue",name:"Cartão principal",color:"#153c73",glowClass:"",limitTotal:8000,limitUsed:2580,debtFinal:2580,status:"pendente",installments:[{id:"demo-parcel-1",description:"Notebook · demonstração",totalAmount:2580,installmentAmount:860,currentInstallment:1,totalInstallments:3,dueDate:date(now.getMonth(),17),status:"pendente",category:"eletronicos"}]},
   {id:"demo-purple",name:"Cartão roxo",color:"bank-nubank",glowClass:"glow-nubank",limitTotal:5000,limitUsed:360,debtFinal:360,status:"pendente",installments:[{id:"demo-parcel-2",description:"Curso · demonstração",totalAmount:360,installmentAmount:120,currentInstallment:1,totalInstallments:3,dueDate:date(now.getMonth(),22),status:"pendente",category:"educacao"}]},
