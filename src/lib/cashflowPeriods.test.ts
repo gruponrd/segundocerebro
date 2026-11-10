@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { cashflowPeriods } from "./cashflowPeriods";
-import { cashflowDateBounds, replicateCashflowDate, validCashflowDate } from "./cashflowDates";
+import { cashflowDateBounds, replicateCashflowDate, shortCashflowDate, displayCashflowDate, validCashflowDate } from "./cashflowDates";
 import type { Bank, CashflowMonth } from "@/data/financialData";
 
 const month: CashflowMonth = { month: "Janeiro", year: 2028, incomes: [{ label: "Pagamento", amount: 100, date: "2028-01-05" }, { label: "Adiantamento", amount: 50, date: "2028-01-20" }, { label: "Salário dia 5", amount: 15 }], expenses: [{ label: "Mercado", amount: 20, date: "2028-01-12" }, { label: "Sem data", amount: 10 }] };
@@ -21,5 +21,15 @@ describe("datas e comparação de períodos", () => {
     expect(validCashflowDate("2028-01-05", feb)).toBe(false);
     expect(replicateCashflowDate("2028-01-31", month, feb)).toBe("2028-02-29");
     expect(replicateCashflowDate(undefined, month, feb)).toBeUndefined();
+  });
+  it("usa o ano do mês selecionado na virada e valida dia, mês e ano bissexto", () => {
+    const dec = { ...month, month: "Dezembro", year: 2027 };
+    expect(shortCashflowDate("31/12", dec)).toBe("2027-12-31");
+    expect(shortCashflowDate("01/01", month)).toBe("2028-01-01");
+    expect(shortCashflowDate("01/01", dec)).toBeNull();
+    expect(shortCashflowDate("29/02", { ...month, month: "Fevereiro" })).toBe("2028-02-29");
+    expect(shortCashflowDate("29/02", { ...month, month: "Fevereiro", year: 2027 })).toBeNull();
+    expect(displayCashflowDate("2028-01-05", month)).toBe("05/01");
+    expect(displayCashflowDate("2027-01-05", month)).toBe("2027-01-05");
   });
 });

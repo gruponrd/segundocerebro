@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EXPENSE_CATEGORIES, getCategory, suggestCategory } from "@/data/categories";
 import { toast } from "@/hooks/use-toast";
-import { cashflowDateBounds, validCashflowDate } from "@/lib/cashflowDates";
+import { shortCashflowDate } from "@/lib/cashflowDates";
+import { CashflowDateInput } from "@/components/CashflowDateInput";
 
 const brl = (n: number) => `R$ ${n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -35,7 +36,7 @@ function SmartEntryPanel() {
 
   const val = parseFloat(amount) || 0;
   const isExpense = kind === "expenses";
-  const valid = label.trim().length > 0 && val > 0 && (isExpense || !date || validCashflowDate(date, currentCashflow));
+  const valid = label.trim().length > 0 && val > 0 && (isExpense || !date || !!shortCashflowDate(date, currentCashflow));
 
   // Real cash position: only what was actually received minus every obligation.
   const live = useMemo(() => {
@@ -50,7 +51,7 @@ function SmartEntryPanel() {
     if (!valid) return;
     const finalLabel = isExpense ? `${origin} — ${label.trim()}` : label.trim();
     const idx = isExpense ? currentCashflow.expenses.length : currentCashflow.incomes.length;
-    addCashflowItem(selectedMonth, kind, finalLabel, val, isExpense ? category : undefined, isExpense ? undefined : date || undefined);
+    addCashflowItem(selectedMonth, kind, finalLabel, val, isExpense ? category : undefined, isExpense || !date ? undefined : shortCashflowDate(date, currentCashflow) ?? undefined);
     if (confirmed) {
       // New item lands at the end of the list; confirm it immediately.
       setTimeout(() => toggleCashflowPaid(selectedMonth, kind, idx), 0);
@@ -75,10 +76,7 @@ function SmartEntryPanel() {
         </span>
       </div>
 
-      {!isExpense && <label className="block text-xs text-muted-foreground">Data prevista do recebimento (opcional)
-        <Input type="date" aria-label="Data da entrada no lançamento inteligente" value={date} min={cashflowDateBounds(currentCashflow)?.min} max={cashflowDateBounds(currentCashflow)?.max} onChange={e => setDate(e.target.value)} className="mt-1 h-10" />
-        {date && !validCashflowDate(date, currentCashflow) && <span className="text-destructive">Escolha uma data de {currentCashflow.month} {currentCashflow.year}.</span>}
-      </label>}
+      {!isExpense && <CashflowDateInput value={date} onChange={setDate} month={currentCashflow} inputLabel="Dia e mês da entrada no lançamento inteligente" />}
 
       {/* Direction */}
       <div className="flex gap-1.5">

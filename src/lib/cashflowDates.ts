@@ -14,6 +14,17 @@ export function validCashflowDate(date: string, month: CashflowMonth) {
   const parsed = new Date(`${date}T00:00:00Z`);
   return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === date;
 }
+/** The selected cash-flow period is the source of the year and month. */
+export function shortCashflowDate(value: string, month: CashflowMonth): string | null {
+  const match = /^(\d{2})\/(\d{2})$/.exec(value);
+  if (!match) return null;
+  const date = `${month.year}-${match[2]}-${match[1]}`;
+  return validCashflowDate(date, month) ? date : null;
+}
+export function displayCashflowDate(value: string | undefined, month: CashflowMonth): string {
+  if (!value) return "";
+  return validCashflowDate(value, month) ? `${value.slice(8, 10)}/${value.slice(5, 7)}` : value;
+}
 export function replicateCashflowDate(date: string | undefined, source: CashflowMonth, target: CashflowMonth) {
   if (!date || !validCashflowDate(date, source)) return undefined;
   const bounds = cashflowDateBounds(target);

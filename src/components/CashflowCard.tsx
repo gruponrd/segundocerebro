@@ -8,7 +8,8 @@ import { EXPENSE_CATEGORIES, getCategory, suggestCategory } from "@/data/categor
 import { CardFlowHub } from "@/components/CardFlowHub";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { useFinanceStore } from "@/stores/financeStore";
-import { cashflowDateBounds, validCashflowDate } from "@/lib/cashflowDates";
+import { displayCashflowDate, shortCashflowDate, validCashflowDate } from "@/lib/cashflowDates";
+import { CashflowDateInput } from "@/components/CashflowDateInput";
 
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -63,14 +64,14 @@ function EditableItem({
   const [label, setLabel] = useState(item.label);
   const [amount, setAmount] = useState(String(item.amount));
   const [category, setCategory] = useState<string>(item.category ?? suggestCategory(item.label));
-  const [date, setDate] = useState(item.date ?? "");
+  const [date, setDate] = useState(displayCashflowDate(item.date, cashflow));
   const [confirmFixedOpen, setConfirmFixedOpen] = useState(false);
   const isIncome = type === "incomes";
 
   const handleSave = () => {
     const val = parseFloat(amount);
-    if (label.trim() && !isNaN(val) && val > 0 && (!isIncome || !date || validCashflowDate(date, cashflow))) {
-      onUpdateItem(monthIndex, type, idx, label.trim(), val, isIncome ? undefined : category, isIncome ? date || null : undefined);
+    if (label.trim() && !isNaN(val) && val > 0 && (!isIncome || !date || shortCashflowDate(date, cashflow))) {
+      onUpdateItem(monthIndex, type, idx, label.trim(), val, isIncome ? undefined : category, isIncome ? date ? shortCashflowDate(date, cashflow) : null : undefined);
       setEditing(false);
     }
   };
@@ -100,10 +101,7 @@ function EditableItem({
             </SelectContent>
           </Select>
         )}
-        {isIncome && <label className="block text-xs text-muted-foreground">Data prevista do recebimento (opcional)
-          <Input type="date" aria-label="Data prevista do recebimento" value={date} min={cashflowDateBounds(cashflow)?.min} max={cashflowDateBounds(cashflow)?.max} onChange={e => setDate(e.target.value)} className="mt-1 h-8" />
-          {date && !validCashflowDate(date, cashflow) && <span className="text-destructive">Escolha uma data deste mês.</span>}
-        </label>}
+        {isIncome && <CashflowDateInput value={date} onChange={setDate} month={cashflow} />}
         <div className="flex justify-end gap-1">
           <button onClick={handleSave} className="p-1 rounded hover:bg-income/20 text-income"><Check className="w-3.5 h-3.5" /></button>
           <button onClick={() => setEditing(false)} className="p-1 rounded hover:bg-expense/20 text-expense"><X className="w-3.5 h-3.5" /></button>
@@ -124,7 +122,7 @@ function EditableItem({
         <div className="flex-1 min-w-0 flex flex-wrap items-center gap-1.5">
           <span
             className={`truncate cursor-pointer hover:text-foreground transition-colors ${item.paid ? "text-muted-foreground line-through" : "text-muted-foreground"}`}
-            onClick={() => { setLabel(item.label); setAmount(String(item.amount)); setDate(item.date ?? ""); setEditing(true); }}
+            onClick={() => { setLabel(item.label); setAmount(String(item.amount)); setDate(displayCashflowDate(item.date, cashflow)); setEditing(true); }}
           >
             {item.label}
           </span>
@@ -138,12 +136,12 @@ function EditableItem({
         </div>
         <span
           className={`text-money cursor-pointer hover:text-foreground transition-colors ${item.paid ? "text-muted-foreground line-through" : "text-foreground"}`}
-          onClick={() => { setLabel(item.label); setAmount(String(item.amount)); setDate(item.date ?? ""); setEditing(true); }}
+          onClick={() => { setLabel(item.label); setAmount(String(item.amount)); setDate(displayCashflowDate(item.date, cashflow)); setEditing(true); }}
         >
           R$ {item.amount.toLocaleString("pt-BR")}
         </span>
         {item.paid && <Check className={`w-3.5 h-3.5 ${isIncome ? "text-income" : "text-expense"}`} />}
-        {isIncome && <button type="button" aria-label={`Editar entrada: ${item.label}`} title="Editar entrada" onClick={() => { setLabel(item.label); setAmount(String(item.amount)); setDate(item.date ?? ""); setEditing(true); }} className="p-1.5 min-h-8 min-w-8 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground"><Pencil className="w-3.5 h-3.5" /></button>}
+        {isIncome && <button type="button" aria-label={`Editar entrada: ${item.label}`} title="Editar entrada" onClick={() => { setLabel(item.label); setAmount(String(item.amount)); setDate(displayCashflowDate(item.date, cashflow)); setEditing(true); }} className="p-1.5 min-h-8 min-w-8 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground"><Pencil className="w-3.5 h-3.5" /></button>}
         <button
           onClick={handlePinClick}
           aria-label={`${item.fixed ? "Desmarcar como fixo" : "Marcar como fixo"}: ${item.label}`}
@@ -198,8 +196,8 @@ function AddItemRow({ type, monthIndex, cashflow, onAdd }: {
 
   const handleAdd = () => {
     const val = parseFloat(amount);
-    if (label.trim() && !isNaN(val) && val > 0 && (!isIncome || !date || validCashflowDate(date, cashflow))) {
-      onAdd(monthIndex, type, label.trim(), val, isIncome ? undefined : category, isIncome ? date || undefined : undefined);
+    if (label.trim() && !isNaN(val) && val > 0 && (!isIncome || !date || shortCashflowDate(date, cashflow))) {
+      onAdd(monthIndex, type, label.trim(), val, isIncome ? undefined : category, isIncome && date ? shortCashflowDate(date, cashflow) ?? undefined : undefined);
       setLabel(""); setAmount(""); setDate(""); setCategory("outros"); setAdding(false);
     }
   };
@@ -243,10 +241,7 @@ function AddItemRow({ type, monthIndex, cashflow, onAdd }: {
           </SelectContent>
         </Select>
       )}
-      {isIncome && <label className="block text-xs text-muted-foreground">Data prevista do recebimento (opcional)
-        <Input type="date" aria-label="Data prevista do recebimento" value={date} min={cashflowDateBounds(cashflow)?.min} max={cashflowDateBounds(cashflow)?.max} onChange={e => setDate(e.target.value)} className="mt-1 h-8" />
-        {date && !validCashflowDate(date, cashflow) && <span className="text-destructive">Escolha uma data deste mês.</span>}
-      </label>}
+      {isIncome && <CashflowDateInput value={date} onChange={setDate} month={cashflow} />}
       <div className="flex justify-end gap-1">
         <button onClick={handleAdd} className="p-1 rounded hover:bg-income/20 text-income"><Check className="w-3.5 h-3.5" /></button>
         <button onClick={() => { setAdding(false); setLabel(""); setAmount(""); }} className="p-1 rounded hover:bg-expense/20 text-expense"><X className="w-3.5 h-3.5" /></button>
