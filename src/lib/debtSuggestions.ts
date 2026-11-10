@@ -22,7 +22,7 @@ export function suggestDebtActions(months: CashflowMonth[], banks: Bank[], credi
   const pendingIncome = month?.incomes.filter(item => !item.paid).reduce((sum, item) => sum + cents(item.amount), 0) ?? 0;
   const pendingExpense = month?.expenses.filter(item => !item.paid).reduce((sum, item) => sum + cents(item.amount), 0) ?? 0;
   const today = dateInSaoPaulo(now);
-  let cards = 0, unaccounted = 0, incompleteCount = 0;
+  let cards = 0, priorCards = 0, unaccounted = 0, incompleteCount = 0;
   const urgentCards: {name:string; date:string | null; amount:number}[] = [];
   for (const bank of banks) {
     if (bank.status === "cancelado") continue;
@@ -31,7 +31,8 @@ export function suggestDebtActions(months: CashflowMonth[], banks: Bank[], credi
       const amount = cents(item.installmentAmount), due = validDate(item.dueDate);
       const dueMonth = due ? Number(due.slice(0,4)) * 12 + Number(due.slice(5,7)) - 1 : null;
       if (dueMonth === period) cards += amount;
-      if (dueMonth === null || dueMonth < period) { unaccounted += amount; incompleteCount++; }
+      if (dueMonth !== null && dueMonth < period) priorCards += amount;
+      if (dueMonth === null) { unaccounted += amount; incompleteCount++; }
       if (!due || due < today || item.status === "atrasado") urgentCards.push({name:bank.name, date:due, amount:amount / 100});
     }
   }
@@ -46,12 +47,12 @@ export function suggestDebtActions(months: CashflowMonth[], banks: Bank[], credi
   });
   urgentCards.sort((a,b) => (a.date ?? "9999").localeCompare(b.date ?? "9999"));
   const reserveCents = cents(reserve);
-  const pendingOut = pendingExpense + cards;
+  const pendingOut = pendingExpense + cards + priorCards;
   const projectedDifference = pendingIncome - pendingOut;
   const creditorTotal = outstanding.reduce((sum, item) => sum + item.remaining, 0);
-  // Unknown/old card bills cannot safely be assumed payable from the displayed month.
+  // Undated installments cannot safely be assigned to a payment period.
   const suggestion = month && incompleteCount === 0 && pendingIncome > 0
     ? Math.min(creditorTotal, Math.max(0, projectedDifference - reserveCents)) : 0;
-  const evidence = !!month && (month.incomes.length > 0 || month.expenses.length > 0 || cards > 0);
-  return { month, pendingIncome:pendingIncome / 100, pendingExpense:pendingExpense / 100, cards:cards / 100, pendingOut:pendingOut / 100, projectedDifference:projectedDifference / 100, reserve:reserveCents / 100, unaccounted:unaccounted / 100, incompleteCount, suggestedExtra:suggestion / 100, priority:outstanding[0] ?? null, urgentCard:urgentCards[0] ?? null, evidence };
+  const evidence = (!!month && (month.incomes.length > 0 || month.expenses.length > 0)) || cards > 0 || priorCards > 0 || incompleteCount > 0;
+  return { month, pendingIncome:pendingIncome / 100, pendingExpense:pendingExpense / 100, cards:cards / 100, priorCards:priorCards / 100, pendingOut:pendingOut / 100, projectedDifference:projectedDifference / 100, reserve:reserveCents / 100, unaccounted:unaccounted / 100, incompleteCount, suggestedExtra:suggestion / 100, priority:outstanding[0] ?? null, urgentCard:urgentCards[0] ?? null, evidence };
 }

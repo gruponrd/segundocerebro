@@ -14,9 +14,10 @@ describe("debt recommendations", () => {
     expect(suggestDebtActions([m],banks,creditors,200,now)).toMatchObject({pendingIncome:3000,pendingExpense:1000,cards:500,pendingOut:1500,projectedDifference:1500,reserve:200,suggestedExtra:1300,priority:{name:"Alta"},incompleteCount:0});
     expect(JSON.stringify({m,banks,creditors})).toBe(original);
   });
-  it("does not suggest extra with an old or undated installment or absent income", () => {
+  it("accounts for old installments and blocks extra with an undated installment or absent income", () => {
     const m=month([{label:"pending",amount:5000}],[]);
-    expect(suggestDebtActions([m],[bank([bill("2026-10-01",300),bill("sem data",50)])],creditors,0,now)).toMatchObject({unaccounted:350,incompleteCount:2,suggestedExtra:0});
+    expect(suggestDebtActions([m],[bank([bill("2026-10-01",300),bill("sem data",50)])],creditors,0,now)).toMatchObject({priorCards:300,unaccounted:50,incompleteCount:1,suggestedExtra:0});
+    expect(suggestDebtActions([m],[bank([bill("2026-10-01",300)])],creditors,0,now)).toMatchObject({priorCards:300,pendingOut:300,suggestedExtra:4700});
     expect(suggestDebtActions([month([{label:"paid",amount:5000,paid:true}],[])],[],creditors,0,now).suggestedExtra).toBe(0);
   });
   it("reports negative pending cash and never recommends more than total owed", () => {

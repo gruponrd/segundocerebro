@@ -38,8 +38,9 @@ export function DebtActionPlan() {
     store.saveDebtPlan(scenarioSettings); setError("");
   };
   return <section aria-labelledby="debt-plan-title" className="rounded-2xl border border-border bg-card p-4 sm:p-6 space-y-5">
-    <div className="flex flex-wrap items-start justify-between gap-3"><div><h2 id="debt-plan-title" className="text-xl font-bold flex items-center gap-2"><Target className="h-5 w-5 text-primary" aria-hidden />Plano de quitação</h2><p className="mt-2 max-w-3xl text-sm text-muted-foreground">Organize as parcelas e simule um valor adicional para quitar seus credores. Seus pagamentos reais só mudam quando você os registra.</p></div><span className="rounded-full bg-secondary px-3 py-1 text-xs text-muted-foreground">Simulação</span></div>
-    <DebtNextSteps onUse={(value, priorityId) => { setAmount(value.toFixed(2).replace(".", ",")); setDraft(previous => ({ ...previous, strategy: "custom", priorityId })); setError(""); }} />
+    <div className="flex flex-wrap items-start justify-between gap-3"><div><h2 id="debt-plan-title" className="text-xl font-bold flex items-center gap-2"><Target className="h-5 w-5 text-primary" aria-hidden />Plano de quitação</h2><p className="mt-2 max-w-3xl text-sm text-muted-foreground">Acompanhe a proposta calculada a partir das entradas, despesas e dívidas cadastradas. Seus pagamentos reais só mudam quando você os registra.</p></div><span className="rounded-full bg-secondary px-3 py-1 text-xs text-muted-foreground">Simulação</span></div>
+    <DebtNextSteps />
+    <details className="rounded-xl border border-border p-4"><summary className="cursor-pointer text-sm font-semibold">Ajustar ou comparar cenários manualmente</summary><div className="mt-4 space-y-5">
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.7fr)]">
       <div className="rounded-xl bg-secondary/40 p-4 space-y-3"><label htmlFor="debt-plan-extra" className="block text-sm font-medium">Valor adicional por mês (R$)</label><Input id="debt-plan-extra" inputMode="decimal" placeholder="Ex.: 300,00" value={amount} onChange={event => { setAmount(event.target.value); setError(""); }} aria-describedby="debt-extra-hint" /><p id="debt-extra-hint" className="text-xs leading-relaxed text-muted-foreground">Além das contas e parcelas já previstas. Compare com a sugestão acima e confirme seu saldo bancário.</p></div>
       <fieldset><legend className="text-sm font-medium mb-3">Como priorizar os credores?</legend><div className="grid gap-2 sm:grid-cols-3">{strategies.map(item => <label key={item.id} className={`cursor-pointer rounded-xl border p-3 text-sm ${draft.strategy === item.id ? "border-primary bg-primary/10" : "border-border bg-background/40"}`}><span className="flex items-center gap-2 font-semibold"><input type="radio" name="debt-strategy" checked={draft.strategy === item.id} onChange={() => { setDraft({ ...draft, strategy: item.id }); setError(""); }} />{item.name}</span><span className="mt-2 block text-xs leading-relaxed text-muted-foreground">{item.description}</span></label>)}</div>
@@ -66,5 +67,6 @@ export function DebtActionPlan() {
       <p className="text-xs leading-relaxed text-muted-foreground">A projeção considera as parcelas cadastradas como pagas no mês do vencimento e o adicional apenas para credores. Juros futuros, descontos, parcelas mínimas de credores e antecipações não são calculados. Confira se algum pagamento a credor já está no fluxo para evitar contá-lo duas vezes. Datas são estimativas, não pagamentos.</p>
       {!scenario.finishPeriod && <p className="text-xs text-muted-foreground">A simulação cobre até 60 meses; pode não haver quitação nesse intervalo ou faltarem dados para calculá-la.</p>}
     </>}
+    </div></details>
   </section>;
 }
