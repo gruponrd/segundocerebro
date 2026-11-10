@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { ArrowDownLeft, ArrowLeftRight, Brain, CreditCard, Gamepad2, LayoutDashboard, Link2, Plus, Search, Sparkles, Target, Wallet, Wrench } from "lucide-react";
+import { ArrowDownLeft, ArrowLeftRight, Brain, CreditCard, Gamepad2, LayoutDashboard, Link2, Moon, Plus, Search, Sparkles, Sun, Target, Wallet, Wrench } from "lucide-react";
+import { useTheme } from "@/hooks/use-theme";
 import { useAuth } from "@/hooks/useAuth";
 import { useFinanceStore } from "@/stores/financeStore";
 import { openCommandMenu } from "@/lib/commandMenu";
@@ -26,6 +27,7 @@ const navigation = [
 export function ClarityWorkspace({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
   const { displayName } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const finance = useFinanceStore();
   const label = navigation.find(item => item.path === pathname)?.label || "Meu espaço";
   return <div className="cl-app cl-production-shell">
@@ -37,7 +39,7 @@ export function ClarityWorkspace({ children }: { children: ReactNode }) {
     </aside>
     <div className="cl-workspace">
       {isDesignPreview && <div className="cl-preview">Prévia local · alterações somente neste navegador</div>}
-      <header className="cl-topbar"><span className="cl-current-section">Meu espaço <span className="cl-slash">/</span> {label}</span><div className="cl-header-actions">{pathname === "/" && <span className="cl-export"><ExportXlsxButton compact/></span>}<button onClick={openCommandMenu} aria-label="Buscar no aplicativo"><Search size={17}/></button><button className="cl-new-entry" onClick={openTransactionMenu} aria-label="Novo lançamento"><Plus size={17}/><span>Novo lançamento</span></button><span className="cl-avatar" title={displayName}>{(displayName || "SC").slice(0,1)}</span><LogoutButton iconOnly className="cl-header-logout"/></div></header>
+      <header className="cl-topbar"><span className="cl-current-section">Meu espaço <span className="cl-slash">/</span> {label}</span><div className="cl-header-actions">{pathname === "/" && <span className="cl-export"><ExportXlsxButton compact/></span>}<button onClick={toggleTheme} aria-label={theme === "light" ? "Ativar tema escuro" : "Ativar tema claro"} title={theme === "light" ? "Ativar tema escuro" : "Ativar tema claro"} className="cl-theme-toggle">{theme === "light" ? <Moon size={17} aria-hidden /> : <Sun size={17} aria-hidden />}</button><button onClick={openCommandMenu} aria-label="Buscar no aplicativo"><Search size={17}/></button><button className="cl-new-entry" onClick={openTransactionMenu} aria-label="Novo lançamento"><Plus size={17}/><span>Novo lançamento</span></button><span className="cl-avatar" title={displayName}>{(displayName || "SC").slice(0,1)}</span><LogoutButton iconOnly className="cl-header-logout"/></div></header>
       <div className="cl-sync-status" role="status" aria-live="polite">
         {finance.syncStatus === "saving" && (isPreviewMode ? "Salvando nesta prévia…" : "Salvando alterações…")}
         {finance.syncStatus === "saved" && (isPreviewMode ? "Prévia salva somente neste navegador" : "Dados sincronizados")}

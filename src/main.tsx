@@ -18,5 +18,6 @@ import "@/styles/clarity-polish.css";
 import "@/styles/card-surfaces.css";
 import "@/styles/dashboard-refinement.css";
 import "@/styles/navigation-refinement.css";
+import "@/styles/light-theme.css";
 
 createRoot(document.getElementById("root")!).render(<App />);

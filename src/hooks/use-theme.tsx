@@ -32,8 +32,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const toggleTheme = () => {
     setTheme((t) => {
-      const idx = THEME_ORDER.indexOf(t);
-      return THEME_ORDER[(idx + 1) % THEME_ORDER.length];
+      return t === "light" ? "dark" : "light";
     });
   };
 

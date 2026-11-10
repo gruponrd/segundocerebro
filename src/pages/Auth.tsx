@@ -1,5 +1,7 @@
 import { isAccountPreview, isDesignPreview, setDesignAccountPreview } from "@/lib/previewMode";
 import { useState } from "react";
+import { useTheme } from "@/hooks/use-theme";
+import { Moon, Sun } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -42,6 +44,7 @@ const copy = {
 
 export default function AuthPage() {
   const { signIn, signUp } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [view, setView] = useState<View>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -103,6 +106,7 @@ export default function AuthPage() {
 
   return (
     <main className="auth-shell clarity-auth">
+      <button type="button" className="auth-theme-toggle" onClick={toggleTheme} aria-label={theme === "light" ? "Ativar tema escuro" : "Ativar tema claro"} title={theme === "light" ? "Ativar tema escuro" : "Ativar tema claro"}>{theme === "light" ? <Moon size={18} aria-hidden /> : <Sun size={18} aria-hidden />}</button>
       <div className="auth-layout">
         <section className="auth-showcase" aria-label="Segundo Cérebro">
           <div className="auth-brand"><Brain size={25} strokeWidth={1.5}/><span>Segundo Cérebro</span></div>

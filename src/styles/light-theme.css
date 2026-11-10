@@ -1,0 +1,71 @@
+/* Light theme uses the same orange identity with warm, legible surfaces. */
+:root.light {
+  color-scheme: light;
+  --background: 35 33% 96%; --foreground: 20 17% 14%;
+  --card: 0 0% 100%; --card-foreground: 20 17% 14%;
+  --popover: 0 0% 100%; --popover-foreground: 20 17% 14%;
+  --primary: 13 86% 45%; --primary-text: 13 86% 35%; --primary-foreground: 0 0% 100%;
+  --secondary: 30 27% 91%; --secondary-foreground: 20 17% 18%;
+  --muted: 30 22% 91%; --muted-foreground: 20 10% 37%;
+  --accent: 13 80% 38%; --accent-foreground: 0 0% 100%;
+  --border: 25 17% 81%; --input: 25 17% 72%; --ring: 13 86% 38%;
+  --income: 155 66% 27%; --expense: 353 70% 42%; --destructive: 353 70% 42%; --destructive-foreground: 0 0% 100%;
+  --chart-1: 13 86% 45%; --chart-2: 155 66% 27%; --chart-3: 353 70% 42%; --chart-4: 38 90% 35%; --chart-5: 215 70% 40%;
+  --glass-bg: 0 0% 100%; --glass-border: 25 17% 81%;
+  --sidebar-background: 35 33% 96%; --sidebar-foreground: 20 17% 14%;
+  --sidebar-accent: 22 38% 91%; --sidebar-accent-foreground: 13 75% 32%; --sidebar-border: 25 17% 81%;
+  --cl-muted: #6d625c; --cl-line: #ddd2ca; --cl-green: #147143; --cl-red: #b43245; --cl-blue: #b63d1d;
+}
+:root.light body,.light .cl-app {background:#f8f5f2;color:#28201c}
+.light .cl-production-shell .cl-sidebar {background:#fffdfa;border-color:#e4dad3;scrollbar-color:#bfa89d #fffdfa}
+.light .cl-production-shell .cl-brand {color:#bf421e}
+.light .cl-production-shell .cl-brand small {color:#6c5f58}
+.light .cl-production-shell .cl-sidebar nav>a {color:#5c524d}
+.light .cl-production-shell .cl-sidebar nav>a:hover {background:#f3eae5;color:#2c211b}
+.light .cl-production-shell .cl-sidebar nav>a.is-active {background:#f5e4da;color:#8b2d15}
+.light .cl-production-shell .cl-sidebar nav>a.is-active>svg {color:#a83a1c}
+.light .cl-production-shell .cl-sidebar-bottom {border-color:#e5d9d1}
+.light .cl-production-shell .cl-sidebar-bottom .cl-proposal-logout {color:#665952}
+.light .cl-topbar,.light .cl-preview {background:#fffdfa;color:#625650;border-color:#e5d9d1}
+.light .cl-sync-status {color:#675b55}
+.light .cl-avatar {background:#f7e8e0;border-color:#dfb9a8;color:#8c3017}
+.light .cl-panel:not(.cl-result):not(.cl-primary-debt):not(.cl-pending-mini) {background:#fff;border-color:#e4dad3;color:#281f1a}
+.light .cl-page-heading p,.light .cl-panel-heading p,.light .cl-forecast-caption,.light .cl-forecast-total>p {color:#6d625c}
+.light .cl-period,.light .cl-forecast select,.light .cl-segments {background:#fff;border-color:#d8ccc4;color:#342720}
+.light .cl-period select,.light .cl-period button {color:#342720}
+.light option {background:#fff;color:#281f1a}
+.light .cl-forecast-chart,.light .cl-chart-values,.light .cl-calculation-visible {color:#342720}
+.light .cl-section-page [role=tablist] {background:#f2e9e3;border-color:#d8cbc2}
+.light .cl-section-page .recharts-default-tooltip {background:#fff!important;border-color:#d8cbc2!important;color:#281f1a!important}
+.light [role=dialog],.light [role=alertdialog] {background:#fff;color:#281f1a;border-color:#d8cbc2}
+.light .cl-loading-screen {background:#f8f5f2;color:#281f1a}
+.light .cl-loading-screen p {color:#675b55}
+.cl-theme-toggle {display:grid;place-items:center}
+.light .cl-theme-toggle {color:#79301b;background:#f4e8e0}
+/* Cash-flow cards use the same legible light palette, including their local variables. */
+.light .cl-section-page[data-section=fluxo] .glass-card {background:#fff;border-color:#e0d4cc;color:#28201c}
+.light .cl-section-page[data-section=fluxo] .page-container>div.grid>div:first-child>.glass-card {
+  --card:0 0% 100%; --foreground:20 17% 14%; --card-foreground:20 17% 14%; --muted-foreground:20 10% 37%;
+  --primary-text:13 86% 35%; --ring:13 86% 38%; --border:25 17% 81%; --input:25 17% 72%;
+  --income:155 66% 27%; --expense:353 70% 42%; --destructive:353 70% 42%; --accent:13 80% 38%;
+  --secondary:30 27% 91%; --secondary-foreground:20 17% 18%; --primary:13 86% 45%; --primary-foreground:0 0% 100%;
+  background:#fff;color:#28201c;border-color:#e0d4cc;
+}
+.auth-theme-toggle {position:absolute;top:18px;right:20px;display:grid;place-items:center;width:44px;height:44px;border-radius:10px;background:#2b1b16;color:#ffb39b;z-index:2}
+.light .auth-shell.clarity-auth {--foreground:20 17% 14%;--muted-foreground:20 10% 37%;--border:25 17% 81%;--primary-text:13 86% 35%;background:#f8f5f2;color:#28201c}
+.light .clarity-auth .auth-card {background:#fff;border-color:#e0d4cc;color:#28201c}
+.light .auth-form-heading p,.light .clarity-auth .auth-card>div:last-child {color:#675b55}
+.light .clarity-auth .auth-field-label {color:#463c36}
+.light .clarity-auth .auth-input {background:#faf7f5;border-color:#cbbcb2;color:#28201c}
+.light .clarity-auth .auth-input::placeholder {color:#756a63}
+.light .clarity-auth .auth-field-icon,.light .clarity-auth .auth-password-toggle {color:#675b55}
+.light .clarity-auth .auth-link.text-primary {color:#a3371a}
+.light .auth-mobile-brand {color:#ad391b}
+.light .auth-theme-toggle {background:#f3e4da;color:#79301b}
+.light .cl-forecast-select label,.light .cl-forecast-total>span:first-child,.light .cl-chart-toolbar>span,.light .cl-chart-values button>span,.light .cl-chart-values small,.light .cl-chart-note,.light .cl-calculation>p,.light .cl-table-scroll thead th,.light .cl-bill-date,.light .cl-bill-name small,.light .cl-bill-status,.light .cl-bill-footer {color:#675b55}
+.light .cl-segments button {color:#5e5149}
+.light .cl-segments button[aria-pressed=true] {background:#f1ddd2;color:#813016}
+.light .cl-chart-values button:hover,.light .cl-chart-values button[aria-pressed=true] {background:#eef6f0}
+.light .cl-calculation,.light .cl-calculation-visible,.light .cl-chart-values button,.light .cl-table-scroll th,.light .cl-table-scroll td,.light .cl-bill,.light .cl-bill-footer {border-color:#e3d9d2}
+.light .cl-calculation summary,.light .cl-bill-footer .cl-amount {color:#30241e}
+.light .cl-bill:hover {background:#faf2ed}
