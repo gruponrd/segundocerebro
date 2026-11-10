@@ -11,3 +11,7 @@ verify_jwt = false
 [functions.telegram-reminders]
 # Scheduler credential is validated against Vault via service-role-only RPC.
 verify_jwt = false
+
+[functions.career-assistant]
+# Verifica o JWT em auth.getUser e aplica cotas no banco antes de chamar a API.
+verify_jwt = false
