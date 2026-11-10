@@ -6,7 +6,6 @@ import { useFinanceStore } from "@/stores/financeStore";
 import { useAuth } from "@/hooks/useAuth";
 import { DEFAULT_CAREER_PLAN, careerPeriodLabel, careerProjection, type CareerPlan } from "@/lib/careerTransition";
 import { money } from "@/lib/planningTools";
-import { CareerAssistant } from "@/components/CareerAssistant";
 
 type Draft = Record<keyof CareerPlan, string>;
 const draftOf = (p: CareerPlan): Draft => Object.fromEntries(Object.entries(p).map(([key, value]) => [key, String(value).replace(".", ",")])) as Draft;
@@ -64,7 +63,6 @@ export function CareerTransitionPlan() {
       {benefit && <div className="border-t border-border pt-3"><p className="text-sm font-semibold">Comparação hipotética com seguro: <span className="capitalize">{benefit.unknown ? "revise as parcelas sem data" : benefit.first ? careerPeriodLabel(benefit.first.period) : "nenhum mês encontrado em 36 meses"}</span></p><p className="mt-1 text-xs text-muted-foreground">Supõe benefício concedido nas condições informadas e não soma a renda da nova atividade nos meses de seguro.</p></div>}
       {isDirty && <p className="text-xs text-primary">Há alterações não salvas. Salve para atualizar a projeção.</p>}
     </div>}
-    {plan && base && <CareerAssistant key={user?.id} plan={plan} base={base} benefit={benefit} disabled={isDirty || !store.cloudReady || store.syncStatus === "conflict" || store.localRecoveryAvailable} />}
     <div className="rounded-xl bg-secondary/40 p-4 text-sm space-y-2"><p className="font-semibold">Como calculamos</p><p className="text-muted-foreground">Simulamos uma saída no início de cada mês, a partir do próximo, e verificamos se a reserva fica acima do mínimo durante os 12 meses seguintes. Antes da saída, usamos a renda informada; depois, a renda da nova atividade. Parcelas de cartões e empréstimos cadastrados na Carteira entram nos vencimentos registrados.</p><p className="text-muted-foreground">A simulação não inclui automaticamente rescisão, FGTS, juros futuros nem dívidas sem parcelas cadastradas. Não soma valores já guardados em outras metas. Revise as despesas, parcelas e renda prevista antes de decidir.</p></div>
     <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-semibold">Informações para a projeção</h3><Button type="button" variant="outline" size="sm" onClick={fillFromFlow} disabled={!store.cloudReady}>Usar valores de {store.currentCashflow.month}</Button></div>
     <p className="text-xs text-muted-foreground">O botão preenche renda e despesas manuais do mês selecionado no Fluxo. Confira os valores e evite duplicar parcelas de cartão; nada é salvo até você confirmar.</p>
