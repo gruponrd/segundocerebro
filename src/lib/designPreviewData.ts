@@ -17,6 +17,7 @@ export function createDesignPreviewData(): PersistedData {
  creditors:[{id:"demo-creditor",name:"Empréstimo pessoal · exemplo",totalDebt:2400,amountPaid:600,interestRate:1.2,dueDate:date(now.getMonth(),28)}],
  goals:[{id:"demo-reserve",title:"Reserva de segurança",targetAmount:5000,savedAmount:2100,image:"🌱",color:"215 100% 71%",monthlyAllocation:300},{id:"demo-trip",title:"Próxima viagem",targetAmount:2000,savedAmount:1300,image:"✈️",color:"265 65% 75%",monthlyAllocation:200}],
  incomeSources:[{id:"demo-income-1",label:"Salário",amount:5000},{id:"demo-income-2",label:"Projeto extra",amount:1000}],
+ debtPlan:{monthlyExtra:0,strategy:"smallest",priorityId:""},
  annualIncomeGoals:{},
  savingsGoalMonth:500,salary:5000,monthlyHours:220,safetyMargin:500,lifeXp:120,
  lifeTasks:[{id:"demo-task-1",title:"Revisar os gastos da semana",xpReward:20,completedThisWeek:false},{id:"demo-task-2",title:"Reservar um tempo para caminhar",xpReward:15,completedThisWeek:true}],

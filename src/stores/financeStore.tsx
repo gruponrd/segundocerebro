@@ -6,6 +6,7 @@ import { cashflowPeriod, extendCashflowMonths, mergeCashflowMonths } from "@/lib
 import { appendStatement, undoStatement, type StatementEntry } from "@/lib/statementImport";
 import { validateGoalPlan } from "@/lib/goalAllocation";
 import { appendInstallmentBatch, type InstallmentDraft } from "@/lib/installmentPlan";
+import { DEFAULT_DEBT_PLAN, normalizeDebtPlan, type DebtPlanSettings } from "@/lib/debtActionPlan";
 import { updateIncomeSourceValues, type IncomeSource } from "@/lib/incomeSources";
 export type { IncomeSource } from "@/lib/incomeSources";
 import type { Json } from "@/integrations/supabase/types";
@@ -40,6 +41,7 @@ export interface LifeTask {
 }
 
 export interface PersistedData {
+  debtPlan: DebtPlanSettings;
   annualIncomeGoals: Record<string, number[]>;
   banks: Bank[];
   cashflowMonths: CashflowMonth[];
@@ -57,6 +59,8 @@ export interface PersistedData {
 }
 
 export interface FinanceStore {
+  debtPlan: DebtPlanSettings;
+  saveDebtPlan: (plan: DebtPlanSettings) => void;
   annualIncomeGoals: Record<string, number[]>;
   setAnnualIncomeGoal: (year: number, goals: number[]) => void;
   importStatement: (entries: StatementEntry[], batchId: string, paid: boolean) => void;
@@ -143,6 +147,7 @@ export interface FinanceStore {
 }
 
 const DEFAULTS: PersistedData = {
+  debtPlan: DEFAULT_DEBT_PLAN,
   annualIncomeGoals: {},
   banks: [],
   cashflowMonths: ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"].map(
@@ -182,6 +187,7 @@ function getLocalData(): PersistedData {
     creditors: loadFromStorage("fin_creditors", DEFAULTS.creditors),
     goals: loadFromStorage("fin_goals", DEFAULTS.goals),
     incomeSources: loadFromStorage("fin_incomeSources", DEFAULTS.incomeSources),
+    debtPlan: DEFAULT_DEBT_PLAN,
     annualIncomeGoals: {},
     savingsGoalMonth: loadFromStorage("fin_savingsGoal", DEFAULTS.savingsGoalMonth),
     salary: loadFromStorage("fin_salary", DEFAULTS.salary),
@@ -240,6 +246,7 @@ function normalizeData(data: Partial<PersistedData>): PersistedData {
     creditors: Array.isArray(data.creditors) ? data.creditors : DEFAULTS.creditors,
     goals: Array.isArray(data.goals) ? data.goals : DEFAULTS.goals,
     incomeSources: Array.isArray(data.incomeSources) ? data.incomeSources : DEFAULTS.incomeSources,
+    debtPlan: normalizeDebtPlan(data.debtPlan),
     annualIncomeGoals: data.annualIncomeGoals && typeof data.annualIncomeGoals === "object" && !Array.isArray(data.annualIncomeGoals) ? data.annualIncomeGoals : {},
     savingsGoalMonth: data.savingsGoalMonth ?? DEFAULTS.savingsGoalMonth,
     salary: data.salary ?? DEFAULTS.salary,
@@ -276,6 +283,8 @@ function useFinanceStoreInternal(): FinanceStore {
   }, [cashflowMonths]);
   const [selectedBankId, setSelectedBankId] = useState<BankId | null>(null);
   const [incomeSources, setIncomeSources] = useState<IncomeSource[]>(DEFAULTS.incomeSources);
+  const [debtPlan, setDebtPlan] = useState<DebtPlanSettings>(DEFAULTS.debtPlan);
+  const saveDebtPlan = useCallback((plan: DebtPlanSettings) => setDebtPlan(normalizeDebtPlan(plan)), []);
   const [annualIncomeGoals, setAnnualIncomeGoals] = useState<Record<string, number[]>>(DEFAULTS.annualIncomeGoals);
   const setAnnualIncomeGoal = useCallback((year: number, goals: number[]) => {
     setAnnualIncomeGoals(previous => ({ ...previous, [year]: goals }));
@@ -310,6 +319,7 @@ function useFinanceStoreInternal(): FinanceStore {
     setGoals(data.goals);
     setIncomeSources(data.incomeSources);
     setAnnualIncomeGoals(data.annualIncomeGoals);
+    setDebtPlan(data.debtPlan);
     setSavingsGoalMonth(data.savingsGoalMonth);
     setSalary(data.salary);
     setMonthlyHours(data.monthlyHours);
@@ -448,6 +458,7 @@ function useFinanceStoreInternal(): FinanceStore {
     creditors,
     goals,
     incomeSources,
+    debtPlan,
     annualIncomeGoals,
     savingsGoalMonth,
     salary,
@@ -457,7 +468,7 @@ function useFinanceStoreInternal(): FinanceStore {
     lifeTasks,
     transportEntries,
     transportBalance,
-  }), [banksRaw, cashflowMonthsRaw, creditors, goals, incomeSources, annualIncomeGoals, savingsGoalMonth, salary, monthlyHours, safetyMargin, lifeXp, lifeTasks, transportEntries, transportBalance]);
+  }), [banksRaw, cashflowMonthsRaw, creditors, goals, incomeSources, debtPlan, annualIncomeGoals, savingsGoalMonth, salary, monthlyHours, safetyMargin, lifeXp, lifeTasks, transportEntries, transportBalance]);
 
   // Keep a per-user local backup and serialize cloud writes with optimistic locking.
   useEffect(() => {
@@ -858,7 +869,7 @@ function useFinanceStoreInternal(): FinanceStore {
 
   return {
     importStatement, undoStatementImport, saveGoalPlan,
-    banks, cashflowMonths, creditors, goals, monthlySnapshots: [], incomeSources, annualIncomeGoals, setAnnualIncomeGoal,
+    banks, cashflowMonths, creditors, goals, monthlySnapshots: [], incomeSources, annualIncomeGoals, setAnnualIncomeGoal, debtPlan, saveDebtPlan,
     selectedMonth, selectedBank, currentCashflow,
     totalDebt, totalIncome, totalExpense, cardExpensesForMonth, expectedBalance,
     totalCreditorsDebt, totalCreditorsPaid, savingsGoalMonth,

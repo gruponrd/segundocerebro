@@ -1,5 +1,6 @@
 import { money } from "@/lib/planningTools";
 import { useState, useMemo } from "react";
+import { DebtActionPlan } from "@/components/DebtActionPlan";
 import { DebtTrackingChart } from "@/components/DebtTrackingChart";
 import { PageHeader } from "@/components/PageHeader";
 import { CreditorWidget } from "@/components/CreditorWidget";
@@ -628,6 +629,8 @@ export default function DividaPage() {
   return (
     <div className="page-container min-h-screen bg-background space-y-8">
       <PageHeader title="Dívidas" description="Confira os valores em aberto e acompanhe sua evolução." icon={TrendingDown} actions={<ExportXlsxButton />} />
+
+      <DebtActionPlan />
 
       {/* 4 Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

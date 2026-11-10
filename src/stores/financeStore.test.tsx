@@ -120,6 +120,22 @@ describe("isolamento financeiro por conta", () => {
     expect(reopened.result.current.annualIncomeGoals["2027"]).toEqual(Array(12).fill(2000));
   });
 
+  it("salva o plano de quitação sem modificar dívidas e restaura por conta", async () => {
+    const creditor = { id:"creditor", name:"Credor", totalDebt:1000, amountPaid:200 };
+    mock.cloudData = { creditors:[creditor], annualIncomeGoals:{"2027":Array(12).fill(200)} };
+    const first = renderHook(() => useFinanceStore(), { wrapper });
+    await waitFor(() => expect(first.result.current.cloudReady).toBe(true));
+    act(() => first.result.current.saveDebtPlan({ monthlyExtra:150, strategy:"custom", priorityId:"creditor" }));
+    await waitFor(() => expect(JSON.parse(localStorage.getItem("fin_user_account-a")!).debtPlan.monthlyExtra).toBe(150));
+    const saved = JSON.parse(localStorage.getItem("fin_user_account-a")!);
+    expect(saved.creditors).toEqual([creditor]);
+    expect(saved.annualIncomeGoals["2027"]).toEqual(Array(12).fill(200));
+    first.unmount(); mock.cloudData=saved;
+    const reopened=renderHook(() => useFinanceStore(), { wrapper });
+    await waitFor(() => expect(reopened.result.current.cloudReady).toBe(true));
+    expect(reopened.result.current.debtPlan).toEqual({monthlyExtra:150,strategy:"custom",priorityId:"creditor"});
+  });
+
   it("salva o plano das metas junto do orçamento, mantendo saldos e identificadores", async () => {
     const original = [{ id:"a",title:"A",targetAmount:1000,savedAmount:123,image:"a",color:"c" },{ id:"b",title:"B",targetAmount:2000,savedAmount:234,image:"b",color:"d" }];
     mock.cloudData = {goals:original,savingsGoalMonth:100};
