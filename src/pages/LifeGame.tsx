@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
 import { useAuth } from "@/hooks/useAuth";
 import { useLifeGameState } from "@/hooks/useLifeGameState";
-import { journeyToday, journeyDays, journeyDateLabel, validJourneyDate } from "@/lib/lifeGameDates";
+import { journeyToday, journeyDays, journeyDateLabel, journeyElapsed, journeyStartInstant, validJourneyDate, validJourneyTime } from "@/lib/lifeGameDates";
 
 // ============ DATA ============
 
@@ -141,20 +141,23 @@ export default function NeuroRecoveryPage() {
   const { user } = useAuth();
   const userId = user?.id ?? "";
   const [state, setState] = useLifeGameState(userId);
-  const [dayTick, setDayTick] = useState(0);
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const [now, setNow] = useState(() => new Date());
   const [pickerDate, setPickerDate] = useState<string>(() => journeyToday());
+  const [pickerTime, setPickerTime] = useState("00:00");
+  const [timeOpen, setTimeOpen] = useState(false);
+  const [editTime, setEditTime] = useState("00:00");
   const [resetOpen, setResetOpen] = useState(false);
   const [celebrateMilestone, setCelebrateMilestone] = useState<Milestone | null>(null);
 
-  // Refresh every minute so day rollover reflects
+  // Refresh from the actual clock, including after the device resumes from sleep.
   useEffect(() => {
-    const t = setInterval(() => setDayTick((n) => n + 1), 60_000);
+    const t = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
 
 
-  const days = state.startDate ? journeyDays(state.startDate) : 0;
+  const days = state.startDate ? journeyDays(state.startDate, now) : 0;
+  const elapsed = state.startDate ? journeyElapsed(state.startDate, state.startTime ?? "00:00", now) : null;
   const totalXP = days * 100;
   const { current: currentLevel, next: nextLevel } = computeLevel(days);
   const progressPct = nextLevel
@@ -196,9 +199,17 @@ export default function NeuroRecoveryPage() {
   const CelebrateIcon = celebrateMilestone?.icon;
 
   const startJourney = () => {
-    if (!validJourneyDate(pickerDate) || pickerDate > journeyToday()) return;
-    setState({ startDate: pickerDate, defeatedBosses: [], bestStreakDays: 0, claimedCoins: [] });
-    setPickerOpen(false);
+    const instant = journeyStartInstant(pickerDate, pickerTime);
+    if (instant === null || instant > Date.now()) return;
+    setState({ startDate: pickerDate, startTime: pickerTime, defeatedBosses: [], bestStreakDays: 0, claimedCoins: [] });
+  };
+
+  const saveTime = () => {
+    if (!state.startDate) return;
+    const instant = journeyStartInstant(state.startDate, editTime);
+    if (instant === null || instant > Date.now()) return;
+    setState(s => s.startDate === state.startDate ? { ...s, startTime: editTime } : s);
+    setTimeOpen(false);
   };
 
   const resetJourney = () => {
@@ -240,7 +251,12 @@ export default function NeuroRecoveryPage() {
                 className="mt-2"
               />
             </div>
-            <Button onClick={startJourney} disabled={!validJourneyDate(pickerDate) || pickerDate > journeyToday()} className="w-full gap-2" size="lg">
+            <div>
+              <label htmlFor="journey-start-time" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Hora em que você parou</label>
+              <Input id="journey-start-time" type="time" value={pickerTime} onChange={(e) => setPickerTime(e.target.value)} className="mt-2" />
+              <p className="mt-1 text-xs text-muted-foreground">Horário de Brasília.</p>
+            </div>
+            <Button onClick={startJourney} disabled={!validJourneyDate(pickerDate) || !validJourneyTime(pickerTime) || journeyStartInstant(pickerDate, pickerTime) === null || (journeyStartInstant(pickerDate, pickerTime) ?? Infinity) > now.getTime()} className="w-full gap-2" size="lg">
               <Sparkles className="w-4 h-4" /> Iniciar Reconstrução
             </Button>
           </CardContent>
@@ -254,7 +270,9 @@ export default function NeuroRecoveryPage() {
     <div className="min-h-screen bg-background">
       <main className="page-container space-y-8">
         {/* Header */}
-        <PageHeader title="LifeGame" description={`Início em ${journeyDateLabel(state.startDate)} · Dias de calendário no horário de Brasília. Sua jornada de reconstrução em capítulos.`} icon={Brain} actions={
+        <PageHeader title="LifeGame" description={`Início em ${journeyDateLabel(state.startDate)} · Horário de Brasília. Os marcos seguem dias de calendário.`} icon={Brain} actions={
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => { setEditTime(state.startTime ?? "00:00"); setTimeOpen(true); }}>Ajustar horário</Button>
             <Dialog open={resetOpen} onOpenChange={setResetOpen}>
               <Button variant="outline" className="gap-2" onClick={() => setResetOpen(true)}>
                 <RotateCcw className="w-4 h-4" /> Reiniciar
@@ -272,7 +290,19 @@ export default function NeuroRecoveryPage() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+          </div>
         } />
+
+        <Dialog open={timeOpen} onOpenChange={setTimeOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Ajustar horário de início</DialogTitle>
+              <DialogDescription>A data de {journeyDateLabel(state.startDate)} e suas conquistas serão mantidas. Use o horário de Brasília.</DialogDescription>
+            </DialogHeader>
+            <div><label htmlFor="journey-edit-time" className="text-sm font-medium">Horário de início</label><Input id="journey-edit-time" type="time" className="mt-2" value={editTime} onChange={e => setEditTime(e.target.value)} /></div>
+            <DialogFooter><Button variant="ghost" onClick={() => setTimeOpen(false)}>Cancelar</Button><Button onClick={saveTime} disabled={!validJourneyTime(editTime) || journeyStartInstant(state.startDate, editTime) === null || (journeyStartInstant(state.startDate, editTime) ?? Infinity) > now.getTime()}>Salvar horário</Button></DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Level + Fact */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -292,6 +322,16 @@ export default function NeuroRecoveryPage() {
                 <Calendar className="w-4 h-4 text-muted-foreground" />
                 <span className="font-semibold text-foreground">{days} dias offline</span>
               </div>
+              {elapsed && <div className="mt-4 rounded-xl border border-border/60 bg-background/40 px-3 py-3">
+                <p className="text-xs text-muted-foreground">Tempo decorrido</p>
+                <div className="mt-1 flex flex-wrap items-baseline justify-center gap-x-2 text-foreground tabular-nums" aria-label={`${elapsed.days} dias, ${elapsed.hours} horas, ${elapsed.minutes} minutos e ${elapsed.seconds} segundos`}>
+                  <span><strong className="text-xl">{elapsed.days}</strong> <span className="text-xs text-muted-foreground">dias</span></span>
+                  <span><strong className="text-xl">{String(elapsed.hours).padStart(2, "0")}</strong> <span className="text-xs text-muted-foreground">h</span></span>
+                  <span><strong className="text-xl">{String(elapsed.minutes).padStart(2, "0")}</strong> <span className="text-xs text-muted-foreground">min</span></span>
+                  <span><strong className="text-xl">{String(elapsed.seconds).padStart(2, "0")}</strong> <span className="text-xs text-muted-foreground">s</span></span>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">{state.startTime ? `Desde ${state.startTime}` : "Horário não informado: contando desde 00:00"}</p>
+              </div>}
             </CardHeader>
             <CardContent className="relative z-10 space-y-3">
               <div className="flex justify-between text-xs">

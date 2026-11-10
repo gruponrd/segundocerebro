@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 vi.mock("@/hooks/useAuth", () => ({ useAuth: () => ({ user: { id: "journey-test" } }) }));
 vi.mock("@/lib/previewMode", () => ({ isAccountPreview: false }));
@@ -53,4 +53,21 @@ it("celebrates the current milestone once without resetting the saved journey", 
   render(<LifeGame />);
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   expect(screen.getByText("7 dias offline")).toBeInTheDocument();
+});
+
+it("allows adding a time to an existing journey and advances the counter without resetting progress", () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date("2026-11-06T15:00:00Z"));
+  const saved = { startDate: "2026-10-31", defeatedBosses: ["b1"], bestStreakDays: 8, claimedCoins: [1, 3] };
+  localStorage.setItem(key, JSON.stringify(saved));
+  render(<LifeGame />);
+  expect(screen.getByText(/Horário não informado/)).toBeInTheDocument();
+  expect(JSON.parse(localStorage.getItem(key)!)).toEqual(saved);
+  fireEvent.click(screen.getByRole("button", { name: "Ajustar horário" }));
+  fireEvent.change(screen.getByLabelText("Horário de início"), { target: { value: "10:30" } });
+  fireEvent.click(screen.getByRole("button", { name: "Salvar horário" }));
+  expect(JSON.parse(localStorage.getItem(key)!)).toEqual({ ...saved, startTime: "10:30" });
+  expect(screen.getByLabelText("6 dias, 1 horas, 30 minutos e 0 segundos")).toBeInTheDocument();
+  act(() => { vi.advanceTimersByTime(61_000); });
+  expect(screen.getByLabelText("6 dias, 1 horas, 31 minutos e 1 segundos")).toBeInTheDocument();
 });

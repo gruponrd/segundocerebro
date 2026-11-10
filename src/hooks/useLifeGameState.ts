@@ -4,6 +4,7 @@ import { accountStorageKey, readAccountJson, writeAccountJson } from "@/lib/acco
 export const LIFE_GAME_STORAGE_KEY = "neuro-recovery-v1";
 export interface NeuroState {
   startDate: string | null;
+  startTime?: string;
   defeatedBosses: string[];
   bestStreakDays: number;
   claimedCoins?: number[];

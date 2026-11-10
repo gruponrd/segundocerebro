@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { journeyDate, journeyDays, journeyToday, validJourneyDate } from "./lifeGameDates";
+import { journeyDate, journeyDays, journeyToday, journeyElapsed, journeyStartInstant, validJourneyDate } from "./lifeGameDates";
 
 it("uses the calendar day in Brasília even after midnight UTC", () => {
   expect(journeyToday(new Date("2026-10-30T01:30:00Z"))).toBe("2026-10-29");
@@ -22,4 +22,11 @@ it("rejects blank, malformed and impossible dates and clamps future dates", () =
   expect(validJourneyDate("2028-02-29")).toBe(true);
   expect(validJourneyDate("2026-02-29")).toBe(false);
   expect(journeyDays("2027-01-01", new Date("2026-10-29T18:00:00Z"))).toBe(0);
+});
+
+it("counts elapsed time from the selected Brasília hour, across midnight", () => {
+  expect(journeyStartInstant("2026-10-31", "23:45")).toBe(Date.parse("2026-11-01T02:45:00Z"));
+  expect(journeyElapsed("2026-10-31", "23:45", new Date("2026-11-02T05:47:30Z"))).toEqual({ days: 1, hours: 3, minutes: 2, seconds: 30 });
+  expect(journeyStartInstant("2026-10-31", "25:00")).toBeNull();
+  expect(journeyStartInstant("2018-11-04", "00:30")).toBeNull();
 });

@@ -32,3 +32,31 @@ export function journeyDateLabel(value: string): string {
   const date = journeyDate(value);
   return date ? date.split("-").reverse().join("/") : "Data inválida";
 }
+
+export function validJourneyTime(value: string): boolean {
+  return /^(?:[01]\d|2[0-3]):[0-5]\d$/.test(value);
+}
+
+/** Resolve a Brasília wall-clock time without depending on the device's time zone. */
+export function journeyStartInstant(value: string, time: string): number | null {
+  const date = journeyDate(value);
+  if (!date || !validJourneyTime(time)) return null;
+  const target = Date.parse(`${date}T${time}:00Z`);
+  const formatter = new Intl.DateTimeFormat("en-CA", { timeZone: JOURNEY_TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  let instant = target;
+  for (let i = 0; i < 3; i++) {
+    const parts = formatter.formatToParts(new Date(instant));
+    const get = (type: string) => parts.find(part => part.type === type)?.value ?? "";
+    const displayed = Date.parse(`${get("year")}-${get("month")}-${get("day")}T${get("hour")}:${get("minute")}:00Z`);
+    const correction = target - displayed;
+    if (correction === 0) return instant;
+    instant += correction;
+  }
+  return null;
+}
+
+export function journeyElapsed(value: string, time: string, now = new Date()) {
+  const start = journeyStartInstant(value, time);
+  const seconds = Math.floor(Math.max(0, start === null ? 0 : now.getTime() - start) / 1000);
+  return { days: Math.floor(seconds / 86400), hours: Math.floor(seconds / 3600) % 24, minutes: Math.floor(seconds / 60) % 60, seconds: seconds % 60 };
+}
