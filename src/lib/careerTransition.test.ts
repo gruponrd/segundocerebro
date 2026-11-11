@@ -9,6 +9,9 @@ describe("projeção de mudança de trabalho", () => {
     const before = structuredClone(bank);
     const result = careerProjection(plan, [bank], false, start);
     expect(result.first).toMatchObject({ period: start + 2, starting: 15000, lowest: 14000 });
+    expect(result.first?.timeline).toHaveLength(12);
+    expect(result.first?.timeline[0]).toEqual({ period: start + 2, income: 2000, expenses: 2000, installments: 1000, balance: 14000 });
+    expect(result.first?.timeline.at(-1)?.balance).toBe(result.first?.ending);
     expect(result.reserveTarget).toBe(12000);
     expect(careerPeriodLabel(start + 1)).toBe("janeiro de 2027");
     expect(bank).toEqual(before);

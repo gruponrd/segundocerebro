@@ -32,6 +32,27 @@ function parseDraft(draft: Draft): CareerPlan | null {
   return result.monthlyExpenses > 0 && result.reserveMonths >= 1 ? result : null;
 }
 
+function TransitionDashboard({ plan, result }: { plan: CareerPlan; result: ReturnType<typeof careerProjection> }) {
+  const currentSurplus = plan.currentIncome - plan.monthlyExpenses;
+  const gap = Math.max(0, result.reserveTarget - plan.savings);
+  const percent = result.reserveTarget > 0 ? Math.min(100, Math.max(0, plan.savings / result.reserveTarget * 100)) : 0;
+  const metrics = [
+    { label: "Reserva disponível hoje", value: money(plan.savings), detail: "Valor informado para a transição" },
+    { label: "Reserva mínima desejada", value: money(result.reserveTarget), detail: `${plan.reserveMonths} meses de despesas de referência` },
+    { label: "Falta para a reserva mínima", value: money(gap), detail: gap === 0 ? "Mínimo atingido hoje" : "Antes de parcelas e gastos futuros" },
+    { label: "Sobra mensal de referência", value: money(currentSurplus), detail: "Renda atual menos despesas, sem parcelas da carteira" },
+  ];
+  const highest = Math.max(result.reserveTarget, ...((result.first?.timeline ?? []).map(month => month.balance)), 1);
+  return <div className="space-y-4" aria-label="Resumo visual da transição">
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{metrics.map(metric => <div key={metric.label} className="min-w-0 rounded-xl border border-border bg-background/60 p-4"><p className="text-xs text-muted-foreground">{metric.label}</p><p className="mt-2 break-words text-xl font-bold tabular-nums">{metric.value}</p><p className="mt-1 text-xs text-muted-foreground">{metric.detail}</p></div>)}</div>
+    <div className="rounded-xl border border-border p-4"><div className="flex flex-wrap items-baseline justify-between gap-2"><p className="font-semibold">Caminho até a reserva mínima</p><p className="text-sm tabular-nums">{money(plan.savings)} / {money(result.reserveTarget)}</p></div><div className="mt-3 h-2 overflow-hidden rounded-full bg-secondary" role="progressbar" aria-label="Reserva atual em relação ao mínimo" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(percent)}><div className="h-full rounded-full bg-primary" style={{ width: `${percent}%` }} /></div><p className="mt-2 text-xs text-muted-foreground">Compara apenas o valor guardado hoje com o mínimo. Não inclui obrigações futuras.</p></div>
+    {result.first && <div className="rounded-xl border border-border p-4"><div className="flex flex-wrap items-baseline justify-between gap-2"><div><h3 className="font-semibold">Os 12 meses após a saída</h3><p className="mt-1 text-xs text-muted-foreground">Cenário sem seguro · início em {careerPeriodLabel(result.first.period)} · valores estimados no fim de cada mês</p></div><span className="text-xs text-muted-foreground">Reserva mínima: {money(result.reserveTarget)}</span></div>
+      <div className="mt-4 space-y-2">{result.first.timeline.map(month => <div key={month.period} className="grid grid-cols-[5.8rem_minmax(0,1fr)_auto] items-center gap-2 text-xs sm:grid-cols-[8rem_minmax(0,1fr)_auto]"><span className="capitalize text-muted-foreground">{careerPeriodLabel(month.period)}</span><div className="h-2 overflow-hidden rounded-full bg-secondary" aria-hidden="true"><div className="h-full rounded-full bg-primary/80" style={{ width: `${Math.max(0, month.balance) / highest * 100}%` }} /></div><span className="text-right font-medium tabular-nums">{money(month.balance)}</span></div>)}</div>
+      <details className="mt-4 border-t border-border pt-3 text-sm"><summary className="cursor-pointer font-medium">Ver composição mês a mês</summary><div className="mt-3 overflow-x-auto"><table className="w-full min-w-[470px] text-left text-xs"><thead className="text-muted-foreground"><tr><th className="pb-2 font-medium">Mês</th><th className="pb-2 font-medium">Renda</th><th className="pb-2 font-medium">Despesas</th><th className="pb-2 font-medium">Parcelas</th><th className="pb-2 text-right font-medium">Reserva final</th></tr></thead><tbody>{result.first.timeline.map(month => <tr key={month.period} className="border-t border-border/60"><td className="py-2 capitalize">{careerPeriodLabel(month.period)}</td><td>{money(month.income)}</td><td>{money(month.expenses)}</td><td>{money(month.installments)}</td><td className="text-right font-medium">{money(month.balance)}</td></tr>)}</tbody></table></div></details>
+    </div>}
+  </div>;
+}
+
 export function CareerTransitionPlan() {
   const store = useFinanceStore();
   const { user } = useAuth();
@@ -63,6 +84,7 @@ export function CareerTransitionPlan() {
       {benefit && <div className="border-t border-border pt-3"><p className="text-sm font-semibold">Comparação hipotética com seguro: <span className="capitalize">{benefit.unknown ? "revise as parcelas sem data" : benefit.first ? careerPeriodLabel(benefit.first.period) : "nenhum mês encontrado em 36 meses"}</span></p><p className="mt-1 text-xs text-muted-foreground">Supõe benefício concedido nas condições informadas e não soma a renda da nova atividade nos meses de seguro.</p></div>}
       {isDirty && <p className="text-xs text-primary">Há alterações não salvas. Salve para atualizar a projeção.</p>}
     </div>}
+    {plan && base && <TransitionDashboard plan={plan} result={base} />}
     <div className="rounded-xl bg-secondary/40 p-4 text-sm space-y-2"><p className="font-semibold">Como calculamos</p><p className="text-muted-foreground">Simulamos uma saída no início de cada mês, a partir do próximo, e verificamos se a reserva fica acima do mínimo durante os 12 meses seguintes. Antes da saída, usamos a renda informada; depois, a renda da nova atividade. Parcelas de cartões e empréstimos cadastrados na Carteira entram nos vencimentos registrados.</p><p className="text-muted-foreground">A simulação não inclui automaticamente rescisão, FGTS, juros futuros nem dívidas sem parcelas cadastradas. Não soma valores já guardados em outras metas. Revise as despesas, parcelas e renda prevista antes de decidir.</p></div>
     <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-semibold">Informações para a projeção</h3><Button type="button" variant="outline" size="sm" onClick={fillFromFlow} disabled={!store.cloudReady}>Usar valores de {store.currentCashflow.month}</Button></div>
     <p className="text-xs text-muted-foreground">O botão preenche renda e despesas manuais do mês selecionado no Fluxo. Confira os valores e evite duplicar parcelas de cartão; nada é salvo até você confirmar.</p>

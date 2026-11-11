@@ -33,18 +33,21 @@ export function careerProjection(plan: CareerPlan, banks: Bank[], withInsurance 
   const floor = cents(plan.monthlyExpenses) * plan.reserveMonths;
   let available = cents(plan.savings);
   let beforeExitValid = true;
-  const candidates = [] as { period: number; starting: number; lowest: number; ending: number }[];
+  const candidates = [] as { period: number; starting: number; lowest: number; ending: number; timeline: { period: number; income: number; expenses: number; installments: number; balance: number }[] }[];
   for (let offset = 1; offset <= 36; offset++) {
     const exit = nowPeriod + offset;
     let balance = available, lowest = available;
+    const timeline: { period: number; income: number; expenses: number; installments: number; balance: number }[] = [];
     for (let post = 0; post < 12; post++) {
       const benefitWindow = withInsurance && post >= plan.insuranceDelay && post < plan.insuranceDelay + plan.insuranceInstallments;
       // A hypothetical benefit is never combined with income from the new activity.
       const income = benefitWindow ? cents(plan.insuranceAmount) : post >= plan.newIncomeDelay ? cents(plan.newIncome) : 0;
-      balance += income - cents(plan.monthlyExpenses) - (scheduled.get(exit + post) ?? 0) - (offset === 1 && post === 0 ? overdue : 0);
+      const installments = (scheduled.get(exit + post) ?? 0) + (offset === 1 && post === 0 ? overdue : 0);
+      balance += income - cents(plan.monthlyExpenses) - installments;
       lowest = Math.min(lowest, balance);
+      timeline.push({ period: exit + post, income: income / 100, expenses: plan.monthlyExpenses, installments: installments / 100, balance: balance / 100 });
     }
-    if (beforeExitValid && unknown === 0 && lowest >= floor) candidates.push({ period: exit, starting: available / 100, lowest: lowest / 100, ending: balance / 100 });
+    if (beforeExitValid && unknown === 0 && lowest >= floor) candidates.push({ period: exit, starting: available / 100, lowest: lowest / 100, ending: balance / 100, timeline });
     available += cents(plan.currentIncome) - cents(plan.monthlyExpenses) - (scheduled.get(exit) ?? 0) - (offset === 1 ? overdue : 0);
     if (available < 0) beforeExitValid = false;
   }
