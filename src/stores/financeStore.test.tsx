@@ -229,7 +229,7 @@ describe("isolamento financeiro por conta", () => {
     mock.cloudData = { cashflowMonths: [original] };
     const { result } = renderHook(() => useFinanceStore(), { wrapper });
     await waitFor(() => expect(result.current.cloudReady).toBe(true));
-    const plan = { savings: 9000, currentIncome: 4000, monthlyExpenses: 1000, newIncome: 1200, newIncomeDelay: 1, reserveMonths: 6, insuranceAmount: 0, insuranceInstallments: 0, insuranceDelay: 1 };
+    const plan = { savings: 9000, currentIncome: 4000, monthlyExpenses: 1000, newIncome: 1200, newIncomeDelay: 1, reserveMonths: 6, insuranceAmount: 0, insuranceInstallments: 0, insuranceDelay: 1, severance: 3500 };
     act(() => result.current.saveCareerPlan(plan));
     await waitFor(() => expect(JSON.parse(localStorage.getItem("fin_user_account-a")!).careerPlan).toEqual(plan));
     expect(result.current.cashflowMonths.find(m => m.month === "Outubro" && m.year === 2026)).toEqual(original);
