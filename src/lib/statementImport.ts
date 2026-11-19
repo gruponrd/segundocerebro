@@ -1,8 +1,8 @@
 import type { CashflowItem, CashflowMonth } from "@/data/financialData";
-import { mergeCashflowMonths } from "@/lib/cashflowMonths";
+import { cashflowPeriod, emptyCashflowMonth, mergeCashflowMonths } from "@/lib/cashflowMonths";
+import { incomeReferencePeriod } from "@/lib/cashflowDates";
 
 export const IMPORT_LIMIT = 1000;
-const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 export interface StatementMapping { date: number; label: number; amount: number; kind: number }
 export interface StatementEntry { row: number; date: string; label: string; amount: number; kind: "incomes" | "expenses"; key: string }
 export interface StatementRow { row: number; entry?: StatementEntry; error?: string; duplicate?: string }
@@ -62,10 +62,19 @@ export function statementAmount(raw: string, format: "br" | "decimal"): number |
 }
 const entryKey = (date: string, label: string, amount: number, kind: string) => JSON.stringify([date, normalize(label), Math.round(amount * 100), kind]);
 
+export function statementReferencePeriod({ date, kind }: Pick<StatementEntry, "date" | "kind">) {
+  const calendar = Number(date.slice(0, 4)) * 12 + Number(date.slice(5, 7)) - 1;
+  return kind === "incomes" ? incomeReferencePeriod(date) ?? calendar : calendar;
+}
+
 function existingMatch(entry: StatementEntry, months: CashflowMonth[]): boolean {
-  const year = Number(entry.date.slice(0, 4)), month = MONTHS[Number(entry.date.slice(5, 7)) - 1];
-  return months.some(m => m.year === year && m.month === month && m[entry.kind].some(item =>
-    item.importKey === entry.key || (normalize(item.label) === normalize(entry.label) && Math.round(item.amount * 100) === Math.round(entry.amount * 100) && (!item.date || item.date === entry.date))));
+  const reference = statementReferencePeriod(entry);
+  return months.some(month => month[entry.kind].some(item =>
+    item.importKey === entry.key || (
+      (item.date ? item.date === entry.date : cashflowPeriod(month) === reference) &&
+      normalize(item.label) === normalize(entry.label) &&
+      Math.round(item.amount * 100) === Math.round(entry.amount * 100)
+    )));
 }
 export function previewStatement(rows: string[][], mapping: StatementMapping, format: "br" | "decimal", mode: "signed" | "incomes" | "expenses", months: CashflowMonth[]): StatementRow[] {
   const seen = new Set<string>();
@@ -99,9 +108,9 @@ export function appendStatement(months: CashflowMonth[], entries: StatementEntry
     if (existingMatch(entry, next)) continue;
     const date = statementDate(entry.date);
     if (!date || !entry.label.trim() || entry.label.length > 240 || !Number.isFinite(entry.amount) || entry.amount <= 0 || entry.amount > 1_000_000 || !["incomes", "expenses"].includes(entry.kind) || entry.key !== entryKey(date, entry.label, entry.amount, entry.kind)) throw new Error("Lançamento de importação inválido.");
-    const month = MONTHS[Number(date.slice(5, 7)) - 1], year = Number(date.slice(0, 4));
+    const reference = statementReferencePeriod({ date, kind: entry.kind });
     const item: CashflowItem = { id: `csv:${batchId}:${entry.row}`, date, label: entry.label, amount: entry.amount, paid, category: "outros", source: "csv", importBatchId: batchId, importKey: entry.key };
-    next = mergeCashflowMonths(next, [{ month, year, incomes: [], expenses: [] }]).map(m => m.month === month && m.year === year ? { ...m, [entry.kind]: [...m[entry.kind], item] } : m);
+    next = mergeCashflowMonths(next, [emptyCashflowMonth(reference)]).map(m => cashflowPeriod(m) === reference ? { ...m, [entry.kind]: [...m[entry.kind], item] } : m);
   }
   return next;
 }

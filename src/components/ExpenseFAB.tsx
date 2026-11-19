@@ -15,6 +15,8 @@ import { toast } from "@/hooks/use-toast";
 import { EXPENSE_CATEGORIES, suggestCategory, getCategory } from "@/data/categories";
 import { OPEN_TRANSACTION_EVENT } from "@/lib/transactionMenu";
 import { PeriodPicker } from "@/components/PeriodPicker";
+import { CashflowDateInput } from "@/components/CashflowDateInput";
+import { shortCashflowDate } from "@/lib/cashflowDates";
 
 type Mode = "income" | "expense" | "card" | null;
 
@@ -51,8 +53,10 @@ export function ExpenseFAB() {
   const [type, setType] = useState<Mode>(null);
   const [label, setLabel] = useState("");
   const [amount, setAmount] = useState("");
+  const [date, setDate] = useState("");
   const [category, setCategory] = useState<string>("outros");
-  const { selectedMonth, setSelectedMonth, cashflowMonths, addCashflowItem } = useFinanceStore();
+  const { selectedMonth, setSelectedMonth, cashflowMonths, currentCashflow, addCashflowItem } = useFinanceStore();
+  const incomeDate = type === "income" && date ? shortCashflowDate(date, currentCashflow) : null;
 
   useEffect(() => {
     const show = () => setOpen(true);
@@ -69,18 +73,19 @@ export function ExpenseFAB() {
   }, [label]);
 
   const reset = () => {
-    setType(null); setLabel(""); setAmount(""); setCategory("outros");
+    setType(null); setLabel(""); setAmount(""); setDate(""); setCategory("outros");
   };
 
   const handleAddSimple = () => {
     const val = parseFloat(amount);
-    if (!label.trim() || isNaN(val) || val <= 0 || !type) return;
+    if (!label.trim() || isNaN(val) || val <= 0 || !type || (type === "income" && date && !incomeDate)) return;
     addCashflowItem(
       selectedMonth,
       type === "income" ? "incomes" : "expenses",
       label.trim(),
       val,
       type === "expense" ? category : undefined,
+      incomeDate ?? undefined,
     );
     const cat = getCategory(category);
     reset(); setOpen(false);
@@ -135,9 +140,10 @@ export function ExpenseFAB() {
               </p>
               <Input aria-label="Descrição do lançamento" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Descrição" className="rounded-xl" autoFocus />
               <Input aria-label="Valor do lançamento" type="number" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Valor (R$)" className="rounded-xl" min={0} />
+              {type === "income" && <CashflowDateInput value={date} onChange={setDate} month={currentCashflow} />}
               {type === "expense" && <CategoryPicker value={category} onChange={setCategory} />}
               <div className="flex gap-2">
-                <Button className="flex-1 rounded-xl gap-2" onClick={handleAddSimple}>
+                <Button className="flex-1 rounded-xl gap-2" onClick={handleAddSimple} disabled={type === "income" && !!date && !incomeDate}>
                   <Check className="w-4 h-4" /> Adicionar
                 </Button>
                 <Button aria-label="Voltar à escolha de lançamento" variant="outline" className="rounded-xl" onClick={reset}>

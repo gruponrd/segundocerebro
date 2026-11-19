@@ -8,7 +8,7 @@ import { validateGoalPlan } from "@/lib/goalAllocation";
 import { appendInstallmentBatch, type InstallmentDraft } from "@/lib/installmentPlan";
 import { DEFAULT_DEBT_PLAN, normalizeDebtPlan, type DebtPlanSettings } from "@/lib/debtActionPlan";
 import { updateIncomeSourceValues, type IncomeSource } from "@/lib/incomeSources";
-import { validCashflowDate, replicateCashflowDate } from "@/lib/cashflowDates";
+import { groupCashflowIncome, validCashflowDate, replicateCashflowDate } from "@/lib/cashflowDates";
 import { normalizeCareerPlan, type CareerPlan } from "@/lib/careerTransition";
 export type { IncomeSource } from "@/lib/incomeSources";
 import type { Json } from "@/integrations/supabase/types";
@@ -96,7 +96,7 @@ export interface FinanceStore {
   updateBankBalance: (bankId: BankId, newUsed: number) => void;
   toggleCashflowPaid: (monthIdx: number, type: "incomes" | "expenses", itemIdx: number) => void;
   depositToGoal: (goalId: string, amount: number) => void;
-  addCashflowItem: (monthIdx: number, type: "incomes" | "expenses", label: string, amount: number, category?: string, date?: string) => void;
+  addCashflowItem: (monthIdx: number, type: "incomes" | "expenses", label: string, amount: number, category?: string, date?: string, paid?: boolean) => void;
   removeCashflowItem: (monthIdx: number, type: "incomes" | "expenses", itemIdx: number) => void;
   updateCashflowItem: (monthIdx: number, type: "incomes" | "expenses", itemIdx: number, label: string, amount: number, category?: string, date?: string | null) => void;
   setCashflowItemFixed: (monthIdx: number, type: "incomes" | "expenses", itemIdx: number, fixed: boolean) => void;
@@ -273,9 +273,9 @@ function useFinanceStoreInternal(): FinanceStore {
   const [cloudLoading, setCloudLoading] = useState(true);
   const [banksRaw, setBanks] = useState<Bank[]>(DEFAULTS.banks);
   const [cashflowMonthsRaw, setCashflowMonthsRaw] = useState<CashflowMonth[]>(DEFAULTS.cashflowMonths);
-  const cashflowMonths = useMemo(() => extendCashflowMonths(cashflowMonthsRaw, banksRaw), [cashflowMonthsRaw, banksRaw]);
+  const cashflowMonths = useMemo(() => extendCashflowMonths(groupCashflowIncome(cashflowMonthsRaw), banksRaw), [cashflowMonthsRaw, banksRaw]);
   const setCashflowMonths = useCallback((update: (months: CashflowMonth[]) => CashflowMonth[]) => {
-    setCashflowMonthsRaw(previous => update(extendCashflowMonths(previous, banksRaw)));
+    setCashflowMonthsRaw(previous => groupCashflowIncome(update(extendCashflowMonths(groupCashflowIncome(previous), banksRaw))));
   }, [banksRaw]);
   const [creditors, setCreditors] = useState<Creditor[]>(DEFAULTS.creditors);
   const [goals, setGoals] = useState<Goal[]>(DEFAULTS.goals);
@@ -679,12 +679,12 @@ function useFinanceStoreInternal(): FinanceStore {
     setGoals(prev => prev.map(g => ({ ...g, monthlyAllocation: Math.round((allocations[g.id] ?? 0) * 100) / 100 })));
   }, [goals]);
 
-  const addCashflowItem = useCallback((monthIdx: number, type: "incomes" | "expenses", label: string, amount: number, category?: string, date?: string) => {
+  const addCashflowItem = useCallback((monthIdx: number, type: "incomes" | "expenses", label: string, amount: number, category?: string, date?: string, paid = false) => {
     setCashflowMonths((prev) =>
       prev.map((m, mi) => {
         if (mi !== monthIdx) return m;
-        if (date && !validCashflowDate(date, m)) return m;
-        return { ...m, [type]: [...m[type], { label, amount, paid: false, category, ...(date ? { date } : {}) }] };
+        if (date && !validCashflowDate(date, m, type === "incomes")) return m;
+        return { ...m, [type]: [...m[type], { label, amount, paid, category, ...(date ? { date } : {}) }] };
       })
     );
   }, [setCashflowMonths]);
@@ -703,7 +703,7 @@ function useFinanceStoreInternal(): FinanceStore {
     setCashflowMonths((prev) =>
       prev.map((m, mi) => {
         if (mi !== monthIdx) return m;
-        if (date && !validCashflowDate(date, m)) return m;
+        if (date && !validCashflowDate(date, m, type === "incomes")) return m;
         const items = [...m[type]];
         items[itemIdx] = { ...items[itemIdx], label, amount, ...(category !== undefined ? { category } : {}), ...(date !== undefined ? { date: date || undefined } : {}) };
         return { ...m, [type]: items };
@@ -738,13 +738,14 @@ function useFinanceStoreInternal(): FinanceStore {
         // skip if exact label already exists
         const exists = m[type].some((it) => it.label.trim().toLowerCase() === source.label.trim().toLowerCase());
         if (exists) return m;
+        const date = replicateCashflowDate(source.date, prev[monthIdx], m, type === "incomes");
         const newItem: CashflowItem = {
           label: source.label,
           amount: source.amount,
           category: source.category,
           fixed: true,
           paid: false,
-          ...(replicateCashflowDate(source.date, prev[monthIdx], m) ? { date: replicateCashflowDate(source.date, prev[monthIdx], m) } : {}),
+          ...(date ? { date } : {}),
         };
         return { ...m, [type]: [...m[type], newItem] };
       });

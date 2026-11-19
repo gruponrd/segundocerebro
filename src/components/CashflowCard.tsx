@@ -131,7 +131,7 @@ function EditableItem({
               <Pin className="w-2.5 h-2.5" /> FIXO
             </span>
           )}
-          {isIncome && <span className="text-xs text-muted-foreground">{item.date && validCashflowDate(item.date, cashflow) ? `dia ${item.date.slice(8)}` : "sem data"}</span>}
+          {isIncome && <span className="text-xs text-muted-foreground">{item.date && validCashflowDate(item.date, cashflow, true) ? displayCashflowDate(item.date, cashflow) : "sem data"}</span>}
           {!isIncome && <CategoryBadge categoryId={item.category ?? suggestCategory(item.label)} />}
         </div>
         <span
@@ -471,7 +471,7 @@ export function CashflowCard({
           <span className="ml-auto text-sm text-money text-income">R$ {totalIncome.toLocaleString("pt-BR")}</span>
         </div>
         <div className="space-y-1.5">
-          {cashflow.incomes.map((item, idx) => ({ item, idx })).sort((a, b) => (validCashflowDate(a.item.date ?? "", cashflow) ? a.item.date! : "9999").localeCompare(validCashflowDate(b.item.date ?? "", cashflow) ? b.item.date! : "9999") || a.idx - b.idx).map(({ item, idx }) => (
+          {cashflow.incomes.map((item, idx) => ({ item, idx })).sort((a, b) => (validCashflowDate(a.item.date ?? "", cashflow, true) ? a.item.date! : "9999").localeCompare(validCashflowDate(b.item.date ?? "", cashflow, true) ? b.item.date! : "9999") || a.idx - b.idx).map(({ item, idx }) => (
             <EditableItem key={item.id ?? `${item.label}-${idx}`} item={item} idx={idx} cashflow={cashflow} type="incomes" monthIndex={monthIndex} onTogglePaid={onTogglePaid} onRemoveItem={onRemoveItem} onUpdateItem={onUpdateItem} onSetFixed={onSetFixed} onReplicateFixed={onReplicateFixed} />
           ))}
           <AddItemRow type="incomes" monthIndex={monthIndex} cashflow={cashflow} onAdd={onAddItem} />

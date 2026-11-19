@@ -249,6 +249,25 @@ describe("isolamento financeiro por conta", () => {
     expect(result.current.cashflowMonths[jan].expenses).toEqual(original.expenses);
   });
 
+  it("fecha outubro com receitas datadas até 7 de novembro e edita o item no período correto", async () => {
+    const salary = { id: "salary", label: "Salário", amount: 1000, date: "2026-11-05", paid: true };
+    const next = { label: "Extra", amount: 200, date: "2026-11-08", paid: false };
+    const undated = { label: "Sem data", amount: 90 };
+    const expense = { label: "Conta", amount: 40, date: "2026-11-05" };
+    mock.cloudData = { cashflowMonths: [{ month: "Novembro", year: 2026, incomes: [salary, next, undated], expenses: [expense] }] };
+    const { result } = renderHook(() => useFinanceStore(), { wrapper });
+    await waitFor(() => expect(result.current.cloudReady).toBe(true));
+    const index = (month: string) => result.current.cashflowMonths.findIndex(m => m.month === month && m.year === 2026);
+    act(() => result.current.setSelectedMonth(index("Outubro")));
+    expect(result.current.totalIncome).toBe(1000);
+    expect(result.current.currentCashflow.incomes).toEqual([salary]);
+    act(() => result.current.addCashflowItem(index("Novembro"), "incomes", "No limite", 50, undefined, "2026-11-07", true));
+    act(() => result.current.toggleCashflowPaid(index("Outubro"), "incomes", 0));
+    expect(result.current.currentCashflow.incomes).toEqual([{ ...salary, paid: false }, { label: "No limite", amount: 50, date: "2026-11-07", paid: true }]);
+    expect(result.current.expectedBalance).toBe(1050);
+    expect(result.current.cashflowMonths[index("Novembro")]).toMatchObject({ incomes: [next, undated], expenses: [expense] });
+  });
+
   it("não grava o estado da conta anterior enquanto a próxima conta carrega", async () => {
     const { result, rerender } = renderHook(() => useFinanceStore(), { wrapper });
     await waitFor(() => expect(result.current.cloudReady).toBe(true));

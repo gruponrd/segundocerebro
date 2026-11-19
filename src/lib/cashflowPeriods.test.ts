@@ -26,10 +26,19 @@ describe("datas e comparação de períodos", () => {
     const dec = { ...month, month: "Dezembro", year: 2027 };
     expect(shortCashflowDate("31/12", dec)).toBe("2027-12-31");
     expect(shortCashflowDate("01/01", month)).toBe("2028-01-01");
-    expect(shortCashflowDate("01/01", dec)).toBeNull();
+    expect(shortCashflowDate("07/01", dec)).toBe("2028-01-07");
+    expect(shortCashflowDate("08/01", dec)).toBeNull();
+    expect(replicateCashflowDate("2028-01-07", dec, month, true)).toBe("2028-02-07");
     expect(shortCashflowDate("29/02", { ...month, month: "Fevereiro" })).toBe("2028-02-29");
     expect(shortCashflowDate("29/02", { ...month, month: "Fevereiro", year: 2027 })).toBeNull();
     expect(displayCashflowDate("2028-01-05", month)).toBe("05/01");
     expect(displayCashflowDate("2027-01-05", month)).toBe("2027-01-05");
+  });
+  it("exibe o fechamento do mês seguinte separado dos dias do mês selecionado", () => {
+    const october = { ...month, month: "Outubro", year: 2026, incomes: [{ label: "Salário", amount: 100, date: "2026-11-05" }], expenses: [{ label: "Conta", amount: 40, date: "2026-10-05" }] };
+    const result = cashflowPeriods(october, [], "weekly");
+    expect(result.ranges[0]).toMatchObject({ incomes: 0, expenses: 40 });
+    expect(result.ranges.at(-1)).toMatchObject({ label: "Fechamento · dias 1–7 do mês seguinte", incomes: 100, expenses: 0 });
+    expect(result.missingIncome).toBe(0);
   });
 });

@@ -1,4 +1,6 @@
 import type { Bank, CashflowItem, CashflowMonth } from "@/data/financialData";
+import { INCOME_CLOSING_DAY, incomeReferencePeriod } from "./cashflowDates";
+import { cashflowPeriod } from "./cashflowMonths";
 
 export const PAYMENT_SESSION_STORAGE_KEY = "payment-session-income-map-v1";
 export const PAYMENT_SESSIONS = [
@@ -15,7 +17,7 @@ export interface DailyCashflowEntry {
   id: string; label: string; amount: number; kind: "incomes" | "expenses"; paid: boolean;
   day: number | null; source: string; reference: string;
 }
-export interface DailyCashflowPoint { day: number; incomes: number; expenses: number; entries: DailyCashflowEntry[] }
+export interface DailyCashflowPoint { day: number; label: string; incomes: number; expenses: number; entries: DailyCashflowEntry[] }
 
 // Match an explicit day reference, never an installment count or arbitrary number.
 export function labelPaymentDay(label: string): number | null {
@@ -40,6 +42,9 @@ export function monthlyCashflowChart(month: CashflowMonth, banks: Bank[], sessio
   const flowDay = (item: CashflowItem, index: number, kind: DailyCashflowEntry["kind"]) => {
     if (item.date) {
       const date = dateParts(item.date);
+      if (date && kind === "incomes" && incomeReferencePeriod(item.date) === cashflowPeriod(month) && date.month !== monthNum) {
+        return { day: days + date.day, reference: "Data registrada" };
+      }
       return date && date.year === month.year && date.month === monthNum
         ? { day: date.day, reference: "Data registrada" }
         : { day: null, reference: "Data inválida ou fora deste mês" };
@@ -59,10 +64,16 @@ export function monthlyCashflowChart(month: CashflowMonth, banks: Bank[], sessio
       if (date?.year === month.year && date.month === monthNum) add({ id: `card:${bank.id}:${item.id}`, label: item.description, amount: item.installmentAmount, kind: "expenses", paid: item.status === "pago", day: date.day, source: bank.name, reference: "Vencimento da parcela" });
     }
   }
-  const points: DailyCashflowPoint[] = Array.from({ length: days }, (_, i) => ({ day: i + 1, incomes: 0, expenses: 0, entries: [] }));
+  const closingDays = entries.some(entry => entry.day !== null && entry.day > days) ? INCOME_CLOSING_DAY : 0;
+  const nextMonth = String(monthNum % 12 + 1).padStart(2, "0");
+  const points: DailyCashflowPoint[] = Array.from({ length: days + closingDays }, (_, index) => {
+    const day = index + 1;
+    const label = day <= days ? String(day).padStart(2, "0") : `${String(day - days).padStart(2, "0")}/${nextMonth}`;
+    return { day, label, incomes: 0, expenses: 0, entries: [] };
+  });
   const sum = (list: DailyCashflowEntry[], kind: DailyCashflowEntry["kind"]) => list.filter(e => e.kind === kind).reduce((total, e) => total + Math.round(e.amount * 100), 0) / 100;
   entries.forEach(entry => { if (entry.day !== null) points[entry.day - 1].entries.push(entry); });
   points.forEach(point => { point.incomes = sum(point.entries, "incomes"); point.expenses = sum(point.entries, "expenses"); });
   const undated = entries.filter(e => e.day === null);
-  return { points, entries, undated, totalIncome: sum(entries, "incomes"), totalExpense: sum(entries, "expenses"), undatedIncome: sum(undated, "incomes"), undatedExpense: sum(undated, "expenses") };
+  return { days, points, entries, undated, totalIncome: sum(entries, "incomes"), totalExpense: sum(entries, "expenses"), undatedIncome: sum(undated, "incomes"), undatedExpense: sum(undated, "expenses") };
 }

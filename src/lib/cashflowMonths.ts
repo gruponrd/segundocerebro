@@ -16,6 +16,10 @@ export function cashflowPeriod(month: Pick<CashflowMonth, "month" | "year">): nu
   return index !== undefined && Number.isInteger(month.year) ? month.year * 12 + index : undefined;
 }
 
+export function emptyCashflowMonth(period: number): CashflowMonth {
+  return { month: MONTH_NAMES[period % 12], year: Math.floor(period / 12), incomes: [], expenses: [] };
+}
+
 /** A navigable calendar; existing records are reused and never filled with estimates. */
 export function extendCashflowMonths(stored: CashflowMonth[], banks: Bank[], now = new Date()): CashflowMonth[] {
   const current = now.getFullYear() * 12 + now.getMonth();
@@ -31,7 +35,7 @@ export function extendCashflowMonths(stored: CashflowMonth[], banks: Bank[], now
   const end = Math.max(current, ...periods);
   const calendar: CashflowMonth[] = [];
   for (let period = start; period <= end; period++) {
-    calendar.push({ month: MONTH_NAMES[period % 12], year: Math.floor(period / 12), incomes: [], expenses: [] });
+    calendar.push(emptyCashflowMonth(period));
   }
   return mergeCashflowMonths(stored, calendar);
 }

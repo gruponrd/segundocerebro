@@ -5,7 +5,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePaymentSessionMap } from "@/hooks/usePaymentSessionMap";
 import { PAYMENT_SESSIONS as SESSIONS, incomeSessionKey } from "@/lib/monthlyCashflowChart";
-import { validCashflowDate } from "@/lib/cashflowDates";
+import { cashflowDateBounds, displayCashflowDate, validCashflowDate } from "@/lib/cashflowDates";
 import { CashflowPeriods } from "@/components/CashflowPeriods";
 
 const MONTH_MAP: Record<string, number> = {
@@ -40,8 +40,11 @@ export function PaymentSessions() {
     () =>
       currentCashflow.incomes.map((item, idx) => {
         const key = incomeSessionKey(currentCashflow, idx, item.label);
-        const day = item.date && validCashflowDate(item.date, currentCashflow) ? Number(item.date.slice(8)) : null;
-        return { item, idx, key, day, session: day !== null ? SESSIONS.find(s => day >= s.from && day <= s.to)!.id : map[key] ?? guessSession(item.label) };
+        const date = item.date && validCashflowDate(item.date, currentCashflow, true) ? item.date : null;
+        const day = date ? Number(date.slice(8)) : null;
+        const atClosing = date !== null && date > (cashflowDateBounds(currentCashflow)?.max ?? date);
+        const session = atClosing ? "s30b" : day !== null ? SESSIONS.find(s => day >= s.from && day <= s.to)!.id : map[key] ?? guessSession(item.label);
+        return { item, idx, key, date, day, session };
       }),
     [currentCashflow, map]
   );
@@ -69,7 +72,7 @@ export function PaymentSessions() {
       const paidTotal = group
         .filter((i) => i.inst.status === "pago")
         .reduce((sum, i) => sum + i.inst.installmentAmount, 0);
-      const incomeGroup = incomes.filter((i) => i.session === s.id).sort((a, b) => (a.day ?? 99) - (b.day ?? 99) || a.idx - b.idx);
+      const incomeGroup = incomes.filter((i) => i.session === s.id).sort((a, b) => (a.date ?? "9999").localeCompare(b.date ?? "9999") || a.idx - b.idx);
       const incomeTotal = incomeGroup.reduce((sum, i) => sum + i.item.amount, 0);
       return { ...s, group, total, paidTotal, incomeGroup, incomeTotal, manualExpenses };
     });
@@ -102,7 +105,7 @@ export function PaymentSessions() {
       </div>
 
       <CashflowPeriods month={currentCashflow} banks={banks} />
-      <p className="text-xs leading-relaxed text-muted-foreground">Abaixo, os blocos fixos agrupam parcelas por faixas de vencimento; entradas com data usam a faixa correspondente. Entradas sem data seguem a atribuição anterior. As despesas manuais não entram nesses blocos.</p>
+      <p className="text-xs leading-relaxed text-muted-foreground">Os blocos agrupam parcelas por vencimento. O último bloco inclui as entradas até o dia 7 do mês seguinte. Entradas sem data seguem a atribuição manual ou sugerida.</p>
 
       {/* Comparativo por sessão: entradas x dívidas */}
       <div className="rounded-xl border border-border/60 bg-secondary/30 p-4 space-y-3">
@@ -170,7 +173,7 @@ export function PaymentSessions() {
                 {s.incomeGroup.length === 0 ? (
                   <p className="text-[10px] text-muted-foreground/70">Nenhuma entrada neste bloco</p>
                 ) : (
-                  s.incomeGroup.map(({ item, idx, key, day }) => (
+                  s.incomeGroup.map(({ item, idx, key, date }) => (
                     <div key={key} className="flex items-center gap-1.5 text-xs">
                       <Checkbox
                         checked={!!item.paid}
@@ -180,11 +183,11 @@ export function PaymentSessions() {
                       <span className={`truncate flex-1 ${item.paid ? "text-muted-foreground line-through" : "text-muted-foreground"}`}>
                         {item.label}
                       </span>
-                      {day !== null && <span className="text-muted-foreground shrink-0">dia {day}</span>}
+                      {date !== null && <span className="text-muted-foreground shrink-0">{displayCashflowDate(date, currentCashflow)}</span>}
                       <span className="text-money text-foreground shrink-0">
                         {item.amount.toLocaleString("pt-BR")}
                       </span>
-                      {day === null && <Select value={s.id} onValueChange={(v) => assign(key, v as SessionId)}>
+                      {date === null && <Select value={s.id} onValueChange={(v) => assign(key, v as SessionId)}>
                         <SelectTrigger className="h-6 w-[52px] rounded-md text-[9px] px-1.5 shrink-0">
                           <SelectValue />
                         </SelectTrigger>

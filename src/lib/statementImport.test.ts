@@ -47,11 +47,19 @@ describe("importação de extratos",() => {
     expect(months).toEqual(snapshot);
     expect(saved[0].expenses[0]).toEqual(snapshot[0].expenses[0]);
     expect(saved[0].incomes).toEqual(snapshot[0].incomes);
-    expect(saved[1].year).toBe(2027);
+    expect(saved[1]).toMatchObject({ month: "Dezembro", year: 2026, incomes: [{ label: "Extra", date: "2027-01-01" }] });
     expect(saved[0].expenses[1]).toMatchObject({id:"csv:batch:2",date:"2026-10-10",paid:true,amount:5.2});
     expect(appendStatement(saved,entries,"another",true)).toEqual(saved);
     expect(undoStatement(saved,"batch")[0]).toEqual(snapshot[0]);
     expect(undoStatement(saved,"other")).toEqual(saved);
+  });
+  it("detecta a entrada do fechamento também se ainda estiver cadastrada no mês civil", () => {
+    const existing = [...months, { month: "Novembro", year: 2026, incomes: [{ label: "Extra", amount: 25, date: "2026-11-07" }], expenses: [] }];
+    const [duplicate, next] = preview("data;descricao;valor\n07/11/2026;Extra;25\n08/11/2026;Extra;25", existing);
+    expect(duplicate.duplicate).toContain("Fluxo");
+    expect(next.duplicate).toBeUndefined();
+    const saved = appendStatement(existing, [duplicate.entry!, next.entry!], "next", true);
+    expect(saved[1].incomes.map(item => item.date)).toEqual(["2026-11-07", "2026-11-08"]);
   });
   it("faz nova checagem contra lançamentos inseridos entre a prévia e confirmação",() => {
     const entry = preview("data;descricao;valor\n10/10/2026;Café;-5")[0].entry!;

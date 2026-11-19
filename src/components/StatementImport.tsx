@@ -62,7 +62,7 @@ export function StatementImport() {
   return <section className="glass-card space-y-5 p-5 sm:p-6" aria-labelledby="csv-title">
     <div><h2 id="csv-title" className="flex items-center gap-2 text-lg font-semibold"><FileUp className="h-5 w-5 text-primary" /> Importar extrato CSV</h2><p className="mt-2 text-sm leading-relaxed text-muted-foreground">Revise os lançamentos antes de salvar no Fluxo. O arquivo é lido neste dispositivo. Duplicatas por data ou mês, descrição e valor ficam fora da importação.</p></div>
     <label className="block space-y-2 text-sm font-medium"><span>Arquivo do extrato (até 1 MB, 1.000 linhas)</span><input type="file" accept=".csv,text/csv" disabled={reading} className="block w-full rounded-xl border border-input p-3 text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-secondary file:px-3 file:py-2" onChange={e => { void read(e.target.files?.[0]); e.target.value = ""; }} /></label>
-    <p className="text-xs leading-relaxed text-muted-foreground">Cabeçalhos usuais: data, descrição e valor. Datas em DD/MM/AAAA ou AAAA-MM-DD. Compras de cartão importadas aqui entram como despesas no Fluxo; não importe parcelas que já estão na Carteira.</p>
+    <p className="text-xs leading-relaxed text-muted-foreground">Cabeçalhos usuais: data, descrição e valor. Use DD/MM/AAAA ou AAAA-MM-DD. Receitas dos dias 1 a 7 entram no mês anterior, com a data do extrato. Importe apenas despesas que ainda não estejam na Carteira.</p>
     {reading && <p role="status" className="text-sm">Lendo arquivo…</p>}
     {rows.length > 0 && <>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{column("date", "Data")}{column("label", "Descrição")}{column("amount", "Valor")}{column("kind", "Tipo (opcional)")}</div>

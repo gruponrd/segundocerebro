@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EXPENSE_CATEGORIES, getCategory, suggestCategory } from "@/data/categories";
 import { toast } from "@/hooks/use-toast";
-import { shortCashflowDate } from "@/lib/cashflowDates";
+import { incomeReferencePeriod, shortCashflowDate } from "@/lib/cashflowDates";
+import { cashflowPeriod, emptyCashflowMonth } from "@/lib/cashflowMonths";
 import { CashflowDateInput } from "@/components/CashflowDateInput";
 
 const brl = (n: number) => `R$ ${n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -22,7 +23,7 @@ const brl = (n: number) => `R$ ${n.toLocaleString("pt-BR", { minimumFractionDigi
  */
 function SmartEntryPanel() {
   const {
-    selectedMonth, currentCashflow, addCashflowItem, toggleCashflowPaid,
+    selectedMonth, currentCashflow, addCashflowItem,
     totalIncome, totalExpense, expectedBalance, cardExpensesForMonth,
   } = useFinanceStore();
 
@@ -36,7 +37,11 @@ function SmartEntryPanel() {
 
   const val = parseFloat(amount) || 0;
   const isExpense = kind === "expenses";
-  const valid = label.trim().length > 0 && val > 0 && (isExpense || !date || !!shortCashflowDate(date, currentCashflow));
+  const enteredDate = !isExpense && date ? shortCashflowDate(date, currentCashflow) : null;
+  const referencePeriod = enteredDate ? incomeReferencePeriod(enteredDate) : null;
+  const referenceMonth = referencePeriod === null ? currentCashflow : emptyCashflowMonth(referencePeriod);
+  const changesSelectedMonth = referencePeriod === null || referencePeriod === cashflowPeriod(currentCashflow);
+  const valid = label.trim().length > 0 && val > 0 && (isExpense || !date || !!enteredDate);
 
   // Real cash position: only what was actually received minus every obligation.
   const live = useMemo(() => {
@@ -44,24 +49,19 @@ function SmartEntryPanel() {
     return { received, obligations: totalExpense, value: received - totalExpense };
   }, [currentCashflow, totalExpense]);
 
-  const nextExpected = expectedBalance + (isExpense ? -val : val);
-  const nextLive = live.value + (isExpense ? -val : confirmed ? val : 0);
+  const nextExpected = expectedBalance + (changesSelectedMonth ? isExpense ? -val : val : 0);
+  const nextLive = live.value + (changesSelectedMonth ? isExpense ? -val : confirmed ? val : 0 : 0);
 
   const handleAdd = () => {
     if (!valid) return;
     const finalLabel = isExpense ? `${origin} — ${label.trim()}` : label.trim();
-    const idx = isExpense ? currentCashflow.expenses.length : currentCashflow.incomes.length;
-    addCashflowItem(selectedMonth, kind, finalLabel, val, isExpense ? category : undefined, isExpense || !date ? undefined : shortCashflowDate(date, currentCashflow) ?? undefined);
-    if (confirmed) {
-      // New item lands at the end of the list; confirm it immediately.
-      setTimeout(() => toggleCashflowPaid(selectedMonth, kind, idx), 0);
-    }
+    addCashflowItem(selectedMonth, kind, finalLabel, val, isExpense ? category : undefined, enteredDate ?? undefined, confirmed);
     const cat = getCategory(category);
     toast({
       title: isExpense
         ? confirmed ? "Saída paga registrada" : "Saída prevista registrada"
         : confirmed ? "Entrada recebida" : "Entrada prevista",
-      description: `${isExpense ? cat.emoji : "💰"} ${label.trim()} • ${brl(val)} em ${currentCashflow.month}`,
+      description: `${isExpense ? cat.emoji : "💰"} ${label.trim()} • ${brl(val)} em ${referenceMonth.month} ${referenceMonth.year}`,
     });
     setLabel(""); setAmount(""); setDate(""); setCategory("outros");
   };
@@ -189,7 +189,7 @@ const FluxoPage = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="page-container">
-        <PageHeader title="Fluxo de caixa" description={`Entradas e saídas de ${store.currentCashflow.month} ${store.currentCashflow.year}, com pagamentos e projeções.`} icon={ArrowLeftRight} className="mb-8" actions={<PeriodPicker months={store.cashflowMonths} selected={store.selectedMonth} onChange={store.setSelectedMonth} />} />
+        <PageHeader title="Fluxo de caixa" description={`Entradas e saídas de ${store.currentCashflow.month} ${store.currentCashflow.year}. Entradas com data até o dia 7 do mês seguinte contam neste período.`} icon={ArrowLeftRight} className="mb-8" actions={<PeriodPicker months={store.cashflowMonths} selected={store.selectedMonth} onChange={store.setSelectedMonth} />} />
 
         <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-4 items-start">
           <div key={`cf-${store.selectedMonth}`} className="animate-float-in">
