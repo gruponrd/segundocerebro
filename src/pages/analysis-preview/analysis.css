@@ -40,8 +40,8 @@
 .analysis-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(310px, 1fr);
-  grid-template-areas: "chart ledger" "quick ledger";
-  grid-template-rows: auto 1fr;
+  grid-template-areas: "chart ledger" "due ledger" "quick ledger";
+  grid-template-rows: auto auto 1fr;
   gap: 18px;
   align-items: start;
 }
@@ -136,6 +136,47 @@
 
 .analysis-layout > .flow-ledger { grid-area: ledger; }
 .analysis-layout > .flow-quick-entry { grid-area: quick; }
+.analysis-dues { grid-area: due; min-width: 0; scroll-margin-top: 16px; }
+.analysis-dues:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; border-radius: 12px; }
+.analysis-dues > h2 { font-size: 21px; font-weight: 650; margin-bottom: 10px; }
+.analysis-dues-jump {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  margin: -8px 0 8px;
+  color: var(--analysis-accent);
+  font-size: 13px;
+  text-underline-offset: 4px;
+}
+.analysis-dues-jump:hover { text-decoration: underline; }
+.analysis-due-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: start; }
+.analysis-due-card, .analysis-due-schedule { border: 1px solid var(--analysis-rule); background: var(--analysis-surface); border-radius: 12px; }
+.analysis-due-card { min-width: 0; padding: 14px; }
+.analysis-due-card.is-overdue { border-color: hsl(var(--expense) / .52); }
+.analysis-due-card h3 { display: flex; align-items: center; gap: 7px; font-size: 14px; font-weight: 650; }
+.analysis-due-card.is-overdue h3 { color: hsl(var(--expense)); }
+.analysis-due-total { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 8px; margin-block: 7px 5px; }
+.analysis-due-total strong { font-size: 20px; font-weight: 650; overflow-wrap: anywhere; }
+.analysis-due-total span, .analysis-due-empty { color: var(--analysis-secondary); font-size: 12px; }
+.analysis-due-empty { margin-top: 8px; }
+.analysis-due-row { display: flex; gap: 8px; align-items: center; min-height: 44px; padding-block: 5px; border-top: 1px solid var(--analysis-rule); }
+.analysis-due-name { display: grid; flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.analysis-due-name strong, .analysis-due-amount { font-size: 12px; font-weight: 650; }
+.analysis-due-name small { font-size: 11px; color: var(--analysis-secondary); }
+.analysis-due-amount { text-align: right; max-width: 35%; overflow-wrap: anywhere; }
+.analysis-due-row button { display: grid; place-items: center; flex: 0 0 44px; min-height: 44px; color: hsl(var(--income)); border-radius: 6px; }
+.analysis-due-row button:hover { background: hsl(var(--income) / .12); }
+.analysis-due-more summary { padding-top: 7px; cursor: pointer; color: var(--analysis-accent); font-size: 12px; }
+.analysis-due-schedule { padding: 0 14px; margin-top: 10px; }
+.analysis-due-schedule > summary { display: flex; align-items: center; gap: 8px; cursor: pointer; padding-block: 10px; font-size: 14px; min-height: 44px; list-style: none; }
+.analysis-due-schedule > summary::-webkit-details-marker { display: none; }
+.analysis-due-schedule summary > span { flex: 1; min-width: 0; }
+.analysis-due-schedule summary strong { color: var(--analysis-secondary); font-size: 12px; }
+.analysis-due-schedule summary small { margin-inline-start: .35em; color: var(--analysis-secondary); font-size: 12px; }
+.analysis-due-schedule[open] summary svg { transform: rotate(180deg); }
+.analysis-due-schedule[open] { padding-bottom: 14px; }
+.analysis-due-schedule .installment-description > p { white-space: normal; overflow-wrap: anywhere; }
 .analysis-page {
   --flow-surface: var(--analysis-surface);
   --flow-raised: var(--analysis-raised);
@@ -154,7 +195,7 @@
 @container (max-width: 790px) {
   .analysis-layout {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "chart" "ledger" "quick";
+    grid-template-areas: "chart" "due" "ledger" "quick";
     grid-template-rows: auto;
   }
 }
@@ -176,6 +217,10 @@
   .analysis-totals dd { font-size: 18px; }
   .analysis-totals .analysis-balance dd { font-size: 25px; }
   .analysis-status dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .analysis-due-pair { grid-template-columns: minmax(0, 1fr); }
+  .analysis-dues-jump { min-height: 44px; }
+  .analysis-due-schedule summary small { display: block; margin-inline-start: 0; }
+  .analysis-due-schedule .installment-row { gap: 5px 8px; padding: 9px; }
 }
 @media (max-width: 760px) {
   .analysis-page { padding: 14px 14px 32px; }

@@ -8,11 +8,10 @@ import { DashboardDisclosure } from "@/components/DashboardDisclosure";
 import { DashboardOverview } from "@/components/DashboardOverview";
 import { BankCard } from "@/components/BankCard";
 import { AddBankCard } from "@/components/AddBankCard";
-import { InstallmentTimeline } from "@/components/InstallmentTimeline";
 import { CreditorWidget } from "@/components/CreditorWidget";
 import { BankDetailSheet } from "@/components/BankDetailSheet";
 import { HeroChart } from "@/components/HeroChart";
-import { CalendarCard } from "@/components/CalendarCard";
+import { isDesignPreview } from "@/lib/previewMode";
 import { FinancialHealthScore } from "@/components/FinancialHealthScore";
 import { IncomeCoverage } from "@/components/IncomeCoverage";
 import { AnnualSubscriptionsCard } from "@/components/AnnualSubscriptionsCard";
@@ -255,17 +254,13 @@ const Index = ({ detailsOnly = false }: { detailsOnly?: boolean }) => {
         title: "Vencimentos",
         node: (
           <>
-            <SectionHead index="05" title="Vencimentos" subtitle="Parcelas e calendário" />
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-4">
-              <InstallmentTimeline
-                installments={store.allInstallments}
-                onUpdate={store.updateInstallment}
-                onRemove={store.removeInstallment}
-                onAdd={store.addInstallment}
-                banks={store.banks.map((b) => ({ id: b.id, name: b.name }))}
-              />
-              <CalendarCard installments={store.allInstallments} />
-            </div>
+            <SectionHead index="05" title="Vencimentos" subtitle="Parcelas em atraso e cronograma" />
+            <Link
+              to={isDesignPreview ? "/analise-preview#vencimentos" : "/fluxo#vencimentos"}
+              className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4 text-sm hover:border-primary"
+            >
+              Ver vencimentos no Fluxo de Caixa <ArrowRight className="h-4 w-4 shrink-0 text-primary" aria-hidden />
+            </Link>
           </>
         ),
       },

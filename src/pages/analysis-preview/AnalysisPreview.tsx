@@ -2,6 +2,7 @@ import { useId, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ArrowDownLeft, ArrowLeft, ArrowUpRight, Monitor, Smartphone, Wallet } from "lucide-react";
 import { CashflowEntries, SmartEntryPanel } from "@/components/CashflowWorkspace";
+import { CashflowDueDates } from "@/components/CashflowDueDates";
 import { PaymentSessions } from "@/components/PaymentSessions";
 import { PeriodPicker } from "@/components/PeriodPicker";
 import { monthlyCashflowChart } from "@/lib/monthlyCashflowChart";
@@ -113,6 +114,7 @@ export default function AnalysisPreview() {
   const current = points.find(point => point.index === selectedMonth);
   const totals = current?.totals;
   const balance = totals ? Math.round((totals.income - totals.cost) * 100) / 100 : null;
+  const balanceTone = balance === null || balance === 0 ? undefined : balance > 0 ? "text-income" : "text-expense";
   return <main className={`analysis-page${mobile ? " analysis-phone" : ""}`}>
     <header className="analysis-header">
       <Link className="analysis-back" to="/"><ArrowLeft size={16} aria-hidden="true" /> Visão geral</Link>
@@ -129,10 +131,18 @@ export default function AnalysisPreview() {
       <PeriodPicker months={cashflowMonths} selected={selectedMonth} onChange={setSelectedMonth} />
     </div>
     <dl className="analysis-totals" aria-label="Resumo do mês" aria-live="polite">
-      <div className="analysis-balance"><dt>Saldo projetado</dt><dd>{current?.invalid ? "Indisponível" : balance === null ? "Sem lançamentos" : money(balance)}</dd></div>
+      <div className="analysis-balance">
+        <dt>Saldo projetado</dt>
+        <dd className={balanceTone}>
+          {current?.invalid ? "Indisponível" : balance === null ? "Sem lançamentos" : money(balance)}
+        </dd>
+      </div>
       <div className="income"><dt><ArrowDownLeft size={17} aria-hidden="true" />Receitas do mês</dt><dd>{totals ? money(totals.income) : "—"}</dd></div>
       <div className="cost"><dt><ArrowUpRight size={17} aria-hidden="true" />Gastos do mês</dt><dd>{totals ? money(totals.cost) : "—"}</dd></div>
     </dl>
+    <Link className="analysis-dues-jump" to={{ search: query.toString(), hash: "#vencimentos" }}>
+      Ir para vencimentos e atrasos <ArrowDownLeft size={15} aria-hidden="true" />
+    </Link>
     <div className="analysis-layout">
       <section className="analysis-chart-panel" aria-label="Evolução mensal">
         <div className="analysis-chart-head">
@@ -159,6 +169,7 @@ export default function AnalysisPreview() {
           </span>
         </p>
       </section>
+      <CashflowDueDates />
       <CashflowEntries presentation="ledger" />
       <SmartEntryPanel proposal />
     </div>

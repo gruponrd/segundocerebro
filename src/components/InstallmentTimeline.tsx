@@ -1,6 +1,5 @@
-import { CardPurchaseButton } from "@/components/CardPurchaseForm";
 import { useState } from "react";
-import { Calendar, Pencil, Trash2, Check, X, Plus } from "lucide-react";
+import { Pencil, Trash2, Check, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { type BankId, type Installment } from "@/data/financialData";
 import { EXPENSE_CATEGORIES, getCategory, suggestCategory } from "@/data/categories";
@@ -12,7 +11,7 @@ interface InstallmentItem {
   currentInstallment: number;
   totalInstallments: number;
   dueDate: string;
-  status: string;
+  overdue: boolean;
   bankName: string;
   bankColor: string;
   bankId?: BankId;
@@ -23,8 +22,6 @@ interface InstallmentTimelineProps {
   installments: InstallmentItem[];
   onUpdate?: (bankId: BankId, installmentId: string, updates: Partial<Omit<Installment, "id">>) => void;
   onRemove?: (bankId: BankId, installmentId: string) => void;
-  onAdd?: (bankId: BankId, inst: Omit<Installment, "id">) => void;
-  banks?: { id: BankId; name: string }[];
 }
 
 const bankDotColor: Record<string, string> = {
@@ -39,27 +36,6 @@ const bankDotColor: Record<string, string> = {
 function formatDate(dateStr: string) {
   const d = new Date(dateStr + "T00:00:00");
   return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
-}
-
-function filterCurrentMonth(items: InstallmentItem[]) {
-  const now = new Date();
-  const currentMonth = now.getMonth();
-  const currentYear = now.getFullYear();
-  return items.filter((item) => {
-    const d = new Date(item.dueDate + "T00:00:00");
-    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-  });
-}
-
-function groupByMonth(items: InstallmentItem[]) {
-  const groups: Record<string, InstallmentItem[]> = {};
-  items.forEach((item) => {
-    const d = new Date(item.dueDate + "T00:00:00");
-    const key = d.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
-    if (!groups[key]) groups[key] = [];
-    groups[key].push(item);
-  });
-  return groups;
 }
 
 function EditableInstallment({ item, onUpdate, onRemove }: {
@@ -106,6 +82,7 @@ function EditableInstallment({ item, onUpdate, onRemove }: {
       <div className="installment-description flex-1 min-w-0">
         <p className="text-sm text-foreground truncate">{item.description}</p>
         <div className="flex items-center gap-1.5 flex-wrap">
+          {item.overdue && <span className="rounded bg-expense/10 px-1.5 py-0.5 text-xs text-expense">Em atraso</span>}
           <p className="text-xs text-muted-foreground">
             {item.bankName} · {item.totalInstallments > 1 ? `${item.currentInstallment}/${item.totalInstallments}` : "Avulsa"} · {formatDate(item.dueDate)}
           </p>
@@ -138,33 +115,12 @@ function EditableInstallment({ item, onUpdate, onRemove }: {
   );
 }
 
-export function InstallmentTimeline({ installments, onUpdate, onRemove, onAdd, banks }: InstallmentTimelineProps) {
-  const currentMonthItems = filterCurrentMonth(installments);
-  const grouped = groupByMonth(currentMonthItems);
-
+export function InstallmentTimeline({ installments, onUpdate, onRemove }: InstallmentTimelineProps) {
   return (
-    <div className="glass-card rounded-2xl p-5 animate-float-in" style={{ animationDelay: "200ms" }}>
-      <div className="flex items-center gap-2 mb-4">
-        <Calendar className="w-4 h-4 text-muted-foreground" />
-        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Cronograma de Parcelas</h3>
-      </div>
-
-      <div className="space-y-5">
-        {Object.entries(grouped).map(([month, items]) => (
-          <div key={month}>
-            <p className="text-xs font-semibold text-foreground uppercase mb-3 capitalize">{month}</p>
-            <div className="space-y-2">
-              {items.map((item) => (
-                <EditableInstallment key={item.id} item={item} onUpdate={onUpdate} onRemove={onRemove} />
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {onAdd && banks && banks.length > 0 && (
-        <CardPurchaseButton />
-      )}
+    <div className="space-y-2">
+      {installments.length ? installments.map(item => (
+        <EditableInstallment key={`${item.bankId}:${item.id}`} item={item} onUpdate={onUpdate} onRemove={onRemove} />
+      )) : <p className="analysis-due-empty">Nenhuma parcela pendente no mês selecionado.</p>}
     </div>
   );
 }
