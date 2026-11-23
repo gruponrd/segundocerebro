@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { FinanceProvider, useFinanceStore } from "@/stores/financeStore";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
@@ -29,6 +29,7 @@ const CarteiraPage = lazy(() => import("./pages/Carteira"));
 const FluxoPage = lazy(() => import("./pages/Fluxo"));
 const AnalysisPreview = lazy(() => import("./pages/analysis-preview/AnalysisPreview"));
 const LifeGamePage = lazy(() => import("./pages/LifeGame"));
+const LifeGameMissions = lazy(() => import("./pages/lifegame/LifeGameMissions"));
 const DesejosPage = lazy(() => import("./pages/Desejos"));
 const AuthPage = lazy(() => import("./pages/Auth"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPassword"));
@@ -107,13 +108,15 @@ function AppRoutes() {
           <Routes>
             {isDesignPreview && <Route path="/acesso" element={<AuthPage />} />}
             {isDesignPreview && <Route path="/analise-preview" element={<AnalysisPreview />} />}
+            {isDesignPreview && <Route path="/lifegame-preview" element={<Navigate replace to="/lifegame" />} />}
             <Route path="/" element={<><OverviewProposal embedded /><Index detailsOnly /></>} />
             <Route path="/objetivos" element={<GoalsPage />} />
             <Route path="/renda" element={<RendaPage />} />
             <Route path="/divida" element={<DividaPage />} />
             <Route path="/carteira" element={<CarteiraPage />} />
             <Route path="/fluxo" element={isDesignPreview ? <FluxoPage /> : <AnalysisPreview />} />
-            <Route path="/lifegame" element={<LifeGamePage />} />
+            <Route path="/lifegame" element={<LifeGameMissions key={user.id} userId={user.id} />} />
+            <Route path="/lifegame/jornada" element={<LifeGamePage />} />
             <Route path="/desejos" element={<DesejosPage />} />
             <Route path="/ferramentas" element={<FerramentasPage />} />
             <Route path="/integracoes" element={<IntegracoesPage />} />

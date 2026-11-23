@@ -1,0 +1,110 @@
+.life-missions {
+  --life-ink: hsl(var(--foreground));
+  --life-muted: hsl(var(--muted-foreground));
+  --life-line: hsl(var(--border));
+  --life-card: hsl(var(--card));
+  --life-soft: hsl(var(--secondary));
+  --life-accent: hsl(var(--primary-text));
+  --life-green: hsl(var(--income));
+  --life-gold: hsl(var(--chart-4));
+  max-width: 1240px;
+  margin-inline: auto;
+  padding: 26px 32px 44px;
+  color: var(--life-ink);
+}
+.life-missions :is(h1, h2, strong) { font-weight: 650; overflow-wrap: anywhere; }
+.life-missions :is(a, button, input):focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; }
+.life-missions-heading, .life-panel-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px 16px; }
+.life-missions-heading { margin-bottom: 18px; }
+.life-missions-heading h1 { font-size: 32px; line-height: 1.12; letter-spacing: -.035em; }
+.life-panel-heading p { font-size: 13px; color: var(--life-muted); margin-top: 4px; }
+.life-missions-heading a { display: inline-flex; align-items: center; gap: 7px; min-height: 44px; color: var(--life-accent); font-size: 13px; }
+.life-missions-heading a:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+.life-xp {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  align-items: center;
+  gap: 14px 28px;
+  padding: 18px 22px;
+  margin-bottom: 16px;
+  background: color-mix(in srgb, var(--life-gold) 8%, var(--life-card));
+  border: 1px solid color-mix(in srgb, var(--life-gold) 36%, var(--life-line));
+  border-radius: 14px;
+}
+.life-xp-level { display: flex; align-items: center; gap: 12px; }
+.life-xp-level h2 { font-size: 25px; line-height: 1.15; letter-spacing: -.03em; }
+.life-xp-level p { font-size: 13px; color: var(--life-muted); margin-top: 3px; font-variant-numeric: tabular-nums; }
+.life-level-icon { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 10px; color: var(--life-gold); background: hsl(var(--chart-4) / .13); flex: none; }
+.life-level-progress { display: grid; gap: 7px; }
+.life-level-progress label { font-size: 13px; color: var(--life-muted); }
+.life-level-progress progress { appearance: none; width: 100%; height: 8px; border: 0; border-radius: 4px; overflow: hidden; background: var(--life-soft); accent-color: var(--life-gold); }
+.life-level-progress progress::-webkit-progress-bar { background: var(--life-soft); }
+.life-level-progress progress::-webkit-progress-value { background: var(--life-gold); }
+.life-level-progress progress::-moz-progress-bar { background: var(--life-gold); }
+
+.life-missions-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr); grid-template-areas: "board week" "board milestones"; grid-template-rows: auto 1fr; align-items: start; gap: 14px; }
+.life-board, .life-week, .life-milestones { min-width: 0; padding: 18px; border: 1px solid var(--life-line); border-radius: 14px; background: var(--life-card); }
+.life-board { grid-area: board; }
+.life-week { grid-area: week; }
+.life-milestones { grid-area: milestones; }
+.life-panel-heading h2 { font-size: 19px; letter-spacing: -.02em; }
+.life-panel-heading { margin-bottom: 13px; }
+.life-secondary, .life-primary { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; padding: 0 10px; border-radius: 7px; font-size: 13px; font-weight: 600; }
+.life-secondary { border: 1px solid var(--life-line); color: var(--life-accent); }
+.life-secondary:hover { background: var(--life-soft); }
+.life-primary { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
+.life-add { display: grid; gap: 6px; margin-bottom: 12px; }
+.life-add label { font-size: 13px; }
+.life-add > div { display: flex; gap: 8px; }
+.life-add input { flex: 1; min-width: 0; min-height: 44px; border: 1px solid var(--life-line); border-radius: 7px; background: hsl(var(--background)); color: var(--life-ink); padding-inline: 10px; font-size: 16px; }
+.life-add input::placeholder { color: var(--life-muted); }
+.life-mission-list, .life-milestones ul { list-style: none; margin: 0; padding: 0; }
+.life-mission-row { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 68px; padding-block: 8px; border-top: 1px solid var(--life-line); }
+.life-mission-icon, .life-milestone-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 8px; background: var(--life-soft); color: var(--life-accent); }
+.life-mission-row.movement .life-mission-icon, .life-mission-row.is-complete .life-mission-icon { color: var(--life-green); }
+.life-mission-row.flow .life-mission-icon { color: var(--life-gold); }
+.life-mission-text strong { display: block; font-size: 14px; line-height: 1.3; }
+.life-mission-text p { color: var(--life-muted); font-size: 12px; line-height: 1.4; margin-top: 3px; }
+.life-mission-actions { display: flex; align-items: center; gap: 8px; }
+.life-mission-xp { color: var(--life-gold); font-size: 12px; white-space: nowrap; }
+.life-mission-actions button { display: flex; align-items: center; justify-content: center; gap: 5px; min-width: 94px; min-height: 44px; border: 1px solid var(--life-line); border-radius: 7px; padding-inline: 8px; font-size: 13px; }
+.life-mission-actions button:hover { border-color: var(--life-accent); }
+.life-mission-actions button[aria-pressed=true] { color: var(--life-green); background: hsl(var(--income) / .13); border-color: hsl(var(--income) / .45); }
+.life-history-status { color: var(--life-muted); font-size: 11px; }
+
+.life-week-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.life-week-days button { display: grid; justify-items: center; align-content: center; gap: 2px; min-height: 62px; border: 1px solid var(--life-line); border-radius: 7px; }
+.life-week-days button span { font-size: 11px; color: var(--life-muted); text-transform: capitalize; }
+.life-week-days button strong { font-size: 14px; font-variant-numeric: tabular-nums; }
+.life-week-days button i { display: grid; place-items: center; height: 10px; color: var(--life-green); }
+.life-week-days button[aria-pressed="true"] { border-color: var(--life-accent); background: hsl(var(--primary) / .12); }
+.life-week-days button:hover:not(:disabled) { border-color: var(--life-accent); }
+.life-milestones li { display: grid; align-items: center; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 9px; min-height: 54px; padding-block: 7px; border-top: 1px solid var(--life-line); }
+.life-milestones li strong, .life-milestones li small { display: block; font-size: 13px; }
+.life-milestones li small, .life-milestone-state { color: var(--life-muted); }
+.life-milestones li.is-unlocked :is(.life-milestone-icon, .life-milestone-state) { color: var(--life-green); }
+.life-storage-note { margin-top: 13px; font-size: 12px; color: var(--life-muted); }
+.life-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+@media (max-width: 980px) {
+  .life-missions-layout { grid-template-columns: minmax(0, 1fr); grid-template-areas: "week" "board" "milestones"; grid-template-rows: auto; }
+}
+@media (max-width: 760px) {
+  .life-missions { padding: 16px 14px 30px; }
+  .life-missions-heading { margin-bottom: 10px; }
+  .life-missions-heading h1 { font-size: 26px; }
+  .life-xp { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); column-gap: 10px; padding: 12px; margin-bottom: 12px; }
+  .life-xp-level { gap: 8px; }
+  .life-xp-level h2 { font-size: 21px; }
+  .life-level-icon { width: 34px; height: 34px; }
+  .life-level-icon svg { width: 20px; height: 20px; }
+  .life-board, .life-week, .life-milestones { padding: 13px; }
+  .life-mission-row { grid-template-columns: 34px minmax(0, 1fr) 44px; gap: 7px; }
+  .life-mission-icon { width: 32px; height: 32px; }
+  .life-mission-actions { display: grid; gap: 1px; justify-items: center; }
+  .life-mission-actions button { min-width: 44px; padding: 0; }
+  .life-mission-actions button span { display: none; }
+  .life-mission-xp { font-size: 11px; }
+  .life-history-status { max-width: 44px; overflow-wrap: anywhere; text-align: center; }
+}

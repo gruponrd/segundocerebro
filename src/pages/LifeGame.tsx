@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -238,6 +239,7 @@ export default function NeuroRecoveryPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            <Button asChild variant="outline" className="w-full"><Link to="/lifegame">Voltar às missões</Link></Button>
             <div>
               <label htmlFor="journey-start-date" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                 Data em que você parou
@@ -272,6 +274,7 @@ export default function NeuroRecoveryPage() {
         {/* Header */}
         <PageHeader title="LifeGame" description={`Início em ${journeyDateLabel(state.startDate)} · Horário de Brasília. Os marcos seguem dias de calendário.`} icon={Brain} actions={
           <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline"><Link to="/lifegame">Voltar às missões</Link></Button>
             <Button variant="outline" onClick={() => { setEditTime(state.startTime ?? "00:00"); setTimeOpen(true); }}>Ajustar horário</Button>
             <Dialog open={resetOpen} onOpenChange={setResetOpen}>
               <Button variant="outline" className="gap-2" onClick={() => setResetOpen(true)}>
