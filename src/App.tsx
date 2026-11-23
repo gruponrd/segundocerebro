@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Navigate, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Navigate, Routes, Route, useSearchParams } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import { FinanceProvider, useFinanceStore } from "@/stores/financeStore";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
@@ -36,6 +36,11 @@ const ResetPasswordPage = lazy(() => import("./pages/ResetPassword"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
+
+function CashflowRoute() {
+  const [params] = useSearchParams();
+  return isDesignPreview && params.get("visual") === "proposta" ? <FluxoPage /> : <AnalysisPreview />;
+}
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -114,7 +119,7 @@ function AppRoutes() {
             <Route path="/renda" element={<RendaPage />} />
             <Route path="/divida" element={<DividaPage />} />
             <Route path="/carteira" element={<CarteiraPage />} />
-            <Route path="/fluxo" element={isDesignPreview ? <FluxoPage /> : <AnalysisPreview />} />
+            <Route path="/fluxo" element={<CashflowRoute />} />
             <Route path="/lifegame" element={<LifeGameMissions key={user.id} userId={user.id} />} />
             <Route path="/lifegame/jornada" element={<LifeGamePage />} />
             <Route path="/desejos" element={<DesejosPage />} />

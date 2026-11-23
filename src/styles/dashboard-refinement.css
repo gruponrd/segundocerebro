@@ -46,3 +46,103 @@
   .wallet-layout { gap: 18px; }
   .wallet-detail-panel h2 { font-size: 1.25rem; }
 }
+.cl-overview-entry .cl-page-heading { align-items: center; gap: 12px; margin-bottom: 14px; }
+.cl-overview-entry .cl-page-heading h1 { font-size: 26px; font-weight: 650; letter-spacing: -.025em; }
+.cl-overview-entry .cl-summary-main .cl-result {
+  --cl-green: hsl(var(--income));
+  --cl-red: hsl(var(--expense));
+  --cl-muted: hsl(var(--muted-foreground));
+  --cl-blue: hsl(var(--primary-text));
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+  container-type: inline-size;
+  padding: 20px;
+}
+.cl-overview-entry .cl-month-flow-button { border-color: transparent; padding-inline: 0; }
+.cl-overview-entry .cl-month-flow-button:hover { background: transparent; color: hsl(var(--primary-text)); }
+.cl-overview-entry .cl-result .cl-tag {
+  background: hsl(var(--secondary));
+  border-color: hsl(var(--border));
+  color: var(--cl-muted);
+}
+.cl-overview-entry .cl-result-body {
+  display: grid;
+  grid-template-areas: "hero" "composition" "trend";
+  gap: 12px 24px;
+}
+.cl-overview-entry .cl-result-hero { grid-area: hero; min-width: 0; }
+.cl-overview-entry .cl-result-composition { grid-area: composition; min-width: 0; }
+.cl-overview-entry .cl-result-trend { grid-area: trend; min-width: 0; }
+.cl-overview-entry .cl-result-number { margin: 5px 0 0; gap: 4px 12px; }
+.cl-overview-entry .cl-result-number > .cl-amount { font-size: 45px; font-weight: 650; line-height: 1.1; }
+.cl-overview-entry .cl-result-number > .cl-amount { white-space: normal; overflow-wrap: anywhere; }
+.cl-overview-entry .cl-result .cl-equation { margin-top: 0; padding-top: 12px; gap: 6px; border-color: hsl(var(--border)); }
+.cl-overview-entry .cl-result .cl-equation .cl-amount { font-size: 16px; }
+.cl-overview-entry .cl-result .cl-equation span:first-child,
+.cl-overview-entry .cl-result .cl-equation-sign,
+.cl-overview-entry .cl-result .cl-bar-labels,
+.cl-overview-entry .cl-result .cl-spark-caption strong { color: var(--cl-muted); }
+.cl-overview-entry .cl-result .cl-spending-bar { margin-top: 12px; background: hsl(var(--secondary)); }
+.cl-overview-entry .cl-result .cl-spark-income { color: var(--cl-green); }
+.cl-overview-entry .cl-result .cl-spark-cost { color: var(--cl-red); }
+.cl-overview-entry .cl-result .cl-spark-balance { color: hsl(var(--chart-4)); }
+.cl-overview-entry .cl-result .cl-spark-months button[aria-pressed="true"] { background: hsl(var(--primary) / .13); color: var(--cl-blue); }
+.cl-overview-entry .cl-surplus-spark { max-width: none; margin-top: 0; }
+.cl-overview-entry .cl-result-trend > div { padding-top: 10px; border-top: 1px solid hsl(var(--border)); }
+
+.cl-overview-welcome {
+  margin-top: 14px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 10px;
+  background: hsl(var(--card));
+  color: hsl(var(--foreground));
+}
+.cl-overview-welcome > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 44px;
+  padding: 9px 13px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 13px;
+}
+.cl-overview-welcome > summary::-webkit-details-marker { display: none; }
+.cl-overview-welcome > summary:hover, .cl-overview-welcome-content a:hover { color: hsl(var(--primary-text)); }
+.cl-overview-welcome[open] > summary svg { transform: rotate(180deg); }
+.cl-overview-welcome-content { padding: 0 13px 8px; }
+.cl-overview-welcome-content p { color: hsl(var(--muted-foreground)); font-size: 13px; overflow-wrap: anywhere; }
+.cl-overview-welcome-content nav { display: flex; flex-wrap: wrap; gap: 0 16px; }
+.cl-overview-welcome-content a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-size: 13px; }
+
+@container (min-width: 650px) {
+  .cl-overview-entry .cl-result-body {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    grid-template-areas: "hero trend" "composition trend";
+  }
+  .cl-overview-entry .cl-result-trend { align-self: center; padding-left: 16px; border-left: 1px solid hsl(var(--border)); }
+  .cl-overview-entry .cl-result-trend > div { padding-top: 0; border-top: 0; }
+}
+
+@container (max-width: 310px) {
+  .cl-overview-entry .cl-result .cl-equation { grid-template-columns: minmax(0, 1fr); }
+  .cl-overview-entry .cl-equation > :is(a, div) { grid-template-columns: 1fr auto; }
+  .cl-overview-entry .cl-equation-sign { display: none; }
+}
+
+@media (max-width: 760px) {
+  .cl-main.cl-overview-entry { padding-top: 12px; }
+  .cl-overview-entry .cl-page-heading { position: relative; margin-bottom: 10px; }
+  .cl-overview-entry .cl-page-heading h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .cl-overview-entry .cl-period { margin-top: 0; }
+  .cl-overview-entry .cl-period button { min-height: 44px; width: 44px; }
+  .cl-overview-entry .cl-summary-main .cl-result { padding: 14px; }
+  .cl-overview-entry .cl-result > .cl-panel-heading { align-items: center; justify-content: center; flex-wrap: wrap; gap: 2px 8px; }
+  .cl-overview-entry .cl-month-flow-button { min-height: 36px; font-size: 13px; }
+  .cl-overview-entry .cl-result .cl-tag { font-size: 10px; }
+  .cl-overview-entry .cl-result-number { justify-content: center; text-align: center; margin-top: 3px; }
+  .cl-overview-entry .cl-result-number > .cl-amount { width: 100%; font-size: 39px; }
+  .cl-overview-entry .cl-result .cl-equation .cl-amount { font-size: 14px; }
+}

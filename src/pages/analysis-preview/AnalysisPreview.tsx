@@ -137,7 +137,22 @@ export default function AnalysisPreview() {
           {current?.invalid ? "Indisponível" : balance === null ? "Sem lançamentos" : money(balance)}
         </dd>
       </div>
-      <div className="income"><dt><ArrowDownLeft size={17} aria-hidden="true" />Receitas do mês</dt><dd>{totals ? money(totals.income) : "—"}</dd></div>
+      <div className="income">
+        <dt><ArrowDownLeft size={17} aria-hidden="true" />Receitas do mês</dt>
+        <dd>
+          {totals ? money(totals.income) : "—"}
+          <dl className="analysis-income-breakdown" aria-label="Recebimentos do mês">
+            <div>
+              <dt>Já recebido</dt>
+              <dd>{totals ? money(totals.status.received) : "—"}</dd>
+            </div>
+            <div>
+              <dt>Falta receber</dt>
+              <dd>{totals ? money(totals.status.receivable) : "—"}</dd>
+            </div>
+          </dl>
+        </dd>
+      </div>
       <div className="cost"><dt><ArrowUpRight size={17} aria-hidden="true" />Gastos do mês</dt><dd>{totals ? money(totals.cost) : "—"}</dd></div>
     </dl>
     <Link className="analysis-dues-jump" to={{ search: query.toString(), hash: "#vencimentos" }}>

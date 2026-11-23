@@ -59,23 +59,27 @@ export function OverviewProposal({ embedded = false }: { embedded?: boolean }) {
   const path = coordinates.map((point, index) => `${index ? "L" : "M"} ${point.x} ${point.y}`).join(" ");
   const currentPoint = hovered === null ? null : visiblePoints[hovered];
 
-  const content = (      <main tabIndex={-1} id="resumo" className="cl-main">
-        <WelcomeCards name={auth.displayName} />
-        <div className="cl-page-heading"><div><h2>Seu mês, em números.</h2><p>Entenda o que entra, o que sai e o que pode sobrar.</p></div><div className="cl-period"><button aria-label="Mês anterior" disabled={store.selectedMonth <= 0} onClick={() => { store.prevMonth(); setChosenEnd(null); setHovered(null); }}><ChevronLeft size={17} /></button><label className="cl-sr" htmlFor="cl-month">Mês de referência</label><select id="cl-month" value={store.selectedMonth} onChange={event => { store.setSelectedMonth(Number(event.target.value)); setChosenEnd(null); setHovered(null); }}>{store.cashflowMonths.map((item, index) => <option key={`${item.month}-${item.year}`} value={index}>{item.month} {item.year}</option>)}</select><button aria-label="Próximo mês" disabled={store.selectedMonth >= store.cashflowMonths.length - 1} onClick={() => { store.nextMonth(); setChosenEnd(null); setHovered(null); }}><ChevronRight size={17} /></button></div></div>
+  const content = (      <main tabIndex={-1} id="resumo" className="cl-main cl-overview-entry">
+        <div className="cl-page-heading"><h1>Visão geral</h1><div className="cl-period"><button aria-label="Mês anterior" disabled={store.selectedMonth <= 0} onClick={() => { store.prevMonth(); setChosenEnd(null); setHovered(null); }}><ChevronLeft size={17} /></button><label className="cl-sr" htmlFor="cl-month">Mês de referência</label><select id="cl-month" value={store.selectedMonth} onChange={event => { store.setSelectedMonth(Number(event.target.value)); setChosenEnd(null); setHovered(null); }}>{store.cashflowMonths.map((item, index) => <option key={`${item.month}-${item.year}`} value={index}>{item.month} {item.year}</option>)}</select><button aria-label="Próximo mês" disabled={store.selectedMonth >= store.cashflowMonths.length - 1} onClick={() => { store.nextMonth(); setChosenEnd(null); setHovered(null); }}><ChevronRight size={17} /></button></div></div>
 
         <div className="cl-summary-grid">
           <div className="cl-summary-main">
           <section className={`cl-panel cl-result ${balance < 0 ? "cl-result-negative" : "cl-result-positive"}`} aria-labelledby="cl-result-title">
             <div className="cl-panel-heading"><h2 id="cl-result-title"><Link className="cl-month-flow-button" to="/fluxo" aria-label={`${balance >= 0 ? "O que deve sobrar neste mês" : "O que falta para fechar este mês"} · Abrir fluxo de ${month.month} ${month.year}`}>{balance >= 0 ? "O que deve sobrar neste mês" : "O que falta para fechar este mês"}<ArrowUpRight size={16} aria-hidden /></Link></h2><span className="cl-tag">Previsto</span></div>
-            <div className="cl-result-intro"><div><div className="cl-result-number"><Amount value={Math.abs(balance)} className={balance < 0 ? "cl-red" : ""} />{income > 0 && <span className={balance < 0 ? "cl-red" : "cl-green"}>{Math.abs(savingsPercent).toFixed(0)}% {balance < 0 ? "faltando" : "das entradas"}</span>}</div>
-            <p className="cl-sr">{balance >= 0 ? "Depois de todas as despesas e parcelas previstas." : "As despesas previstas superam as entradas deste mês."} Não é o saldo da conta bancária.</p></div><SurplusSparkline key={`${month.month}-${month.year}`} month={month} months={store.cashflowMonths} banks={store.banks} /></div>
+            <div className="cl-result-body">
+            <div className="cl-result-hero"><div className="cl-result-number" aria-live="polite"><span className={`cl-amount ${balance < 0 ? "cl-red" : ""}`}>{money(Math.abs(balance))}</span>{income > 0 && <span className={balance < 0 ? "cl-red" : "cl-green"}>{Math.abs(savingsPercent).toFixed(0)}% {balance < 0 ? "faltando" : "das entradas"}</span>}</div>
+            <p className="cl-sr">{balance >= 0 ? "Depois de todas as despesas e parcelas previstas." : "As despesas previstas superam as entradas deste mês."} Não é o saldo da conta bancária.</p></div>
+            <div className="cl-result-composition">
             <div className="cl-equation">
               <Link to="/fluxo"><span><ArrowDownLeft size={15} className="cl-green" />Total de entradas</span><Amount value={income} /></Link><span className="cl-equation-sign" aria-hidden>−</span>
               <Link to="/fluxo"><span><ArrowUpRight size={15} className="cl-red" />Total de saídas</span><Amount value={cost} /></Link><span className="cl-equation-sign" aria-hidden>=</span>
               <div><span>{balance < 0 ? "Déficit do mês" : "Sobra do mês"}</span><Amount value={Math.abs(balance)} className={balance < 0 ? "cl-red" : "cl-green"} /></div>
             </div>
             <div className="cl-spending-bar" aria-hidden><span style={{ width: `${spentPercent}%` }} /><span style={{ width: `${income > 0 ? 100 - spentPercent : 0}%` }} /></div>
-            <div className="cl-bar-labels"><span><i className="cl-swatch-expense" />{income > 0 ? `${Math.round(cost / income * 100)}% comprometido` : "Sem entradas no período"}</span><span><i className="cl-swatch-income" />{balance >= 0 ? "Sobra prevista" : "Mês no negativo"}</span></div>
+            <div className="cl-bar-labels"><span><i className="cl-swatch-expense" />{income > 0 ? `${Math.round(cost / income * 100)}% comprometido` : "Sem entradas no período"}</span><span><i className={balance < 0 ? "cl-swatch-expense" : "cl-swatch-income"} />{balance >= 0 ? "Sobra prevista" : "Mês no negativo"}</span></div>
+            </div>
+            <div className="cl-result-trend"><SurplusSparkline key={`${month.month}-${month.year}`} month={month} months={store.cashflowMonths} banks={store.banks} /></div>
+            </div>
           </section>
           <div className="cl-pending-pair">
             <section className="cl-panel cl-pending-mini cl-receive" aria-labelledby="cl-receive-title"><div><h2 id="cl-receive-title">A receber</h2><Amount value={toReceive} /></div><p>Já recebido <strong><Amount value={received} /></strong></p></section>
@@ -84,6 +88,7 @@ export function OverviewProposal({ embedded = false }: { embedded?: boolean }) {
           </div>
           <OverviewDebtCard banks={store.banks} creditors={store.creditors} month={month} />
         </div>
+        <WelcomeCards name={auth.displayName} />
 
         <section className="cl-panel cl-forecast" aria-labelledby="cl-forecast-title">
           <div className="cl-panel-heading"><div><h2 id="cl-forecast-title">E nos próximos meses?</h2><p className="cl-sr">Uma visão do que pode se acumular a partir de {month.month.toLocaleLowerCase("pt-BR")}.</p></div><div className="cl-forecast-select"><label htmlFor="cl-forecast-end">Projetar até</label><select id="cl-forecast-end" value={horizon} onChange={event => { setChosenEnd(Number(event.target.value)); setHovered(null); }}>{Array.from({ length: maxHorizon + 1 }, (_, index) => <option key={index} value={index}>{offsetLabel(index)}</option>)}</select></div></div>

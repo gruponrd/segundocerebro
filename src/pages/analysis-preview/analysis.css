@@ -120,7 +120,19 @@
 .analysis-totals > div { padding: 14px 17px; background: var(--analysis-surface); border: 1px solid var(--analysis-rule); border-radius: 10px; min-width: 0; }
 .analysis-totals > .analysis-balance { --series: var(--analysis-ink); background: var(--analysis-raised); }
 .analysis-totals dt { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--series); }
-.analysis-totals dd { margin-top: 4px; font-size: 25px; font-weight: 650; line-height: 1.25; letter-spacing: -.025em; overflow-wrap: anywhere; }
+.analysis-totals > div > dd { margin-top: 4px; font-size: 25px; font-weight: 650; line-height: 1.25; letter-spacing: -.025em; overflow-wrap: anywhere; }
+.analysis-income-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin-top: 9px;
+  padding-top: 8px;
+  border-top: 1px solid var(--analysis-rule);
+  letter-spacing: normal;
+}
+.analysis-income-breakdown dt { color: var(--analysis-secondary); font-size: 11px; font-weight: 500; }
+.analysis-income-breakdown dd { margin-top: 2px; font-size: 13px; font-weight: 650; }
+.analysis-income-breakdown > div:first-child dd { color: hsl(var(--income)); }
 .analysis-page :is(strong, dd) { font-variant-numeric: tabular-nums; }
 .analysis-status { border-top: 1px solid var(--analysis-rule); padding-top: 12px; }
 .analysis-status h3 { font-size: 13px; font-weight: 650; margin-bottom: 8px; }
@@ -214,7 +226,7 @@
   .analysis-totals { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 12px; }
   .analysis-totals > div { padding: 10px 12px; }
   .analysis-totals > .analysis-balance { grid-column: 1 / -1; }
-  .analysis-totals dd { font-size: 18px; }
+  .analysis-totals > div > dd { font-size: 18px; }
   .analysis-totals .analysis-balance dd { font-size: 25px; }
   .analysis-status dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .analysis-due-pair { grid-template-columns: minmax(0, 1fr); }
