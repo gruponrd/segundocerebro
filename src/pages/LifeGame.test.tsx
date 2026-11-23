@@ -1,16 +1,19 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { afterEach, expect, it, vi } from "vitest";
 vi.mock("@/hooks/useAuth", () => ({ useAuth: () => ({ user: { id: "journey-test" } }) }));
 vi.mock("@/lib/previewMode", () => ({ isAccountPreview: false }));
 import { accountStorageKey } from "@/lib/accountStorage";
 import LifeGame from "./LifeGame";
 const key = accountStorageKey("journey-test", "neuro-recovery-v1");
+const renderJourney = () => render(<MemoryRouter><LifeGame /></MemoryRouter>);
 afterEach(() => { cleanup(); localStorage.clear(); vi.useRealTimers(); });
 
 it("defaults to the Brasília date after 21h, prevents invalid dates and saves the selected day unchanged", () => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-10-30T01:30:00Z"));
-  render(<LifeGame/>);
+  renderJourney();
+  expect(screen.getByRole("link", { name: "Voltar às missões" })).toHaveAttribute("href", "/lifegame");
   const field = screen.getByLabelText("Data em que você parou");
   expect(field).toHaveValue("2026-10-29");
   expect(field).toHaveAttribute("max", "2026-10-29");
@@ -27,7 +30,8 @@ it("reopening an existing journey keeps its legacy date and progress untouched",
   vi.setSystemTime(new Date("2026-10-29T18:00:00Z"));
   const raw = JSON.stringify({ startDate: "2026-09-19T03:00:00.000Z", defeatedBosses: ["b1"], bestStreakDays: 40, claimedCoins: [1, 3, 7, 14, 21, 30] });
   localStorage.setItem(key, raw);
-  render(<LifeGame/>);
+  renderJourney();
+  expect(screen.getByRole("link", { name: "Voltar às missões" })).toHaveAttribute("href", "/lifegame");
   expect(screen.getByText(/Início em 19\/09\/2026/)).toBeInTheDocument();
   expect(localStorage.getItem(key)).toBe(raw);
 });
@@ -36,7 +40,7 @@ it("does not reopen an old day-one celebration when the journey is already six d
   vi.setSystemTime(new Date("2026-11-06T15:00:00Z"));
   const saved = { startDate: "2026-10-31", defeatedBosses: ["b1"], bestStreakDays: 8, claimedCoins: [] };
   localStorage.setItem(key, JSON.stringify(saved));
-  render(<LifeGame />);
+  renderJourney();
   expect(screen.getByText("6 dias offline")).toBeInTheDocument();
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   expect(JSON.parse(localStorage.getItem(key)!)).toEqual(saved);
@@ -46,11 +50,11 @@ it("celebrates the current milestone once without resetting the saved journey", 
   vi.setSystemTime(new Date("2026-11-07T15:00:00Z"));
   const saved = { startDate: "2026-10-31", defeatedBosses: ["b1"], bestStreakDays: 8, claimedCoins: [] };
   localStorage.setItem(key, JSON.stringify(saved));
-  const view = render(<LifeGame />);
+  const view = renderJourney();
   expect(screen.getByRole("dialog")).toHaveTextContent("Dia 7");
   expect(JSON.parse(localStorage.getItem(key)!)).toEqual({ ...saved, claimedCoins: [7] });
   view.unmount();
-  render(<LifeGame />);
+  renderJourney();
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   expect(screen.getByText("7 dias offline")).toBeInTheDocument();
 });
@@ -60,7 +64,7 @@ it("allows adding a time to an existing journey and advances the counter without
   vi.setSystemTime(new Date("2026-11-06T15:00:00Z"));
   const saved = { startDate: "2026-10-31", defeatedBosses: ["b1"], bestStreakDays: 8, claimedCoins: [1, 3] };
   localStorage.setItem(key, JSON.stringify(saved));
-  render(<LifeGame />);
+  renderJourney();
   expect(screen.getByText(/Horário não informado/)).toBeInTheDocument();
   expect(JSON.parse(localStorage.getItem(key)!)).toEqual(saved);
   fireEvent.click(screen.getByRole("button", { name: "Ajustar horário" }));
