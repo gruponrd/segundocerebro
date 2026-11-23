@@ -29,7 +29,9 @@ export function ClarityWorkspace({ children }: { children: ReactNode }) {
   const { displayName } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const finance = useFinanceStore();
-  const label = navigation.find(item => item.path === pathname)?.label || "Meu espaço";
+  const label = isDesignPreview && pathname === "/analise-preview"
+    ? "Receitas e gastos"
+    : navigation.find(item => item.path === pathname)?.label || "Meu espaço";
   return <div className="cl-app cl-production-shell">
     <a className="cl-skip" href="#workspace-content" onClick={event => { event.preventDefault(); document.getElementById("workspace-content")?.focus(); }}>Pular para o conteúdo</a>
     <aside className="cl-sidebar">

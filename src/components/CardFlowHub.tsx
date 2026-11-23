@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { getCategory, suggestCategory } from "@/data/categories";
 import type { Bank, Installment } from "@/data/financialData";
 import { BankLogo } from "@/components/BankLogo";
+import { CashflowCategoryIcon } from "@/components/CashflowCategoryIcon";
 
 const MONTH_MAP: Record<string, number> = {
   "Janeiro": 1, "Fevereiro": 2, "Março": 3, "Abril": 4, "Maio": 5, "Junho": 6,
@@ -15,7 +16,7 @@ const MONTH_MAP: Record<string, number> = {
 /** Central de cartões dentro do Fluxo de Caixa: detalha parcelas do mês por cartão,
  *  permite baixar pagamentos e lançar gastos emergenciais — tudo refletido
  *  automaticamente no saldo usado dos cartões e no saldo final do mês. */
-export function CardFlowHub() {
+export function CardFlowHub({ ledger = false }: { ledger?: boolean }) {
   const { banks, currentCashflow, updateInstallment, removeInstallment } = useFinanceStore();
   const monthNum = MONTH_MAP[currentCashflow.month];
   const year = currentCashflow.year;
@@ -38,6 +39,7 @@ export function CardFlowHub() {
   }, [activeBanks, monthNum, year]);
 
   const grandTotal = perCard.reduce((s, g) => s + g.total, 0);
+  const purchaseButton = <CardPurchaseButton initialDate={`${year}-${String(monthNum).padStart(2, "0")}-10`}>Lançar compra no cartão</CardPurchaseButton>;
 
   const togglePaid = (bank: Bank, inst: Installment) => {
     updateInstallment(bank.id, inst.id, { status: inst.status === "pago" ? "pendente" : "pago" });
@@ -46,10 +48,10 @@ export function CardFlowHub() {
   return (
     <div className="mb-4 p-3 rounded-xl bg-expense/5 border border-expense/10">
       <div className="flex items-center justify-between text-sm mb-3">
-        <span className="text-muted-foreground flex items-center gap-2">
+        <div className="text-muted-foreground flex items-center gap-2">
           <CreditCard className="w-3.5 h-3.5 text-expense" />
-          Central de Cartões
-        </span>
+          {ledger ? <h3>Central de Cartões</h3> : "Central de Cartões"}
+        </div>
         <span className="text-expense font-medium text-money">R$ {grandTotal.toLocaleString("pt-BR")}</span>
       </div>
 
@@ -78,11 +80,13 @@ export function CardFlowHub() {
             <div className="space-y-1">
               {items.map((inst) => {
                 const paid = inst.status === "pago";
-                const cat = inst.category ? getCategory(inst.category) : null;
+                const category = inst.category || suggestCategory(inst.description);
+                const cat = ledger || inst.category ? getCategory(category) : null;
                 const day = new Date(inst.dueDate + "T00:00:00").getDate();
                 return (
                   <div key={inst.id} className="flex items-center gap-2 text-xs group">
                     <Checkbox
+                      aria-label={`${paid ? "Desmarcar" : "Confirmar"} pagamento da parcela de ${inst.description}`}
                       checked={paid}
                       onCheckedChange={() => togglePaid(bank, inst)}
                       className="h-3.5 w-3.5 rounded border-border data-[state=checked]:bg-income data-[state=checked]:border-income"
@@ -95,7 +99,7 @@ export function CardFlowHub() {
                     </span>
                     {cat && (
                       <span className={`hidden sm:inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[8px] ${cat.bg} ${cat.color}`}>
-                        {cat.emoji} {cat.label}
+                        {ledger ? <CashflowCategoryIcon category={category} /> : cat.emoji} {category === "eletronicos" && ledger ? "Eletrônicos" : cat.label}
                       </span>
                     )}
                     <span className="text-[9px] text-muted-foreground/70 shrink-0">dia {day}</span>
@@ -104,6 +108,7 @@ export function CardFlowHub() {
                     </span>
                     <button
                       onClick={() => removeInstallment(bank.id, inst.id)}
+                      aria-label={`Excluir parcela de ${inst.description}`}
                       className="opacity-0 group-hover:opacity-100 p-0.5 rounded hover:bg-expense/20 text-muted-foreground hover:text-expense transition-all"
                     >
                       <X className="w-3 h-3" />
@@ -117,7 +122,7 @@ export function CardFlowHub() {
       </div>
 
       {/* Quick add: gasto emergencial / lançamento preciso no cartão */}
-      <CardPurchaseButton initialDate={`${year}-${String(monthNum).padStart(2, "0")}-10`}>Lançar compra no cartão</CardPurchaseButton>
+      {!ledger && purchaseButton}
     </div>
   );
 }

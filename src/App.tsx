@@ -27,6 +27,7 @@ const RendaPage = lazy(() => import("./pages/Renda"));
 const DividaPage = lazy(() => import("./pages/Divida"));
 const CarteiraPage = lazy(() => import("./pages/Carteira"));
 const FluxoPage = lazy(() => import("./pages/Fluxo"));
+const AnalysisPreview = lazy(() => import("./pages/analysis-preview/AnalysisPreview"));
 const LifeGamePage = lazy(() => import("./pages/LifeGame"));
 const DesejosPage = lazy(() => import("./pages/Desejos"));
 const AuthPage = lazy(() => import("./pages/Auth"));
@@ -105,12 +106,13 @@ function AppRoutes() {
         <Suspense fallback={<div className="workspace-route-loading"><WorkspaceLoading compact message="Abrindo a seção…"/></div>}>
           <Routes>
             {isDesignPreview && <Route path="/acesso" element={<AuthPage />} />}
+            {isDesignPreview && <Route path="/analise-preview" element={<AnalysisPreview />} />}
             <Route path="/" element={<><OverviewProposal embedded /><Index detailsOnly /></>} />
             <Route path="/objetivos" element={<GoalsPage />} />
             <Route path="/renda" element={<RendaPage />} />
             <Route path="/divida" element={<DividaPage />} />
             <Route path="/carteira" element={<CarteiraPage />} />
-            <Route path="/fluxo" element={<FluxoPage />} />
+            <Route path="/fluxo" element={isDesignPreview ? <FluxoPage /> : <AnalysisPreview />} />
             <Route path="/lifegame" element={<LifeGamePage />} />
             <Route path="/desejos" element={<DesejosPage />} />
             <Route path="/ferramentas" element={<FerramentasPage />} />
