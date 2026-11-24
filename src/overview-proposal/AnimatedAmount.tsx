@@ -22,7 +22,7 @@ export function AnimatedAmount({ value, className = "" }: { value: number; class
     };
     const onPreference = () => { if (preference.matches) finish(); };
     preference.addEventListener("change", onPreference);
-    if (preference.matches || from === target) finish();
+    if (preference.matches || from === target || typeof node.animate !== "function") finish();
     else {
       node.textContent = money(from);
       motion = node.animate([{ transform: "translateY(4px)", opacity: .75 }, { transform: "translateY(0)", opacity: 1 }], { duration: 360, easing: "cubic-bezier(.16,1,.3,1)" });

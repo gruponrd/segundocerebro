@@ -35,7 +35,9 @@ it("mostra recebidos e pendentes no card de receitas do período selecionado", (
   const receiptAmount = (label: string) => receipts.getByText(label).nextElementSibling?.textContent;
   expect(receiptAmount("Já recebido")).toBe(money(1200));
   expect(receiptAmount("Falta receber")).toBe(money(1800));
-  expect(screen.getByRole("heading", { name: "Evolução mensal" })).toBeInTheDocument();
+  const trend = within(screen.getByRole("region", { name: "Entradas, saídas e saldo" }));
+  expect(trend.getByRole("img", { name: /três meses anteriores/ })).toBeInTheDocument();
+  expect(trend.getByText("Saldo Live")).toBeInTheDocument();
 
   fireEvent.click(screen.getByRole("button", { name: "Próximo mês" }));
   expect(receiptAmount("Já recebido")).toBe(money(1900));

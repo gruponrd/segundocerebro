@@ -8,7 +8,7 @@ import { buildBalanceProjection, surplusProjectionHorizon } from "@/lib/dashboar
 import { WelcomeCards } from "./WelcomeCards";
 import { OverviewDebtCard } from "./OverviewDebtCard";
 import { AnimatedAmount } from "./AnimatedAmount";
-import { SurplusSparkline } from "./SurplusSparkline";
+import { MonthlyCashflowTrend } from "@/components/MonthlyCashflowTrend";
 import { isAccountPreview } from "@/lib/previewMode";
 
 const navigation = [
@@ -34,6 +34,12 @@ export function OverviewProposal({ embedded = false }: { embedded?: boolean }) {
   const [chartMode, setChartMode] = useState<"monthly" | "accumulated">("accumulated");
   const [chosenEnd, setChosenEnd] = useState<number | null>(null);
   const [hovered, setHovered] = useState<number | null>(null);
+  const selectMonth = (index: number) => {
+    if (index === store.selectedMonth) return;
+    store.setSelectedMonth(index);
+    setChosenEnd(null);
+    setHovered(null);
+  };
   if (auth.loading || store.cloudLoading || !store.cloudReady) return <main className="cl-loading">Preparando a proposta… <a href="/">Voltar à visão atual</a></main>;
   const month = store.currentCashflow;
   const payments = pendingPayments(month, store.banks);
@@ -60,7 +66,7 @@ export function OverviewProposal({ embedded = false }: { embedded?: boolean }) {
   const currentPoint = hovered === null ? null : visiblePoints[hovered];
 
   const content = (      <main tabIndex={-1} id="resumo" className="cl-main cl-overview-entry">
-        <div className="cl-page-heading"><h1>Visão geral</h1><div className="cl-period"><button aria-label="Mês anterior" disabled={store.selectedMonth <= 0} onClick={() => { store.prevMonth(); setChosenEnd(null); setHovered(null); }}><ChevronLeft size={17} /></button><label className="cl-sr" htmlFor="cl-month">Mês de referência</label><select id="cl-month" value={store.selectedMonth} onChange={event => { store.setSelectedMonth(Number(event.target.value)); setChosenEnd(null); setHovered(null); }}>{store.cashflowMonths.map((item, index) => <option key={`${item.month}-${item.year}`} value={index}>{item.month} {item.year}</option>)}</select><button aria-label="Próximo mês" disabled={store.selectedMonth >= store.cashflowMonths.length - 1} onClick={() => { store.nextMonth(); setChosenEnd(null); setHovered(null); }}><ChevronRight size={17} /></button></div></div>
+        <div className="cl-page-heading"><h1>Visão geral</h1><div className="cl-period"><button aria-label="Mês anterior" disabled={store.selectedMonth <= 0} onClick={() => selectMonth(store.selectedMonth - 1)}><ChevronLeft size={17} /></button><label className="cl-sr" htmlFor="cl-month">Mês de referência</label><select id="cl-month" value={store.selectedMonth} onChange={event => selectMonth(Number(event.target.value))}>{store.cashflowMonths.map((item, index) => <option key={`${item.month}-${item.year}`} value={index}>{item.month} {item.year}</option>)}</select><button aria-label="Próximo mês" disabled={store.selectedMonth >= store.cashflowMonths.length - 1} onClick={() => selectMonth(store.selectedMonth + 1)}><ChevronRight size={17} /></button></div></div>
 
         <div className="cl-summary-grid">
           <div className="cl-summary-main">
@@ -78,7 +84,6 @@ export function OverviewProposal({ embedded = false }: { embedded?: boolean }) {
             <div className="cl-spending-bar" aria-hidden><span style={{ width: `${spentPercent}%` }} /><span style={{ width: `${income > 0 ? 100 - spentPercent : 0}%` }} /></div>
             <div className="cl-bar-labels"><span><i className="cl-swatch-expense" />{income > 0 ? `${Math.round(cost / income * 100)}% comprometido` : "Sem entradas no período"}</span><span><i className={balance < 0 ? "cl-swatch-expense" : "cl-swatch-income"} />{balance >= 0 ? "Sobra prevista" : "Mês no negativo"}</span></div>
             </div>
-            <div className="cl-result-trend"><SurplusSparkline key={`${month.month}-${month.year}`} month={month} months={store.cashflowMonths} banks={store.banks} /></div>
             </div>
           </section>
           <div className="cl-pending-pair">
@@ -88,6 +93,7 @@ export function OverviewProposal({ embedded = false }: { embedded?: boolean }) {
           </div>
           <OverviewDebtCard banks={store.banks} creditors={store.creditors} month={month} />
         </div>
+        <MonthlyCashflowTrend months={store.cashflowMonths} banks={store.banks} selected={store.selectedMonth} onSelect={selectMonth} />
         <WelcomeCards name={auth.displayName} />
 
         <section className="cl-panel cl-forecast" aria-labelledby="cl-forecast-title">
