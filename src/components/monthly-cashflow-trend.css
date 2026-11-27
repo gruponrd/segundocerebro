@@ -15,50 +15,47 @@
   min-width: 0;
   padding: 24px;
 }
-.analysis-chart-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 8px 14px;
-}
-.analysis-chart-head h2 { font-size: 17px; font-weight: 650; }
-.analysis-filters { display: flex; flex-wrap: wrap; gap: 4px; }
-.analysis-filters button, .analysis-months button {
+.analysis-trend-heading { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+.analysis-trend-heading h2 { font-size: 17px; font-weight: 650; }
+.analysis-trend-heading > span { color: var(--analysis-secondary); font-size: 12px; }
+.analysis-months button {
   min-height: 44px;
   border-radius: 6px;
-  padding: 0 9px;
   font-size: 13px;
   font-weight: 550;
   color: var(--analysis-secondary);
 }
-.analysis-filters button:hover, .analysis-months button:hover { background: var(--analysis-raised); }
-.analysis-filters button[aria-pressed="true"] { background: hsl(var(--primary)); color: hsl(var(--primary-foreground)); }
-.analysis-trend { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; margin-block: 24px 16px; }
+.analysis-months button:hover:not(:disabled) { background: var(--analysis-raised); }
+.analysis-trend {
+  --analysis-plot-height: clamp(110px, 14cqw, 144px);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  margin-block: 12px 8px;
+}
 .analysis-scale {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 218px;
-  padding-top: 14px;
+  height: calc(var(--analysis-plot-height) + 4px);
+  padding-top: 5px;
   color: var(--analysis-secondary);
   text-align: right;
   font-size: 11px;
   white-space: nowrap;
 }
 .analysis-plot { min-width: 0; }
-.analysis-plot-lines { position: relative; height: 214px; }
+.analysis-plot-lines { position: relative; height: var(--analysis-plot-height); }
 .analysis-plot-lines svg { display: block; width: 100%; height: 100%; }
-.analysis-plot-lines stop { stop-color: hsl(var(--income)); }
 .analysis-grid-line { stroke: var(--analysis-rule); vector-effect: non-scaling-stroke; }
 .analysis-month-line { stroke: var(--analysis-accent); vector-effect: non-scaling-stroke; }
 .analysis-chart-panel .received { --series: hsl(var(--income)); }
 .analysis-chart-panel .receivable { --series: hsl(var(--chart-5)); --legend-line: dashed; }
 .analysis-chart-panel .paid { --series: hsl(var(--chart-4)); --legend-line: solid; }
 .analysis-chart-panel .payable { --series: hsl(var(--expense)); --legend-line: dotted; }
+.analysis-chart-panel .outgoing { --series: hsl(var(--expense)); --legend-line: dashed; }
 .analysis-segment { fill: none; stroke: var(--series); stroke-width: 2.5px; stroke-linecap: round; vector-effect: non-scaling-stroke; }
-.analysis-series.receivable .analysis-segment { stroke-dasharray: 7 4; }
-.analysis-series.payable .analysis-segment { stroke-dasharray: 1 4; }
+.analysis-series.outgoing .analysis-segment { stroke-dasharray: 6 4; }
 .analysis-dot {
   position: absolute;
   width: 5px;
@@ -67,8 +64,7 @@
   background: var(--series);
   transform: translate(-50%, -50%);
 }
-.analysis-dot.payable, .analysis-dot.receivable { border-radius: 1px; }
-.analysis-dot.paid { border-radius: 1px; transform: translate(-50%, -50%) rotate(45deg); }
+.analysis-dot.outgoing { border-radius: 1px; }
 .analysis-dot.is-selected { width: 9px; height: 9px; outline: 2px solid var(--analysis-surface); }
 .analysis-months { display: flex; }
 .analysis-months button {
@@ -78,6 +74,13 @@
   text-transform: capitalize;
 }
 .analysis-months button[aria-pressed="true"] { color: var(--analysis-accent); background: hsl(var(--primary) / .13); }
+.analysis-months button:disabled { opacity: .74; cursor: default; }
+
+.analysis-trend-totals { display: flex; flex-wrap: wrap; gap: 6px 18px; border-top: 1px solid var(--analysis-rule); padding-top: 10px; }
+.analysis-trend-totals > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 8px; min-width: 0; }
+.analysis-trend-totals dt { color: var(--analysis-secondary); font-size: 12px; }
+.analysis-trend-totals dt i { display: inline-block; width: 12px; margin-inline-end: 5px; vertical-align: .2em; border-top: 2px var(--legend-line, solid) var(--series); }
+.analysis-trend-totals dd { color: var(--series); font-size: 14px; font-weight: 650; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 
 .analysis-status { border-top: 1px solid var(--analysis-rule); padding-top: 12px; }
 .analysis-status h3 { font-size: 13px; font-weight: 650; margin-bottom: 8px; }
@@ -89,15 +92,10 @@
 .analysis-live dt { color: var(--analysis-ink); }
 .analysis-live small { display: block; font-size: 11px; color: var(--analysis-secondary); }
 
-.cl-monthly-trend { margin-top: 14px; }
+.cl-monthly-trend { margin-top: 14px; padding: 18px 22px; }
 .analysis-chart-panel button:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
 
 @container (max-width: 480px) {
-  .analysis-chart-head { gap: 12px; }
-  .analysis-filters { width: 100%; }
-  .analysis-trend { margin-top: 13px; }
-  .analysis-scale { height: 162px; padding-top: 8px; }
-  .analysis-plot-lines { height: 158px; }
   .analysis-months button { font-size: 11px; }
   .analysis-status dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

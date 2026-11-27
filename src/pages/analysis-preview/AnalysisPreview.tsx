@@ -36,31 +36,34 @@ export default function AnalysisPreview() {
       <h1>Receitas e gastos</h1>
       <PeriodPicker months={cashflowMonths} selected={selectedMonth} onChange={setSelectedMonth} />
     </div>
-    <dl className="analysis-totals" aria-label="Resumo do mês" aria-live="polite">
-      <div className="analysis-balance">
+    <div className="analysis-totals" role="group" aria-label="Resumo do mês" aria-live="polite">
+      <dl className="analysis-metric analysis-balance">
         <dt>Saldo projetado</dt>
         <dd className={balanceTone}>
           {invalid ? "Indisponível" : balance === null ? "Sem lançamentos" : money(balance)}
         </dd>
+      </dl>
+      <div className="income analysis-income">
+        <dl className="analysis-metric">
+          <dt><ArrowDownLeft size={15} aria-hidden="true" />Receitas do mês</dt>
+          <dd>{totals ? money(totals.income) : "—"}</dd>
+        </dl>
+        <dl className="analysis-income-breakdown" aria-label="Recebimentos do mês">
+          <div>
+            <dt>Já recebido</dt>
+            <dd>{totals ? money(totals.status.received) : "—"}</dd>
+          </div>
+          <div>
+            <dt>Falta receber</dt>
+            <dd>{totals ? money(totals.status.receivable) : "—"}</dd>
+          </div>
+        </dl>
       </div>
-      <div className="income">
-        <dt><ArrowDownLeft size={17} aria-hidden="true" />Receitas do mês</dt>
-        <dd>
-          {totals ? money(totals.income) : "—"}
-          <dl className="analysis-income-breakdown" aria-label="Recebimentos do mês">
-            <div>
-              <dt>Já recebido</dt>
-              <dd>{totals ? money(totals.status.received) : "—"}</dd>
-            </div>
-            <div>
-              <dt>Falta receber</dt>
-              <dd>{totals ? money(totals.status.receivable) : "—"}</dd>
-            </div>
-          </dl>
-        </dd>
-      </div>
-      <div className="cost"><dt><ArrowUpRight size={17} aria-hidden="true" />Gastos do mês</dt><dd>{totals ? money(totals.cost) : "—"}</dd></div>
-    </dl>
+      <dl className="analysis-metric cost">
+        <dt><ArrowUpRight size={15} aria-hidden="true" />Gastos do mês</dt>
+        <dd>{totals ? money(totals.cost) : "—"}</dd>
+      </dl>
+    </div>
     <Link className="analysis-dues-jump" to={{ search: query.toString(), hash: "#vencimentos" }}>
       Ir para vencimentos e atrasos <ArrowDownLeft size={15} aria-hidden="true" />
     </Link>
@@ -77,9 +80,9 @@ export default function AnalysisPreview() {
       </section>
       <CashflowDueDates />
       <CashflowEntries presentation="ledger" />
-    </div>
-    <NextPaymentCard months={cashflowMonths} banks={banks} />
-    <div className="mt-4 max-w-2xl">
+      <div className="analysis-next">
+        <NextPaymentCard months={cashflowMonths} banks={banks} />
+      </div>
       <SmartEntryPanel proposal />
     </div>
   </main>;

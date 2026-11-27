@@ -1,27 +1,29 @@
-import { useId, useState } from "react";
+import { useId } from "react";
 import type { Bank, CashflowMonth } from "@/data/financialData";
 import { cashflowMonthSummary } from "@/lib/cashflowMonthSummary";
-import { money, monthNumber } from "@/lib/planningTools";
+import { cashflowPeriod, emptyCashflowMonth } from "@/lib/cashflowMonths";
+import { money } from "@/lib/planningTools";
 import "./monthly-cashflow-trend.css";
 
 const monthsShort = new Intl.DateTimeFormat("pt-BR", { month: "short" });
 const unit = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL", notation: "compact", maximumFractionDigits: 1 });
-const series = [
-  { key: "received", group: "income", label: "Recebido" },
-  { key: "receivable", group: "income", label: "A receber" },
-  { key: "paid", group: "cost", label: "Já pago" },
-  { key: "payable", group: "cost", label: "A pagar" },
+const paymentStatus = [
+  { key: "received", label: "Recebido" },
+  { key: "receivable", label: "A receber" },
+  { key: "paid", label: "Já pago" },
+  { key: "payable", label: "A pagar" },
 ] as const;
-const views = [{ key: "both", label: "Comparar" }, { key: "income", label: "Receitas" }, { key: "cost", label: "Gastos" }] as const;
-type View = typeof views[number]["key"];
-type Point = ReturnType<typeof cashflowMonthSummary> & { index: number; label: string; full: string };
+type Totals = NonNullable<ReturnType<typeof cashflowMonthSummary>["totals"]>;
+const series = [
+  { key: "received", label: "Recebido", value: (totals: Totals) => totals.status.received },
+  { key: "outgoing", label: "Saídas do mês", value: (totals: Totals) => totals.cost },
+] as const;
+type Point = ReturnType<typeof cashflowMonthSummary> & { period: number; index: number | null; label: string; full: string };
 
-function Trend({ points, selected, onSelect, view }: {
-  points: Point[]; selected: number; onSelect: (index: number) => void; view: View;
+function Trend({ points, selected, onSelect }: {
+  points: Point[]; selected: number; onSelect: (index: number) => void;
 }) {
-  const id = useId();
-  const visible = series.filter(item => view === "both" || item.group === view);
-  const values = points.flatMap(point => series.map(item => point.totals?.status[item.key] ?? 0));
+  const values = points.flatMap(({ totals }) => totals ? series.map(item => item.value(totals)) : []);
   const maximum = Math.max(3, ...values);
   const stepBase = 10 ** Math.floor(Math.log10(maximum / 3));
   const step = Math.ceil(maximum / 3 / stepBase) * stepBase;
@@ -34,37 +36,36 @@ function Trend({ points, selected, onSelect, view }: {
     <div className="analysis-plot">
       <div className="analysis-plot-lines">
         <svg viewBox="0 0 600 190" preserveAspectRatio="none" aria-hidden="true">
-          <defs><linearGradient id={id} x2="0" y2="1" gradientUnits="objectBoundingBox"><stop stopOpacity=".16" /><stop offset="1" stopOpacity="0" /></linearGradient></defs>
           {[0, 1, 2, 3].map(tick => <line className="analysis-grid-line" key={tick} x1="0" x2="600" y1={y(step * tick)} y2={y(step * tick)} />)}
           {active >= 0 && <line className="analysis-month-line" x1={x(active)} x2={x(active)} y1="0" y2="188" />}
-          {visible.map(item => <g key={item.key} className={`analysis-series ${item.key}`}>
+          {series.map(item => <g key={item.key} className={`analysis-series ${item.key}`}>
             {points.slice(1).map((point, index) => {
-              const previous = points[index].totals?.status[item.key];
-              const value = point.totals?.status[item.key];
-              if (previous === undefined || value === undefined) return null;
+              const previous = points[index].totals;
+              if (!previous || !point.totals) return null;
+              const previousY = y(item.value(previous));
+              const currentY = y(item.value(point.totals));
               const start = x(index);
               const end = x(index + 1);
               // Horizontal tangents keep each curve within its two monthly values.
               const middle = (start + end) / 2;
-              const curve = `C ${middle},${y(previous)} ${middle},${y(value)} ${end},${y(value)}`;
-              return <g key={point.index}>
-                {item.key === "received" && <path d={`M ${start},188 L ${start},${y(previous)} ${curve} L ${end},188 Z`} fill={`url(#${id})`} />}
-                <path className="analysis-segment" d={`M ${start},${y(previous)} ${curve}`} />
-              </g>;
+              return <path key={point.period} className="analysis-segment"
+                d={`M ${start},${previousY} C ${middle},${previousY} ${middle},${currentY} ${end},${currentY}`} />;
             })}
           </g>)}
         </svg>
-        {visible.map(item => points.map((point, slot) => {
-          const value = point.totals?.status[item.key];
-          return value === undefined ? null : <span key={`${item.key}-${point.index}`} aria-hidden="true"
+        {series.map(item => points.map((point, slot) => {
+          return !point.totals ? null : <span key={`${item.key}-${point.period}`} aria-hidden="true"
             className={`analysis-dot ${item.key}${slot === active ? " is-selected" : ""}`}
-            style={{ left: `${x(slot) / 6}%`, top: `${y(value) / 1.9}%` }} />;
+            style={{ left: `${x(slot) / 6}%`, top: `${y(item.value(point.totals)) / 1.9}%` }} />;
         }))}
       </div>
       <div className="analysis-months" role="group" aria-label="Consultar valores por mês">
-        {points.map(point => <button type="button" key={point.index} aria-pressed={point.index === selected}
-          aria-label={`${point.full}: ${point.invalid ? "valores indisponíveis" : !point.totals ? "sem lançamentos" : series.map(item => `${item.label}: ${money(point.totals!.status[item.key])}`).join(", ")}`}
-          onClick={() => onSelect(point.index)}>{point.label}</button>)}
+        {points.map(({ period, index, label, full, invalid, totals }) => {
+          const values = totals ? series.map(item => `${item.label}: ${money(item.value(totals))}`).join(", ")
+            : invalid ? "valores indisponíveis" : "sem lançamentos";
+          return <button type="button" key={period} aria-pressed={index === selected} disabled={index === null}
+            aria-label={`${full}: ${values}`} onClick={index === null ? undefined : () => onSelect(index)}>{label}</button>;
+        })}
       </div>
     </div>
   </div>;
@@ -78,7 +79,7 @@ export function CashflowMonthStatus({ totals, showLive = false }: {
     <div className="analysis-status">
       <h3>Situação do mês</h3>
       <dl>
-        {series.map(item => <div className={item.key} key={item.key}>
+        {paymentStatus.map(item => <div className={item.key} key={item.key}>
           <dt>{!showLive && <i aria-hidden="true" />}{item.label}</dt><dd>{totals ? money(totals.status[item.key]) : "—"}</dd>
         </div>)}
         {showLive && totals && <div className="analysis-live"><dt>Saldo Live <small>Recebido menos as saídas previstas</small></dt>
@@ -95,13 +96,16 @@ export function MonthlyCashflowTrend({ months, banks, selected, onSelect }: {
   onSelect: (index: number) => void;
 }) {
   const titleId = useId();
-  const [view, setView] = useState<View>("both");
-  const start = Math.max(0, Math.min(selected - 3, months.length - 6));
-  const points = months.slice(start, start + 6).map((month, offset) => {
-    const date = new Date(month.year, monthNumber(month.month) - 1, 1);
+  const reference = months[selected] ? cashflowPeriod(months[selected]) : undefined;
+  const points: Point[] = reference === undefined ? [] : Array.from({ length: 7 }, (_, slot) => {
+    const period = reference + slot - 3;
+    const index = months.findIndex(month => cashflowPeriod(month) === period);
+    const month = index < 0 ? emptyCashflowMonth(period) : months[index];
+    const date = new Date(month.year, period % 12, 1);
     return {
       ...cashflowMonthSummary(month, banks),
-      index: start + offset,
+      period,
+      index: index < 0 ? null : index,
       label: monthsShort.format(date).replace(".", ""),
       full: `${month.month} ${month.year}`,
     };
@@ -109,14 +113,16 @@ export function MonthlyCashflowTrend({ months, banks, selected, onSelect }: {
   const totals = points.find(point => point.index === selected)?.totals ?? null;
 
   return <section className="analysis-chart-panel cl-monthly-trend" aria-labelledby={titleId}>
-    <div className="analysis-chart-head">
+    <div className="analysis-trend-heading">
       <h2 id={titleId}>Evolução mensal</h2>
-      <div className="analysis-filters" role="group" aria-label="Filtrar gráfico">
-        {views.map(item => <button key={item.key} type="button" aria-pressed={view === item.key}
-          onClick={() => setView(item.key)}>{item.label}</button>)}
-      </div>
+      {points.length > 0 && <span>3 meses antes e 3 depois</span>}
     </div>
-    <Trend points={points} selected={selected} onSelect={onSelect} view={view} />
-    <CashflowMonthStatus totals={totals} />
+    {points.length > 0 && <Trend points={points} selected={selected} onSelect={onSelect} />}
+    <dl className="analysis-trend-totals" aria-label="Valores do mês selecionado" aria-live="polite">
+      {series.map(item => <div className={item.key} key={item.key}>
+        <dt><i aria-hidden="true" />{item.label}</dt>
+        <dd>{totals ? money(item.value(totals)) : "—"}</dd>
+      </div>)}
+    </dl>
   </section>;
 }

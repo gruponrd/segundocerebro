@@ -52,7 +52,7 @@ export function NextPaymentCard({ months, banks }: { months: CashflowMonth[]; ba
         </div>
       </dl>
       <h3 className="mb-2 text-sm font-semibold">Contas em ordem de vencimento</h3>
-      {plan.accounts.length > 0 ? <ul>{plan.accounts.map(account => <PaymentRow key={account.id} account={account} today={today} deposit={plan.date} />)}</ul>
+      {plan.accounts.length > 0 ? <ul className="next-payment-accounts">{plan.accounts.map(account => <PaymentRow key={account.id} account={account} today={today} deposit={plan.date} />)}</ul>
         : <p className="text-sm text-muted-foreground">Nenhuma conta pendente com vencimento até {shortDate(plan.until)}.</p>}
       <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
         {plan.nextDate ? `Lista até a véspera da entrada prevista de ${fullDate(plan.nextDate)}.` : `Lista até o fim do mês do recebimento, ${fullDate(plan.until)}.`}

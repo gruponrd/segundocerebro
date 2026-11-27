@@ -34,8 +34,9 @@
 .analysis-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(310px, 1fr);
-  grid-template-areas: "chart ledger" "due ledger";
-  grid-template-rows: auto 1fr;
+  grid-template-areas: "chart ledger" "due ledger" "next ledger" "quick ledger";
+  /* Only the last track absorbs any extra height from a longer ledger. */
+  grid-template-rows: repeat(3, max-content) auto;
   gap: 18px;
   align-items: start;
 }
@@ -43,25 +44,36 @@
 .analysis-page .cost { --series: hsl(var(--expense)); }
 .analysis-totals {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1fr);
   gap: 8px;
-  margin-bottom: 18px;
+  margin-bottom: 14px;
 }
-.analysis-totals > div { padding: 14px 17px; background: var(--analysis-surface); border: 1px solid var(--analysis-rule); border-radius: 10px; min-width: 0; }
+.analysis-totals > * {
+  min-width: 0;
+  padding: 9px 13px;
+  background: var(--analysis-surface);
+  border: 1px solid var(--analysis-rule);
+  border-radius: 10px;
+}
 .analysis-totals > .analysis-balance { --series: var(--analysis-ink); background: var(--analysis-raised); }
-.analysis-totals dt { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--series); }
-.analysis-totals > div > dd { margin-top: 4px; font-size: 25px; font-weight: 650; line-height: 1.25; letter-spacing: -.025em; overflow-wrap: anywhere; }
+.analysis-metric dt { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--series); }
+.analysis-metric dd { margin-top: 3px; font-size: 22px; font-weight: 650; line-height: 1.2; letter-spacing: -.025em; overflow-wrap: anywhere; }
+.analysis-income {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.45fr);
+  align-items: center;
+  gap: 10px;
+}
 .analysis-income-breakdown {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 18px;
-  margin-top: 9px;
-  padding-top: 8px;
-  border-top: 1px solid var(--analysis-rule);
-  letter-spacing: normal;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  gap: 8px;
+  padding-inline-start: 10px;
+  border-inline-start: 1px solid var(--analysis-rule);
 }
 .analysis-income-breakdown dt { color: var(--analysis-secondary); font-size: 11px; font-weight: 500; }
-.analysis-income-breakdown dd { margin-top: 2px; font-size: 13px; font-weight: 650; }
+.analysis-income-breakdown dd { margin-top: 2px; font-size: 13px; font-weight: 650; overflow-wrap: anywhere; }
 .analysis-income-breakdown > div:first-child dd { color: hsl(var(--income)); }
 .analysis-page :is(strong, dd) { font-variant-numeric: tabular-nums; }
 .analysis-note { display: flex; align-items: flex-start; gap: 7px; color: var(--analysis-secondary); font-size: 12px; line-height: 1.55; margin-top: 16px; }
@@ -78,6 +90,9 @@
 .analysis-cashflow-trend .cl-spark-months button { min-height: 44px; }
 .analysis-cashflow-trend .cl-spark-months button[aria-pressed="true"] { background: hsl(var(--primary) / .13); color: var(--analysis-accent); }
 .analysis-layout > .flow-ledger { grid-area: ledger; }
+.analysis-next { grid-area: next; min-width: 0; }
+.analysis-next > section { margin-top: 0; }
+.analysis-layout > .flow-quick-entry { grid-area: quick; max-width: none; }
 .analysis-dues { grid-area: due; min-width: 0; scroll-margin-top: 16px; }
 .analysis-dues:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; border-radius: 12px; }
 .analysis-dues > h2 { font-size: 21px; font-weight: 650; margin-bottom: 10px; }
@@ -133,12 +148,21 @@
 .analysis-page .flow-item-status { background: hsl(var(--primary) / .12); color: var(--analysis-accent); }
 .analysis-page .flow-item-status[data-settled="true"] { background: hsl(var(--income) / .12); color: hsl(var(--income)); }
 
+@container (min-width: 1120px) {
+  .analysis-next .next-payment-accounts:has(> li:nth-child(6)) { columns: 2; column-gap: 18px; }
+  .analysis-next .next-payment-accounts > li { break-inside: avoid; }
+}
 @container (max-width: 790px) {
   .analysis-layout {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "chart" "due" "ledger";
+    grid-template-areas: "chart" "due" "ledger" "next" "quick";
     grid-template-rows: auto;
   }
+}
+@container (max-width: 690px) {
+  .analysis-totals { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .analysis-totals > .cost { grid-area: 1 / 2; }
+  .analysis-income { grid-column: 1 / -1; }
 }
 @container (max-width: 480px) {
   .analysis-title { margin-block: 18px; }
@@ -146,11 +170,8 @@
   .analysis-title [role="group"] { width: 100%; justify-content: space-between; }
   .analysis-title [role="group"] [role="combobox"] { flex: 1; }
   .analysis-chart-panel, .analysis-page .flow-ledger, .analysis-page .flow-quick-entry { padding: 15px; border-radius: 14px; }
-  .analysis-totals { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 12px; }
-  .analysis-totals > div { padding: 10px 12px; }
-  .analysis-totals > .analysis-balance { grid-column: 1 / -1; }
-  .analysis-totals > div > dd { font-size: 18px; }
-  .analysis-totals .analysis-balance dd { font-size: 25px; }
+  .analysis-totals > * { padding-inline: 9px; }
+  .analysis-metric dd { font-size: clamp(16px, 4.8cqw, 20px); }
   .analysis-due-pair { grid-template-columns: minmax(0, 1fr); }
   .analysis-dues-jump { min-height: 44px; }
   .analysis-due-schedule summary small { display: block; margin-inline-start: 0; }
