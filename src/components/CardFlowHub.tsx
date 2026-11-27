@@ -7,6 +7,7 @@ import { getCategory, suggestCategory } from "@/data/categories";
 import type { Bank, Installment } from "@/data/financialData";
 import { BankLogo } from "@/components/BankLogo";
 import { CashflowCategoryIcon } from "@/components/CashflowCategoryIcon";
+import { CashflowPaymentTotals } from "@/components/CashflowPaymentTotals";
 
 const MONTH_MAP: Record<string, number> = {
   "Janeiro": 1, "Fevereiro": 2, "Março": 3, "Abril": 4, "Maio": 5, "Junho": 6,
@@ -21,24 +22,28 @@ export function CardFlowHub({ ledger = false }: { ledger?: boolean }) {
   const monthNum = MONTH_MAP[currentCashflow.month];
   const year = currentCashflow.year;
 
-  const activeBanks = banks.filter((b) => b.status !== "cancelado");
-
   // Group this month's installments per card
   const perCard = useMemo(() => {
-    return activeBanks
+    return banks
+      .filter((bank) => bank.status !== "cancelado")
       .map((bank) => {
         const items = bank.installments.filter((inst) => {
           const d = new Date(inst.dueDate + "T00:00:00");
           return d.getMonth() + 1 === monthNum && d.getFullYear() === year;
         });
-        const total = items.reduce((s, i) => s + i.installmentAmount, 0);
-        const open = items.filter((i) => i.status !== "pago").reduce((s, i) => s + i.installmentAmount, 0);
-        return { bank, items, total, open };
+        const totals = items.reduce((sums, installment) => {
+          const cents = Math.round(installment.installmentAmount * 100);
+          sums.total += cents;
+          if (installment.status !== "pago") sums.open += cents;
+          return sums;
+        }, { total: 0, open: 0 });
+        return { bank, items, ...totals };
       })
       .filter((g) => g.items.length > 0);
-  }, [activeBanks, monthNum, year]);
+  }, [banks, monthNum, year]);
 
   const grandTotal = perCard.reduce((s, g) => s + g.total, 0);
+  const grandOpen = perCard.reduce((s, g) => s + g.open, 0);
   const purchaseButton = <CardPurchaseButton initialDate={`${year}-${String(monthNum).padStart(2, "0")}-10`}>Lançar compra no cartão</CardPurchaseButton>;
 
   const togglePaid = (bank: Bank, inst: Installment) => {
@@ -47,12 +52,12 @@ export function CardFlowHub({ ledger = false }: { ledger?: boolean }) {
 
   return (
     <div className="mb-4 p-3 rounded-xl bg-expense/5 border border-expense/10">
-      <div className="flex items-center justify-between text-sm mb-3">
-        <div className="text-muted-foreground flex items-center gap-2">
-          <CreditCard className="w-3.5 h-3.5 text-expense" />
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-x-2 gap-y-1 text-sm">
+        <div className="flex min-w-0 items-center gap-2 text-muted-foreground">
+          <CreditCard aria-hidden className="w-3.5 h-3.5 shrink-0 text-expense" />
           {ledger ? <h3>Central de Cartões</h3> : "Central de Cartões"}
         </div>
-        <span className="text-expense font-medium text-money">R$ {grandTotal.toLocaleString("pt-BR")}</span>
+        <CashflowPaymentTotals label="Valores da Central de Cartões" total={grandTotal / 100} open={grandOpen / 100} />
       </div>
 
       {/* Per-card breakdown */}
@@ -62,20 +67,19 @@ export function CardFlowHub({ ledger = false }: { ledger?: boolean }) {
       <div className="space-y-3">
         {perCard.map(({ bank, items, total, open }) => (
           <div key={bank.id} className="rounded-lg bg-background/40 border border-border/20 p-2.5">
-            <div className="flex items-center gap-2 mb-1.5">
-              {bank.logoDataUrl ? (
-                <BankLogo bank={bank} size="sm" decorative />
-              ) : (
-                <span
-                  className="w-2.5 h-2.5 rounded-full shrink-0"
-                  style={{ background: bank.color.startsWith("#") ? bank.color : `hsl(${bank.color})` }}
-                />
-              )}
-              <span className="text-xs font-semibold text-foreground truncate">{bank.name}</span>
-              <span className="ml-auto text-xs text-money text-foreground">R$ {total.toLocaleString("pt-BR")}</span>
-              {open > 0 && open !== total && (
-                <span className="text-[9px] text-muted-foreground">aberto R$ {open.toLocaleString("pt-BR")}</span>
-              )}
+            <div className="mb-1.5 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+              <div className="flex min-w-0 flex-1 basis-24 items-center gap-2">
+                {bank.logoDataUrl ? (
+                  <BankLogo bank={bank} size="sm" decorative />
+                ) : (
+                  <span
+                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                    style={{ background: bank.color.startsWith("#") ? bank.color : `hsl(${bank.color})` }}
+                  />
+                )}
+                <span className="text-xs font-semibold text-foreground [overflow-wrap:anywhere]">{bank.name}</span>
+              </div>
+              <CashflowPaymentTotals label={`Valores de ${bank.name}`} total={total / 100} open={open / 100} />
             </div>
             <div className="space-y-1">
               {items.map((inst) => {

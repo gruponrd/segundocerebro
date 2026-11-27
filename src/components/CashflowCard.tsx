@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EXPENSE_CATEGORIES, getCategory, suggestCategory } from "@/data/categories";
 import { CardFlowHub } from "@/components/CardFlowHub";
+import { CashflowPaymentTotals } from "@/components/CashflowPaymentTotals";
 import { CardPurchaseButton } from "@/components/CardPurchaseForm";
 import { AnimatedNumber } from "@/components/AnimatedNumber";
 import { useFinanceStore } from "@/stores/financeStore";
@@ -317,14 +318,21 @@ function ExpenseSection({ cashflow, monthIndex, onTogglePaid, onRemoveItem, onUp
       .filter(({ item }) => (item.category ?? suggestCategory(item.label)) === filter);
   }, [cashflow.expenses, filter]);
 
-  const filteredTotal = filtered.reduce((s, { item }) => s + item.amount, 0);
+  const totals = filtered.reduce((sums, { item }) => {
+    const cents = Math.round(item.amount * 100);
+    sums.total += cents;
+    if (!item.paid) sums.open += cents;
+    return sums;
+  }, { total: 0, open: 0 });
 
   return (
     <div>
-      <div className="flex items-center gap-2 mb-2">
-        <ArrowDownRight className="w-4 h-4 text-expense" />
-        {ledger ? <h3>Saídas diretas</h3> : <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Saídas (manuais)</span>}
-        <span className="ml-auto text-sm text-money text-expense">R$ {filteredTotal.toLocaleString("pt-BR")}</span>
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+        <div className="flex min-w-0 items-center gap-2">
+          <ArrowDownRight aria-hidden className="w-4 h-4 shrink-0 text-expense" />
+          {ledger ? <h3>Saídas diretas</h3> : <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Saídas (manuais)</span>}
+        </div>
+        <CashflowPaymentTotals label="Valores de saídas diretas" total={totals.total / 100} open={totals.open / 100} />
       </div>
 
       <div className="flex gap-1.5 mb-2 overflow-x-auto scrollbar-none -mx-1 px-1 pb-1">
