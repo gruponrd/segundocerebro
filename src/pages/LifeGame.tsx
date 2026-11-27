@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { ArrowUpRight, Brain, Zap, Shield, Flame, Sparkles, RotateCcw, Calendar, Skull, Building2, Cpu, Heart, BookOpen, Factory, TreePine, Info, Check, CircleDashed, Compass, Flag, Gauge, LockKeyhole, type LucideIcon } from "lucide-react";
+import { ArrowUpRight, Brain, Zap, Shield, Flame, Sparkles, RotateCcw, Calendar, Skull, Building2, Cpu, Heart, BookOpen, Factory, TreePine, Check, CircleDashed, Compass, Flag, Gauge, LockKeyhole, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/PageHeader";
 import { useAuth } from "@/hooks/useAuth";
@@ -73,16 +73,6 @@ const BOSSES = [
   { id: "b6", day: 90,  name: "Memória da Recompensa", desc: "Lembranças da adrenalina reaparecem" },
   { id: "bf", day: 365, name: "Mestre da Neuroplasticidade", desc: "Chefe final: um ano livre" },
 ];
-
-const SCIENCE_FACTS: Record<number, string> = {
-  7:   "Seu cérebro já está reduzindo a hiperatividade do circuito da recompensa.",
-  14:  "Os receptores dopaminérgicos começam a recuperar a sensibilidade.",
-  21:  "Novas conexões neurais são fortalecidas toda vez que você escolhe não apostar.",
-  30:  "Seu córtex pré-frontal está recuperando eficiência para controlar impulsos.",
-  90:  "Seu cérebro responde cada vez melhor às recompensas naturais.",
-  180: "Os circuitos ligados ao hábito perderam força por meses sem reforço.",
-  365: "Você consolidou um ano de prática de novos comportamentos — a base é muito mais forte.",
-};
 
 // ============ JOURNEY MILESTONES ============
 
@@ -182,13 +172,6 @@ export default function NeuroRecoveryPage() {
       setState((s) => s.startDate === state.startDate && !(s.claimedCoins ?? []).includes(newly.day) ? { ...s, claimedCoins: [...(s.claimedCoins ?? []), newly.day] } : s);
     }
   }, [days, state.startDate]); // eslint-disable-line
-
-  const currentFact = useMemo(() => {
-    const keys = Object.keys(SCIENCE_FACTS).map(Number).sort((a, b) => a - b);
-    let last = 0;
-    for (const k of keys) if (days >= k) last = k;
-    return last ? SCIENCE_FACTS[last] : "Cada dia offline reconstrói um pouco do seu cérebro. Isto é ciência, não mágica.";
-  }, [days]);
 
   const unlockedMilestonesCount = MILESTONES.filter((milestone) => days >= milestone.day).length;
   const nextMilestoneIndex = MILESTONES.findIndex((milestone) => days < milestone.day);
@@ -307,66 +290,50 @@ export default function NeuroRecoveryPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Level + Fact */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="glass-card lg:col-span-1 border-primary/20 bg-primary/5 relative overflow-hidden">
-            <div className="absolute -top-6 -right-6 opacity-10">
-              <Brain className="w-40 h-40 text-primary" />
+        {/* Level */}
+        <Card className="glass-card border-primary/20 bg-primary/5 relative overflow-hidden">
+          <div className="absolute -top-6 -right-6 opacity-10">
+            <Brain className="w-40 h-40 text-primary" />
+          </div>
+          <CardHeader className="text-center relative z-10">
+            <CardDescription className="uppercase tracking-widest text-xs">Nível</CardDescription>
+            <div className="text-7xl font-black text-primary leading-none">
+              {currentLevel.level}
             </div>
-            <CardHeader className="text-center relative z-10">
-              <CardDescription className="uppercase tracking-widest text-xs">Nível</CardDescription>
-              <div className="text-7xl font-black text-primary leading-none">
-                {currentLevel.level}
+            {currentLevel.label && (
+              <div className="text-sm font-bold text-primary mt-1">{currentLevel.label}</div>
+            )}
+            <div className="mt-2 flex items-center justify-center gap-2 text-sm">
+              <Calendar className="w-4 h-4 text-muted-foreground" />
+              <span className="font-semibold text-foreground">{days} dias offline</span>
+            </div>
+            {elapsed && <div className="mt-4 rounded-xl border border-border/60 bg-background/40 px-3 py-3">
+              <p className="text-xs text-muted-foreground">Tempo decorrido</p>
+              <div className="mt-1 flex flex-wrap items-baseline justify-center gap-x-2 text-foreground tabular-nums" aria-label={`${elapsed.days} dias, ${elapsed.hours} horas, ${elapsed.minutes} minutos e ${elapsed.seconds} segundos`}>
+                <span><strong className="text-xl">{elapsed.days}</strong> <span className="text-xs text-muted-foreground">dias</span></span>
+                <span><strong className="text-xl">{String(elapsed.hours).padStart(2, "0")}</strong> <span className="text-xs text-muted-foreground">h</span></span>
+                <span><strong className="text-xl">{String(elapsed.minutes).padStart(2, "0")}</strong> <span className="text-xs text-muted-foreground">min</span></span>
+                <span><strong className="text-xl">{String(elapsed.seconds).padStart(2, "0")}</strong> <span className="text-xs text-muted-foreground">s</span></span>
               </div>
-              {currentLevel.label && (
-                <div className="text-sm font-bold text-primary mt-1">{currentLevel.label}</div>
-              )}
-              <div className="mt-2 flex items-center justify-center gap-2 text-sm">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
-                <span className="font-semibold text-foreground">{days} dias offline</span>
-              </div>
-              {elapsed && <div className="mt-4 rounded-xl border border-border/60 bg-background/40 px-3 py-3">
-                <p className="text-xs text-muted-foreground">Tempo decorrido</p>
-                <div className="mt-1 flex flex-wrap items-baseline justify-center gap-x-2 text-foreground tabular-nums" aria-label={`${elapsed.days} dias, ${elapsed.hours} horas, ${elapsed.minutes} minutos e ${elapsed.seconds} segundos`}>
-                  <span><strong className="text-xl">{elapsed.days}</strong> <span className="text-xs text-muted-foreground">dias</span></span>
-                  <span><strong className="text-xl">{String(elapsed.hours).padStart(2, "0")}</strong> <span className="text-xs text-muted-foreground">h</span></span>
-                  <span><strong className="text-xl">{String(elapsed.minutes).padStart(2, "0")}</strong> <span className="text-xs text-muted-foreground">min</span></span>
-                  <span><strong className="text-xl">{String(elapsed.seconds).padStart(2, "0")}</strong> <span className="text-xs text-muted-foreground">s</span></span>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">{state.startTime ? `Desde ${state.startTime}` : "Horário não informado: contando desde 00:00"}</p>
-              </div>}
-            </CardHeader>
-            <CardContent className="relative z-10 space-y-3">
-              <div className="flex justify-between text-xs">
-                <span className="text-muted-foreground">XP total</span>
-                <span className="font-bold text-primary">{totalXP.toLocaleString("pt-BR")}</span>
-              </div>
-              <Progress value={progressPct} className="h-3" />
-              <div className="text-center text-xs text-muted-foreground">
-                {nextLevel
-                  ? <>Faltam <span className="font-bold text-foreground">{nextLevel.days - days} dias</span> para o Nível {nextLevel.level}{nextLevel.label ? ` (${nextLevel.label})` : ""}</>
-                  : <>Nível máximo atingido</>}
-              </div>
-              <div className="pt-2 text-center text-[10px] text-muted-foreground">
-                Recorde pessoal: <span className="font-bold text-foreground">{state.bestStreakDays} dias</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="glass-card lg:col-span-2 border-accent/20 bg-accent/5">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Info className="w-4 h-4 text-accent" /> Onde seu cérebro está agora
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-lg leading-relaxed text-foreground">{currentFact}</p>
-              <p className="mt-4 text-xs text-muted-foreground italic">
-                Todos os marcos abaixo são aproximados. A ciência mostra tendências de recuperação — o ritmo varia entre pessoas.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+              <p className="mt-1 text-xs text-muted-foreground">{state.startTime ? `Desde ${state.startTime}` : "Horário não informado: contando desde 00:00"}</p>
+            </div>}
+          </CardHeader>
+          <CardContent className="relative z-10 space-y-3">
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">XP total</span>
+              <span className="font-bold text-primary">{totalXP.toLocaleString("pt-BR")}</span>
+            </div>
+            <Progress value={progressPct} className="h-3" />
+            <div className="text-center text-xs text-muted-foreground">
+              {nextLevel
+                ? <>Faltam <span className="font-bold text-foreground">{nextLevel.days - days} dias</span> para o Nível {nextLevel.level}{nextLevel.label ? ` (${nextLevel.label})` : ""}</>
+                : <>Nível máximo atingido</>}
+            </div>
+            <div className="pt-2 text-center text-[10px] text-muted-foreground">
+              Recorde pessoal: <span className="font-bold text-foreground">{state.bestStreakDays} dias</span>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Stats Bars */}
           <Card className="glass-card">
@@ -410,7 +377,7 @@ export default function NeuroRecoveryPage() {
               const Icon = r.icon;
               return (
                 <div key={r.day} className={cn(
-                  "p-4 rounded-xl border transition-all",
+                  "card-inset p-4 rounded-xl border transition-all",
                   unlocked ? "bg-primary/5 border-primary/30 shadow-sm" : "bg-secondary/30 border-border/50 opacity-60"
                 )}>
                   <div className="flex items-start gap-3">
@@ -448,7 +415,7 @@ export default function NeuroRecoveryPage() {
               const defeated = state.defeatedBosses.includes(b.id);
               return (
                 <div key={b.id} className={cn(
-                  "p-4 rounded-xl border transition-all",
+                  "card-inset p-4 rounded-xl border transition-all",
                   defeated ? "bg-emerald-500/5 border-emerald-500/30" :
                   reached  ? "bg-rose-500/5 border-rose-500/30 animate-pulse" :
                              "bg-secondary/30 border-border/50 opacity-60"
@@ -486,7 +453,7 @@ export default function NeuroRecoveryPage() {
                 const active = days >= b.day;
                 return (
                   <div key={b.day} className={cn(
-                    "flex items-center justify-between px-3 py-2 rounded-lg border text-sm",
+                    "card-inset flex items-center justify-between px-3 py-2 rounded-lg border text-sm",
                     active ? "bg-orange-500/5 border-orange-500/20" : "opacity-50"
                   )}>
                     <span className="text-xs font-bold text-muted-foreground w-14">Dia ~{b.day}</span>
@@ -504,7 +471,7 @@ export default function NeuroRecoveryPage() {
               <CardDescription>Um próximo passo claro vale mais do que uma coleção de medalhas.</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="rounded-2xl border border-primary/15 bg-primary/[0.04] p-4">
+              <div className="card-inset rounded-2xl border border-primary/15 bg-primary/[0.04] p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="label-mono text-primary/75">{nextMilestone ? "próximo capítulo" : "jornada completa"}</p>
@@ -561,7 +528,7 @@ export default function NeuroRecoveryPage() {
                 const Icon = milestone.icon;
                 return (
                   <div key={milestone.day} className={cn(
-                    "group relative min-h-[148px] rounded-2xl border p-3 transition-all duration-300",
+                    "card-inset group relative min-h-[148px] rounded-2xl border p-3 transition-all duration-300",
                     unlocked ? "border-primary/25 bg-primary/[0.04] hover:-translate-y-1 hover:bg-primary/[0.08]" : "border-border/60 bg-secondary/20 opacity-60"
                   )}>
                     <div className="flex items-start justify-between gap-2">

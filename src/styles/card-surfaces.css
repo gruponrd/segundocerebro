@@ -39,3 +39,119 @@
 .cl-section-page .page-container > div.grid > .glass-card:first-child {
   clip-path: none;
 }
+
+/* Dark cards share the canvas color. Borders keep adjacent surfaces distinct. */
+:root:not(.light):not(.monochrome) {
+  --card: 0 0% 0%;
+  --popover: 0 0% 0%;
+  --glass-bg: var(--card);
+  --widget-surface: var(--card);
+  --secondary: 0 0% 12%;
+  --muted: 0 0% 13%;
+  --border: 0 0% 22%;
+  --glass-border: var(--border);
+  --input: 0 0% 30%;
+  --cl-control-surface: #000;
+  --cl-line: hsl(var(--border));
+}
+
+:root:not(.light):not(.monochrome) :is(.cl-sidebar, .cl-topbar, .cl-preview, .cl-panel, .cl-period,
+  .cl-forecast select, .cl-segments, .clarity-auth .auth-card, .wallet-detail-panel, [role="dialog"], [role="alertdialog"]) {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+}
+
+:root:not(.light):not(.monochrome) :is(.cl-welcome, .cl-welcome-tile, .auth-showcase,
+  .cl-section-page .page-heading, .wallet-metrics > div) {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  clip-path: none;
+}
+
+:root:not(.light):not(.monochrome) :is(.cl-welcome, .cl-welcome-tile, .auth-showcase, .cl-section-page .page-heading,
+  .cl-primary-debt, .cl-pending-mini, .cl-debt-health) {
+  color: hsl(var(--foreground));
+}
+
+:root:not(.light):not(.monochrome) :is(.cl-welcome-copy > p, .cl-welcome-copy > span, .cl-welcome-tile .cl-welcome-drawing,
+  .auth-showcase-copy > p + p, .auth-showcase-links > span, .auth-illustration > svg, .cl-section-page .page-heading p,
+  .cl-primary-debt > p, .cl-primary-debt :is(dt, .cl-debt-current-values > div > span:first-child, .cl-health-copy p, .cl-health-stages li, .cl-health-stages small),
+  .cl-pending-mini p) {
+  color: hsl(var(--muted-foreground));
+}
+
+:root:not(.light):not(.monochrome) :is(.cl-primary-debt .cl-panel-heading h2, .cl-primary-debt .cl-debt-current-values .cl-amount,
+  .cl-primary-debt dd, .cl-primary-debt .cl-health-stages li[aria-current="step"], .cl-receive p strong) {
+  color: hsl(var(--foreground));
+}
+
+:root:not(.light):not(.monochrome) .cl-receive .cl-amount { color: hsl(var(--income)); }
+:root:not(.light):not(.monochrome) .cl-pay .cl-amount { color: hsl(var(--expense)); }
+:root:not(.light):not(.monochrome) :is(.cl-primary-debt .cl-panel-heading > svg, .cl-primary-debt > a) { color: hsl(var(--primary-text)); }
+:root:not(.light):not(.monochrome) .cl-primary-debt .cl-health-copy { --cl-health-status: hsl(var(--foreground)); }
+:root:not(.light):not(.monochrome) .cl-primary-debt .cl-health-gauge svg circle { stroke: hsl(var(--border)); }
+:root:not(.light):not(.monochrome) .cl-primary-debt .cl-health-gauge svg text { fill: hsl(var(--foreground)); }
+:root:not(.light):not(.monochrome) :is(.cl-primary-debt dl, .cl-primary-debt > a, .cl-primary-debt .cl-debt-health, .auth-showcase-links) {
+  border-color: hsl(var(--border));
+}
+
+:root:not(.light):not(.monochrome) :is(.cl-section-page .page-container > div.grid > .glass-card:first-child,
+  .cl-section-page[data-section="fluxo"] .page-container > div.grid > div:first-child > .glass-card) {
+  --card: 0 0% 0%;
+  --foreground: 35 20% 96%;
+  --card-foreground: var(--foreground);
+  --muted-foreground: 0 0% 71%;
+  --primary: 13 100% 58%;
+  --primary-text: 16 100% 74%;
+  --primary-foreground: 18 45% 9%;
+  --accent: var(--primary-text);
+  --ring: var(--primary-text);
+  --border: 0 0% 22%;
+  --input: 0 0% 30%;
+  --secondary: 0 0% 12%;
+  --secondary-foreground: var(--foreground);
+  --income: 151 61% 63%;
+  --expense: 352 95% 78%;
+  --destructive: var(--expense);
+  --cl-flow-main-surface: #000;
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+  color: hsl(var(--foreground));
+}
+
+:root:not(.light):not(.monochrome) :is(.cl-section-page[data-section="fluxo"] .glass-card > .group\/balance .cashflow-summary-grid > div,
+  .cl-section-page[data-section="fluxo"] .glass-card > .group\/balance .cashflow-live-grid > div,
+  .cashflow-compact-balances > section, .next-payment-summary > div, .life-xp, .analysis-totals > .analysis-balance) {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+}
+
+:root:not(.light):not(.monochrome) :is(.card-inset, [aria-labelledby="debt-advice-title"]) {
+  background-color: hsl(var(--card));
+}
+
+:root:not(.light):not(.monochrome) :is(.analysis-page, .flow-proposal) {
+  --flow-surface: hsl(var(--card));
+  --flow-raised: hsl(var(--card));
+  --flow-rule: hsl(var(--border));
+}
+
+:root:not(.light):not(.monochrome) :is(.cl-section-page [role="tablist"], .clarity-auth .auth-input,
+  .cl-header-actions > button:not(.cl-new-entry), .cl-avatar, .auth-theme-toggle, .cl-loading-mark) {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+}
+
+:root:not(.light):not(.monochrome) :is(.cl-header-actions > button:not(.cl-new-entry), .cl-section-page .page-heading :is(button,[role="combobox"],select), .auth-theme-toggle):hover:not(:disabled) {
+  background: hsl(var(--secondary));
+  border-color: hsl(var(--input));
+}
+
+:root:not(.light):not(.monochrome) :is(.cl-segments button[aria-pressed="true"], .cl-period button:hover:not(:disabled)) {
+  background: hsl(var(--secondary));
+  color: hsl(var(--primary-text));
+}
+
+:root:not(.light):not(.monochrome) .cl-section-page .page-heading :is(button,[role="combobox"],select):focus-visible {
+  outline-color: hsl(var(--ring));
+}

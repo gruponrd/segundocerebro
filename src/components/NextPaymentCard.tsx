@@ -37,7 +37,7 @@ export function NextPaymentCard({ months, banks }: { months: CashflowMonth[]; ba
       <p className="mt-1 text-sm text-muted-foreground">
         <time dateTime={plan.date} className="font-semibold text-foreground">{fullDate(plan.date)}</time> · {plan.deposit.map(item => item.label).join(" · ")}
       </p>
-      <dl className="my-3 grid grid-cols-2 gap-2 [overflow-wrap:anywhere] sm:grid-cols-3">
+      <dl className="next-payment-summary my-3 grid grid-cols-2 gap-2 [overflow-wrap:anywhere] sm:grid-cols-3">
         <div className="col-span-2 rounded-lg bg-secondary/60 px-3 py-2 sm:col-span-1">
           <dt className="text-xs text-muted-foreground">Recebimento previsto</dt>
           <dd className="font-semibold tabular-nums text-income">{amounts(plan.income)}</dd>

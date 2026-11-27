@@ -57,7 +57,7 @@ export default function FerramentasPage() {
         </div>
 
         <div className="mt-6 grid gap-6 xl:grid-cols-[320px_1fr]">
-          <div className="space-y-4 rounded-2xl border border-border/60 bg-secondary/20 p-4">
+          <div className="card-inset space-y-4 rounded-2xl border border-border/60 bg-secondary/20 p-4">
             <label className="block space-y-2 text-xs text-muted-foreground"><span>Começar em</span>{renderMonthSelect(startIndex, setStartIndex, "Mês inicial da simulação")}</label>
             <label className="block space-y-2 text-xs text-muted-foreground"><span>Saldo inicial hipotético (R$)</span><Input type="number" step="0.01" value={form.startingBalance} placeholder="0,00" onChange={e => setForm({ ...form, startingBalance: e.target.value })} className="rounded-xl" /></label>
             <div className="grid grid-cols-[1fr_80px] gap-2">
@@ -75,10 +75,10 @@ export default function FerramentasPage() {
                 { label: "Projeção atual no fim", value: final?.baseline ?? 0, tone: "text-foreground" },
                 { label: "Com suas hipóteses", value: final?.simulated ?? 0, tone: (final?.simulated ?? 0) < 0 ? "text-expense" : "text-income" },
                 { label: "Diferença no período", value: (final?.simulated ?? 0) - (final?.baseline ?? 0), tone: (final?.simulated ?? 0) < (final?.baseline ?? 0) ? "text-expense" : "text-income" },
-              ].map(item => <div key={item.label} className="rounded-2xl border border-border/60 bg-secondary/20 p-4"><p className="text-xs text-muted-foreground">{item.label}</p><p className={cn("mt-2 text-money text-lg", item.tone)}>{money(item.value)}</p></div>)}
+              ].map(item => <div key={item.label} className="card-inset rounded-2xl border border-border/60 bg-secondary/20 p-4"><p className="text-xs text-muted-foreground">{item.label}</p><p className={cn("mt-2 text-money text-lg", item.tone)}>{money(item.value)}</p></div>)}
             </div>
 
-            <div className={cn("rounded-xl border p-3 text-sm leading-relaxed", !hasEntries ? "border-border bg-secondary/20 text-muted-foreground" : worst < 0 ? "border-destructive/25 bg-destructive/5" : "border-primary/15 bg-primary/5")}>
+            <div className={cn("card-inset rounded-xl border p-3 text-sm leading-relaxed", !hasEntries ? "border-border bg-secondary/20 text-muted-foreground" : worst < 0 ? "border-destructive/25 bg-destructive/5" : "border-primary/15 bg-primary/5")}>
               {!hasEntries ? "Ainda não há lançamentos para sustentar esta projeção. Cadastre suas receitas e despesas no Fluxo." : !affected ? "Adicione suas hipóteses para comparar com os lançamentos existentes." : worst < 0 ? `O cenário chega a um saldo acumulado negativo de ${money(worst)}. Veja em qual mês isso acontece abaixo.` : worst < store.safetyMargin ? `O menor saldo acumulado é ${money(worst)}, abaixo da margem de segurança de ${money(store.safetyMargin)}.` : `O menor saldo acumulado é ${money(worst)} e preserva sua margem de segurança de ${money(store.safetyMargin)}.`}
             </div>
 

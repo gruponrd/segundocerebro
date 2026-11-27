@@ -110,7 +110,7 @@ export function CreditorWidget({ creditors, totalDebt, totalPaid, onAdd, onRemov
         <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Credores</h3>
       </div>
 
-      <div className="mb-4 p-3 rounded-xl bg-secondary/40">
+      <div className="card-inset mb-4 p-3 rounded-xl bg-secondary/40">
         <div className="flex justify-between text-xs text-muted-foreground mb-1">
           <span>Quitação Total</span>
           <span>{overallPercent.toFixed(0)}%</span>
