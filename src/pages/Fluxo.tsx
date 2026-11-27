@@ -4,7 +4,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { PeriodPicker } from "@/components/PeriodPicker";
 import { useFinanceStore } from "@/stores/financeStore";
-import { PaymentSessions } from "@/components/PaymentSessions";
+import { NextPaymentCard } from "@/components/NextPaymentCard";
 import { isDesignPreview } from "@/lib/previewMode";
 import { FlowSummary } from "./fluxo-preview/FlowSummary";
 import "./fluxo-preview/flow.css";
@@ -15,6 +15,7 @@ const FluxoPage = () => {
   const proposal = isDesignPreview && params.get("visual") === "proposta";
   const periodPicker = <PeriodPicker months={store.cashflowMonths} selected={store.selectedMonth} onChange={store.setSelectedMonth} />;
   const entries = <CashflowEntries presentation={proposal ? "ledger" : isDesignPreview ? "compact-balances" : undefined} />;
+  const nextPayment = <NextPaymentCard months={store.cashflowMonths} banks={store.banks} />;
 
   if (proposal) {
     return (
@@ -30,14 +31,9 @@ const FluxoPage = () => {
           {periodPicker}
         </header>
         <FlowSummary />
-        <div className="flow-workbench">
-          {entries}
-          <SmartEntryPanel proposal />
-        </div>
-        <details className="flow-payment-sessions">
-          <summary>Previsão por período e sessões de pagamento</summary>
-          <PaymentSessions />
-        </details>
+        {entries}
+        {nextPayment}
+        <div className="mt-4 max-w-2xl"><SmartEntryPanel proposal /></div>
       </main>
     );
   }
@@ -47,16 +43,12 @@ const FluxoPage = () => {
       <div className="page-container">
         <PageHeader title="Fluxo de caixa" description={`Entradas e saídas de ${store.currentCashflow.month} ${store.currentCashflow.year}. Entradas com data até o dia 7 do mês seguinte contam neste período.`} icon={ArrowLeftRight} className="mb-8" actions={periodPicker} />
 
-        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_340px] gap-4 items-start">
-          <div key={`cf-${store.selectedMonth}`} className="animate-float-in">
-            {entries}
-          </div>
-          <SmartEntryPanel />
+        <div key={`cf-${store.selectedMonth}`} className="animate-float-in">
+          {entries}
         </div>
 
-        <div className="mt-4">
-          <PaymentSessions />
-        </div>
+        {nextPayment}
+        <div className="mt-4 max-w-2xl"><SmartEntryPanel /></div>
       </div>
     </div>
   );

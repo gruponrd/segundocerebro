@@ -13,7 +13,9 @@ vi.mock("@/stores/financeStore", async () => {
     ], expenses: [] },
     { month: "Dezembro", year: 2026, incomes: [
       { label: "Salário", amount: 1900, paid: true, date: "2027-01-07" },
-    ], expenses: [] },
+    ], expenses: Array.from({ length: 5 }, (_, index) => ({
+      label: `Conta ${index + 1}`, amount: 100, date: `2026-12-${10 + index}`,
+    })) },
   ];
   return {
     useFinanceStore: () => {
@@ -22,11 +24,13 @@ vi.mock("@/stores/financeStore", async () => {
     },
   };
 });
-vi.mock("@/components/CashflowWorkspace", () => ({ CashflowEntries: () => null, SmartEntryPanel: () => null }));
+vi.mock("@/components/CashflowWorkspace", () => ({
+  CashflowEntries: () => <h2>Lançamentos do mês</h2>,
+  SmartEntryPanel: () => <h2>Lançamento rápido</h2>,
+}));
 vi.mock("@/components/CashflowDueDates", () => ({ CashflowDueDates: () => null }));
-vi.mock("@/components/PaymentSessions", () => ({ PaymentSessions: () => null }));
 
-afterEach(cleanup);
+afterEach(() => { cleanup(); vi.useRealTimers(); });
 
 it("mostra recebidos e pendentes no card de receitas do período selecionado", () => {
   render(<MemoryRouter><AnalysisPreview /></MemoryRouter>);
@@ -42,4 +46,19 @@ it("mostra recebidos e pendentes no card de receitas do período selecionado", (
   fireEvent.click(screen.getByRole("button", { name: "Próximo mês" }));
   expect(receiptAmount("Já recebido")).toBe(money(1900));
   expect(receiptAmount("Falta receber")).toBe(money(0));
+});
+
+it("mostra o plano completo depois dos lançamentos e deixa o lançamento rápido por último", () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date("2026-11-27T15:00:00Z"));
+  render(<MemoryRouter><AnalysisPreview /></MemoryRouter>);
+
+  const plan = screen.getByRole("region", { name: "Próximo recebimento" });
+  const ledger = screen.getByRole("heading", { name: "Lançamentos do mês" });
+  const quickEntry = screen.getByRole("heading", { name: "Lançamento rápido" });
+  expect(ledger.compareDocumentPosition(plan) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(plan.compareDocumentPosition(quickEntry) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(within(plan).getAllByRole("listitem")).toHaveLength(5);
+  expect(within(plan).getByText("Conta 5")).toBeVisible();
+  expect(screen.queryByText(/sessões de pagamento/i)).not.toBeInTheDocument();
 });

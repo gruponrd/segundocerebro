@@ -34,8 +34,8 @@
 .analysis-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.55fr) minmax(310px, 1fr);
-  grid-template-areas: "chart ledger" "due ledger" "quick ledger";
-  grid-template-rows: auto auto 1fr;
+  grid-template-areas: "chart ledger" "due ledger";
+  grid-template-rows: auto 1fr;
   gap: 18px;
   align-items: start;
 }
@@ -78,7 +78,6 @@
 .analysis-cashflow-trend .cl-spark-months button { min-height: 44px; }
 .analysis-cashflow-trend .cl-spark-months button[aria-pressed="true"] { background: hsl(var(--primary) / .13); color: var(--analysis-accent); }
 .analysis-layout > .flow-ledger { grid-area: ledger; }
-.analysis-layout > .flow-quick-entry { grid-area: quick; }
 .analysis-dues { grid-area: due; min-width: 0; scroll-margin-top: 16px; }
 .analysis-dues:focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 3px; border-radius: 12px; }
 .analysis-dues > h2 { font-size: 21px; font-weight: 650; margin-bottom: 10px; }
@@ -128,7 +127,6 @@
   --flow-accent: var(--analysis-accent);
 }
 .analysis-page .flow-ledger, .analysis-page .flow-quick-entry { border-radius: 18px; }
-.analysis-page .flow-payment-sessions { margin-top: 18px; }
 .analysis-page .flow-ledger-cards .group > button { opacity: 1; }
 .analysis-page .flow-ledger-cards .group > span { min-width: 0; }
 .analysis-page .flow-ledger-heading button { color: var(--analysis-accent); border-color: var(--analysis-accent); }
@@ -138,7 +136,7 @@
 @container (max-width: 790px) {
   .analysis-layout {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "chart" "due" "ledger" "quick";
+    grid-template-areas: "chart" "due" "ledger";
     grid-template-rows: auto;
   }
 }

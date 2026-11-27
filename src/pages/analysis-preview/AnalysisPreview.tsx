@@ -2,7 +2,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { ArrowDownLeft, ArrowLeft, ArrowUpRight, Monitor, Smartphone, Wallet } from "lucide-react";
 import { CashflowEntries, SmartEntryPanel } from "@/components/CashflowWorkspace";
 import { CashflowDueDates } from "@/components/CashflowDueDates";
-import { PaymentSessions } from "@/components/PaymentSessions";
+import { NextPaymentCard } from "@/components/NextPaymentCard";
 import { PeriodPicker } from "@/components/PeriodPicker";
 import { CashflowMonthStatus } from "@/components/MonthlyCashflowTrend";
 import { cashflowMonthSummary } from "@/lib/cashflowMonthSummary";
@@ -77,11 +77,10 @@ export default function AnalysisPreview() {
       </section>
       <CashflowDueDates />
       <CashflowEntries presentation="ledger" />
+    </div>
+    <NextPaymentCard months={cashflowMonths} banks={banks} />
+    <div className="mt-4 max-w-2xl">
       <SmartEntryPanel proposal />
     </div>
-    <details className="flow-payment-sessions">
-      <summary>Previsão por período e sessões de pagamento</summary>
-      <PaymentSessions />
-    </details>
   </main>;
 }

@@ -145,13 +145,6 @@
 .flow-coverage { border-top: 1px solid var(--flow-rule); padding-top: 5px; }
 .flow-coverage span, .flow-quick-impact dt { color: var(--flow-muted); }
 
-.flow-workbench {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, .48fr);
-  align-items: start;
-  gap: 16px;
-  margin-bottom: 22px;
-}
 .flow-ledger, .flow-quick-entry {
   min-width: 0;
   padding: 20px;
@@ -190,12 +183,8 @@
 .flow-quick-entry [role="combobox"] { min-height: 38px; max-width: 100%; }
 .flow-quick-impact { padding-top: 8px; border-top: 1px solid var(--flow-rule); }
 .flow-quick-entry:focus-visible { outline: 2px solid var(--flow-accent); outline-offset: 3px; }
-.flow-payment-sessions > summary { cursor: pointer; border: 1px solid var(--flow-rule); border-radius: 12px; padding: 14px 20px; background: var(--flow-surface); font-size: 14px; font-weight: 650; }
-.flow-payment-sessions > summary:focus-visible { outline: 2px solid var(--flow-accent); outline-offset: 3px; }
-.flow-payment-sessions[open] > summary { margin-bottom: 10px; }
 
 @media (max-width: 1170px) {
-  .flow-workbench { grid-template-columns: minmax(0, 1fr); }
   .flow-quick-entry { max-width: 560px; }
   .flow-page-header .flow-quick-jump { display: inline-flex; }
 }
